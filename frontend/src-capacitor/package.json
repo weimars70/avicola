@@ -1,0 +1,13 @@
+{
+  "name": "frontend",
+  "version": "0.0.1",
+  "description": "Galpones",
+  "author": "weimars70 <48889916+weimars70@users.noreply.github.com>",
+  "private": true,
+  "dependencies": {
+    "@capacitor/android": "^7.4.3",
+    "@capacitor/app": "^7.0.0",
+    "@capacitor/cli": "^7.0.0",
+    "@capacitor/core": "^7.0.0"
+  }
+}

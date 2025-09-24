@@ -1,0 +1,152 @@
+import { Injectable, NotFoundException, Inject, forwardRef } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { CreateSalidaDto } from './dto/create-salida.dto';
+import { UpdateSalidaDto } from './dto/update-salida.dto';
+import { Salida } from './entities/salida.entity';
+import { TiposHuevoService } from '../tipos-huevo/tipos-huevo.service';
+import { CanastasService } from '../canastas/canastas.service';
+import { InventarioStockService } from '../inventario/inventario-stock.service';
+import { IngresosService } from '../finanzas/ingresos.service';
+
+@Injectable()
+export class SalidasService {
+  constructor(
+    @InjectRepository(Salida)
+    private salidasRepository: Repository<Salida>,
+    private tiposHuevoService: TiposHuevoService,
+    private canastasService: CanastasService,
+    private inventarioStockService: InventarioStockService,
+    @Inject(forwardRef(() => IngresosService))
+    private ingresosService: IngresosService,
+  ) {}
+
+  async create(createSalidaDto: CreateSalidaDto): Promise<Salida> {
+    // Validar que el tipo de huevo existe
+    const tipoHuevo = await this.tiposHuevoService.findOne(createSalidaDto.tipoHuevoId);
+    
+    // Validar que la canasta existe
+    const canasta = await this.canastasService.findOne(createSalidaDto.canastaId);
+    
+    // Calcular unidades totales (canastas * unidades por canasta)
+    const unidadesTotales = createSalidaDto.unidades * canasta.unidadesPorCanasta;
+    
+    // Reducir del inventario antes de crear la salida
+    await this.inventarioStockService.reducirInventario(
+      createSalidaDto.tipoHuevoId,
+      unidadesTotales
+    );
+    
+    const salida = this.salidasRepository.create(createSalidaDto);
+    const savedSalida = await this.salidasRepository.save(salida);
+    
+    // Crear automáticamente un ingreso por la venta
+    try {
+      const monto = createSalidaDto.unidades * canasta.valorCanasta;
+      
+      await this.ingresosService.create({
+        monto,
+        fecha: createSalidaDto.fecha,
+        descripcion: `Venta de ${createSalidaDto.unidades} ${canasta.nombre} de ${tipoHuevo.nombre}`,
+        observaciones: `Generado automáticamente desde salida ${savedSalida.id}`,
+        tipo: 'venta',
+        salidaId: savedSalida.id,
+      });
+    } catch (error) {
+      // Log del error pero no fallar la creación de la salida
+      console.error('Error al crear ingreso automático:', error);
+    }
+    
+    return savedSalida;
+  }
+
+  async findAll(): Promise<Salida[]> {
+    return this.salidasRepository.find({
+      relations: ['tipoHuevo', 'canasta'],
+      order: { createdAt: 'DESC' }
+    });
+  }
+
+  async findOne(id: string): Promise<Salida> {
+    const salida = await this.salidasRepository.findOne({
+      where: { id },
+      relations: ['tipoHuevo', 'canasta']
+    });
+    
+    if (!salida) {
+      throw new NotFoundException(`Salida con ID ${id} no encontrada`);
+    }
+    
+    return salida;
+  }
+
+  async update(id: string, updateSalidaDto: UpdateSalidaDto): Promise<Salida> {
+    const salida = await this.findOne(id);
+    const unidadesOriginales = salida.unidades;
+    const tipoHuevoOriginal = salida.tipoHuevoId;
+    
+    // Validar tipo de huevo si se está actualizando
+    if (updateSalidaDto.tipoHuevoId) {
+      await this.tiposHuevoService.findOne(updateSalidaDto.tipoHuevoId);
+    }
+    
+    // Validar canasta si se está actualizando
+    if (updateSalidaDto.canastaId) {
+      await this.canastasService.findOne(updateSalidaDto.canastaId);
+    }
+    
+    // Si cambian las unidades o el tipo de huevo, ajustar inventario
+    if (updateSalidaDto.unidades !== undefined || updateSalidaDto.tipoHuevoId) {
+      const nuevoTipoHuevo = updateSalidaDto.tipoHuevoId || tipoHuevoOriginal;
+      const nuevasUnidades = updateSalidaDto.unidades !== undefined ? updateSalidaDto.unidades : unidadesOriginales;
+      
+      // Restaurar inventario original
+      await this.inventarioStockService.aumentarStock(tipoHuevoOriginal, unidadesOriginales);
+      
+      // Reducir inventario con nuevos valores
+      await this.inventarioStockService.reducirStock(nuevoTipoHuevo, nuevasUnidades);
+    }
+    
+    Object.assign(salida, updateSalidaDto);
+    return this.salidasRepository.save(salida);
+  }
+
+  async remove(id: string): Promise<void> {
+    const salida = await this.findOne(id);
+    await this.salidasRepository.remove(salida);
+  }
+
+  async getSalidasDiarias(fechaInicio: string, fechaFin: string): Promise<any[]> {
+    const query = `
+      SELECT 
+        salida."createdAt"::date as fecha,
+        SUM(
+          CASE 
+            WHEN salida."canastaId" IS NOT NULL THEN salida.unidades * canasta."unidadesPorCanasta"
+            ELSE salida.unidades
+          END
+        ) as salidas
+      FROM salidas salida
+      LEFT JOIN canastas canasta ON salida."canastaId" = canasta.id
+      WHERE salida."createdAt"::date BETWEEN $1 AND $2
+      GROUP BY salida."createdAt"::date
+      ORDER BY fecha ASC
+    `;
+    
+    return this.salidasRepository.query(query, [fechaInicio, fechaFin]);
+  }
+
+  async getCanastasDiarias(fechaInicio: string, fechaFin: string): Promise<any[]> {
+    const query = `
+      SELECT 
+        salida."createdAt"::date as fecha,
+        SUM(salida.unidades) as canastas
+      FROM salidas salida
+      WHERE salida."createdAt"::date BETWEEN $1 AND $2
+      GROUP BY salida."createdAt"::date
+      ORDER BY fecha ASC
+    `;
+    
+    return this.salidasRepository.query(query, [fechaInicio, fechaFin]);
+  }
+}
