@@ -1,0 +1,32 @@
+import { Repository } from 'typeorm';
+import { Gasto } from './entities/gasto.entity';
+import { CreateGastoDto } from './dto/create-gasto.dto';
+import { UpdateGastoDto } from './dto/update-gasto.dto';
+import { CreateConsumoPropioDto } from './dto/create-consumo-propio.dto';
+import { CategoriasGastosService } from './categorias-gastos.service';
+import { InventarioStockService } from '../inventario/inventario-stock.service';
+import { TiposHuevoService } from '../tipos-huevo/tipos-huevo.service';
+export declare class GastosService {
+    private gastosRepository;
+    private categoriasGastosService;
+    private inventarioStockService;
+    private tiposHuevoService;
+    constructor(gastosRepository: Repository<Gasto>, categoriasGastosService: CategoriasGastosService, inventarioStockService: InventarioStockService, tiposHuevoService: TiposHuevoService);
+    create(createGastoDto: CreateGastoDto): Promise<Gasto>;
+    createConsumoPropio(createConsumoPropioDto: CreateConsumoPropioDto): Promise<Gasto>;
+    findAll(): Promise<Gasto[]>;
+    findAllIncludingInactive(): Promise<Gasto[]>;
+    findByDateRange(fechaInicio: string, fechaFin: string): Promise<Gasto[]>;
+    findByCategoria(categoriaId: number): Promise<Gasto[]>;
+    findOne(id: string): Promise<Gasto>;
+    update(id: string, updateGastoDto: UpdateGastoDto): Promise<Gasto>;
+    remove(id: string): Promise<void>;
+    getTotalGastosByCategoria(): Promise<any[]>;
+    getTotalGastos(): Promise<number>;
+    getTotalGastosExcluyendoInversion(): Promise<number>;
+    getTotalInversionInicial(): Promise<number>;
+    getTotalGastosByDateRange(fechaInicio: string, fechaFin: string): Promise<number>;
+    getTotalGastosByDateRangeExcluyendoInversion(fechaInicio: string, fechaFin: string): Promise<number>;
+    getGastosDiarios(fechaInicio: string, fechaFin: string): Promise<any[]>;
+    createOrUpdateInversionInicial(montoTotal: number, fechaInicio: string, metaRecuperacion?: number): Promise<Gasto>;
+}

@@ -36,7 +36,8 @@ api.interceptors.response.use(
       delete api.defaults.headers.common['Authorization'];
       window.location.href = '/login';
     }
-    return Promise.reject(new Error(error.message || 'Network error'));
+    // Mantener el error original para preservar status y data
+    return Promise.reject(error instanceof Error ? error : new Error(String(error)));
   }
 );
 

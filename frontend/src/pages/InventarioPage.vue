@@ -95,15 +95,25 @@
                 <q-icon name="search" color="primary" />
               </template>
             </q-input>
-            <q-btn
-              color="primary"
-              icon="refresh"
-              label="Actualizar"
-              @click="loadInventario"
-              :loading="loading"
-              unelevated
-              class="refresh-btn"
-            />
+            <div class="filter-actions">
+              <q-btn
+                color="secondary"
+                icon="tune"
+                label="Ajuste de Inventario"
+                @click="showAjusteModal = true"
+                unelevated
+                class="ajuste-btn"
+              />
+              <q-btn
+                color="primary"
+                icon="refresh"
+                label="Actualizar"
+                @click="loadInventario"
+                :loading="loading"
+                unelevated
+                class="refresh-btn"
+              />
+            </div>
           </div>
         </q-card-section>
       </q-card>
@@ -210,7 +220,142 @@
           </div>
         </q-card-section>
       </q-card>
+
+      <!-- Historial de Ajustes -->
+      <q-card class="historial-card">
+        <q-card-section class="historial-header">
+          <div class="historial-title-section">
+            <q-icon name="history" class="historial-icon" />
+            <h3 class="historial-title">Historial de Ajustes</h3>
+          </div>
+          <q-btn
+            color="primary"
+            icon="refresh"
+            label="Actualizar"
+            @click="loadHistorialAjustes"
+            :loading="loadingHistorial"
+            unelevated
+            size="sm"
+            class="refresh-historial-btn"
+          />
+        </q-card-section>
+
+        <q-card-section class="historial-content">
+          <div v-if="loadingHistorial" class="historial-loading">
+            <q-spinner-dots size="2rem" color="primary" />
+            <p>Cargando historial...</p>
+          </div>
+
+          <div v-else-if="ajustesStore.error" class="historial-error">
+            <q-icon name="error_outline" size="3rem" color="negative" />
+            <p class="error-message">{{ ajustesStore.error }}</p>
+            <q-btn 
+              color="primary" 
+              label="Reintentar" 
+              @click="loadHistorialAjustes" 
+              unelevated 
+              size="sm"
+            />
+          </div>
+
+          <div v-else-if="historialAjustes.length === 0" class="historial-empty">
+            <q-icon name="history_toggle_off" size="3rem" color="grey-4" />
+            <p class="empty-message">No hay ajustes registrados</p>
+          </div>
+
+          <div v-else class="historial-list">
+            <q-expansion-item
+              v-for="lote in historialAjustes"
+              :key="lote.id"
+              class="historial-item"
+              :label="lote.descripcionGeneral"
+              :caption="formatFecha(lote.createdAt)"
+              icon="tune"
+              header-class="historial-item-header"
+            >
+              <template v-slot:header>
+                <q-item-section avatar>
+                  <q-icon name="tune" color="primary" />
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label class="historial-descripcion">{{ lote.descripcionGeneral }}</q-item-label>
+                  <q-item-label caption class="historial-fecha">
+                    <q-icon name="schedule" size="xs" />
+                    {{ formatFecha(lote.createdAt) }}
+                  </q-item-label>
+                </q-item-section>
+                <q-item-section side>
+                  <div class="historial-actions">
+                    <q-badge 
+                      :label="`${lote.ajustes.length} ajuste${lote.ajustes.length !== 1 ? 's' : ''}`"
+                      color="secondary"
+                      outline
+                      class="q-mr-sm"
+                    />
+                    <q-btn
+                      flat
+                      round
+                      dense
+                      icon="edit"
+                      color="primary"
+                      size="sm"
+                      @click.stop="editarLote(lote)"
+                      class="edit-btn q-mr-xs"
+                    >
+                      <q-tooltip>Editar ajuste</q-tooltip>
+                    </q-btn>
+                    <q-btn
+                      flat
+                      round
+                      dense
+                      icon="delete"
+                      color="negative"
+                      size="sm"
+                      @click.stop="confirmarEliminarLote(lote.id)"
+                      class="delete-btn"
+                    >
+                      <q-tooltip>Eliminar ajuste</q-tooltip>
+                    </q-btn>
+                  </div>
+                </q-item-section>
+              </template>
+
+              <div class="ajustes-detalle">
+                <div 
+                  v-for="ajuste in lote.ajustes" 
+                  :key="ajuste.id" 
+                  class="ajuste-detalle-item"
+                >
+                  <div class="ajuste-info">
+                    <div class="ajuste-tipo">
+                      <q-icon name="egg" size="sm" />
+                      <span class="tipo-nombre">{{ ajuste.tipoHuevo.nombre }}</span>
+                    </div>
+                    <div class="ajuste-operacion" :class="ajuste.tipoAjuste">
+                      <q-icon 
+                        :name="ajuste.tipoAjuste === 'suma' ? 'add' : 'remove'" 
+                        size="xs" 
+                      />
+                      <span class="cantidad">{{ ajuste.cantidadAjuste }}</span>
+                      <span class="unidades">unidades</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </q-expansion-item>
+          </div>
+        </q-card-section>
+      </q-card>
     </div>
+
+    <!-- Modal de Ajuste de Inventario -->
+    <AjusteInventarioModal
+      v-model="showAjusteModal"
+      :inventario="inventario"
+      :edit-mode="modalEditMode"
+      :lote-data="loteParaEditar"
+      @ajuste-realizado="onAjusteRealizado"
+    />
   </q-page>
 </template>
 
@@ -218,12 +363,41 @@
 import { ref, onMounted, computed } from 'vue';
 import { api } from 'src/boot/axios';
 import { useQuasar } from 'quasar';
+import { useAjustesInventarioStore } from 'src/stores/ajustesInventario';
+import AjusteInventarioModal from 'src/components/AjusteInventarioModal.vue';
 
 interface TipoHuevo {
   id: string;
   nombre: string;
-  descripcion: string;
+  descripcion?: string;
   valorUnidad: number;
+}
+
+interface Usuario {
+  id: string;
+  nombre: string;
+  email: string;
+}
+
+interface AjusteLote {
+  id: string;
+  descripcionGeneral: string;
+  usuarioId: string;
+  createdAt: string;
+  usuario: Usuario;
+  ajustes: {
+    id: string;
+    tipoHuevoId: string;
+    cantidadAnterior: number;
+    cantidadAjuste: number;
+    cantidadNueva: number;
+    tipoAjuste: 'suma' | 'resta';
+    descripcion: string;
+    usuarioId: string;
+    createdAt: string;
+    tipoHuevo: TipoHuevo;
+    usuario: Usuario;
+  }[];
 }
 
 interface InventarioItem {
@@ -233,10 +407,39 @@ interface InventarioItem {
   valorTotal: number;
 }
 
+interface AjusteHistorial {
+  id: string;
+  tipoHuevoId: string;
+  cantidadAnterior: number;
+  cantidadAjuste: number;
+  cantidadNueva: number;
+  tipoAjuste: 'suma' | 'resta';
+  descripcion: string;
+  usuarioId: string;
+  createdAt: string;
+  tipoHuevo: TipoHuevo;
+  usuario: Usuario;
+}
+
+interface LoteHistorial {
+  id: string;
+  descripcionGeneral: string;
+  usuarioId: string;
+  createdAt: string;
+  usuario: Usuario;
+  ajustes: AjusteHistorial[];
+}
+
 const $q = useQuasar();
+const ajustesStore = useAjustesInventarioStore();
 const loading = ref(false);
+const loadingHistorial = ref(false);
 const inventario = ref<InventarioItem[]>([]);
+const historialAjustes = ref<LoteHistorial[]>([]);
 const filter = ref('');
+const showAjusteModal = ref(false);
+const modalEditMode = ref(false);
+const loteParaEditar = ref<AjusteLote | null>(null);
 
 
 
@@ -306,7 +509,8 @@ const getStockStatus = (unidades: number): string => {
 
 const getPercentage = (valor: number): string => {
   if (totalValue.value === 0) return '0';
-  return ((valor / totalValue.value) * 100).toFixed(1);
+  const percentage = (valor / totalValue.value) * 100;
+  return typeof percentage === 'number' && !isNaN(percentage) ? percentage.toFixed(1) : '0.0';
 };
 
 const loadInventario = async () => {
@@ -332,10 +536,82 @@ const loadInventario = async () => {
   }
 };
 
+const loadHistorialAjustes = async () => {
+  loadingHistorial.value = true;
+  try {
+    await ajustesStore.fetchLotes();
+    historialAjustes.value = ajustesStore.lotes;
+  } catch (error) {
+    console.error('Error al cargar historial:', error);
+    $q.notify({
+      type: 'negative',
+      message: 'Error al cargar el historial de ajustes',
+      position: 'top'
+    });
+  } finally {
+    loadingHistorial.value = false;
+  }
+};
 
+const formatFecha = (fecha: string): string => {
+  return new Date(fecha).toLocaleString('es-CO', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+};
+
+const onAjusteRealizado = async () => {
+  // Recargar el inventario después de realizar un ajuste
+  await loadInventario();
+  await loadHistorialAjustes();
+};
+
+const confirmarEliminarLote = (loteId: string) => {
+  $q.dialog({
+    title: 'Confirmar eliminación',
+    message: '¿Estás seguro de que deseas eliminar este lote de ajustes? Esta acción revertirá todos los cambios de inventario asociados y no se puede deshacer.',
+    cancel: true,
+    persistent: true,
+    color: 'negative'
+  }).onOk(() => {
+    void eliminarLote(loteId);
+  });
+};
+
+const eliminarLote = async (loteId: string) => {
+  try {
+    await ajustesStore.deleteLote(loteId);
+    $q.notify({
+      type: 'positive',
+      message: 'Lote de ajustes eliminado correctamente',
+      position: 'top'
+    });
+    // Recargar datos
+    await loadInventario();
+    await loadHistorialAjustes();
+  } catch (error) {
+    console.error('Error al eliminar lote:', error);
+    $q.notify({
+      type: 'negative',
+      message: 'Error al eliminar el lote de ajustes',
+      position: 'top'
+    });
+  }
+};
+
+const editarLote = (lote: LoteHistorial) => {
+  // Abrir el modal en modo edición
+  modalEditMode.value = true;
+  loteParaEditar.value = lote as AjusteLote;
+  showAjusteModal.value = true;
+};
 
 onMounted(() => {
   void loadInventario();
+  void loadHistorialAjustes();
 });
 </script>
 
@@ -516,6 +792,20 @@ onMounted(() => {
 .search-input {
   flex: 1;
   max-width: 400px;
+}
+
+.filter-actions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.ajuste-btn {
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  text-transform: none;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
 }
 
 .refresh-btn {
@@ -812,5 +1102,51 @@ onMounted(() => {
 
 .kpi-card {
   animation: fadeInUp 0.6s ease-out;
+}
+
+/* Historial Error State */
+.historial-error {
+  text-align: center;
+  padding: 2rem;
+  background: #fff5f5;
+  border-radius: 12px;
+  border: 1px solid #fed7d7;
+}
+
+.historial-error .error-message {
+  color: #e53e3e;
+  font-size: 1rem;
+  margin: 1rem 0;
+  font-weight: 500;
+}
+
+.historial-loading,
+.historial-empty {
+  text-align: center;
+  padding: 2rem;
+  color: #6c757d;
+}
+
+.historial-loading p,
+.historial-empty .empty-message {
+  margin-top: 1rem;
+  font-size: 1rem;
+}
+
+/* Historial Actions */
+.historial-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.delete-btn {
+  opacity: 0.7;
+  transition: all 0.2s ease;
+}
+
+.delete-btn:hover {
+  opacity: 1;
+  transform: scale(1.1);
 }
 </style>

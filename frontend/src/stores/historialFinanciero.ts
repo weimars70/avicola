@@ -18,6 +18,7 @@ export interface TransaccionFinanciera {
   updatedAt?: string;
   esInversionInicial?: boolean;
   salidaId?: string;
+  nombreComprador?: string;
 }
 
 export interface FiltrosHistorial {
@@ -54,6 +55,9 @@ interface Ingreso {
   createdAt?: string;
   updatedAt?: string;
   salidaId?: string;
+  salida?: {
+    nombreComprador?: string;
+  };
 }
 
 export const useHistorialFinancieroStore = defineStore('historialFinanciero', () => {
@@ -180,7 +184,8 @@ export const useHistorialFinancieroStore = defineStore('historialFinanciero', ()
         },
         createdAt: ingreso.createdAt,
         updatedAt: ingreso.updatedAt,
-        salidaId: ingreso.salidaId
+        salidaId: ingreso.salidaId,
+        nombreComprador: ingreso.salida?.nombreComprador || undefined
       }));
 
       // No agregar transacción de inversión inicial por separado ya que viene incluida en los gastos del backend
@@ -225,34 +230,62 @@ export const useHistorialFinancieroStore = defineStore('historialFinanciero', ()
         });
         
         // Si el ingreso proviene de una salida, actualizar también la salida
-        if (transaccionActual?.salidaId && data.monto !== undefined) {
+        if (transaccionActual?.salidaId && (data.monto !== undefined || data.nombreComprador !== undefined)) {
           try {
             // Obtener la salida actual para calcular las nuevas unidades
             const salidaResponse = await api.get(`/salidas/${transaccionActual.salidaId}`);
             const salida = salidaResponse.data;
             
-            // Calcular las nuevas unidades basadas en el nuevo monto
-            const valorCanasta = salida.canasta?.valorCanasta || 1;
-            const nuevasUnidades = Math.round(data.monto / valorCanasta);
+            const updateData: { unidades?: number; nombreComprador?: string } = {};
             
-            // Actualizar la salida con las nuevas unidades
-            await api.patch(`/salidas/${transaccionActual.salidaId}`, {
-              unidades: nuevasUnidades
-            });
+            // Calcular las nuevas unidades basadas en el nuevo monto si se cambió
+            if (data.monto !== undefined) {
+              const valorCanasta = salida.canasta?.valorCanasta || 1;
+              const nuevasUnidades = Math.round(data.monto / valorCanasta);
+              updateData.unidades = nuevasUnidades;
+            }
+            
+            // Actualizar el nombre del comprador si se cambió
+            if (data.nombreComprador !== undefined) {
+              updateData.nombreComprador = data.nombreComprador;
+            }
+            
+            // Actualizar la salida con los nuevos datos
+            await api.patch(`/salidas/${transaccionActual.salidaId}`, updateData);
           } catch (salidaError) {
             console.warn('Error al actualizar salida relacionada:', salidaError);
             // No fallar la actualización del ingreso si falla la salida
           }
         }
       } else {
-        // Actualizar gasto
-        await api.patch(`/gastos/${realId}`, {
+        // Actualizar gasto - necesitamos obtener el categoriaId de la transacción actual
+        const transaccionActual = transacciones.value.find(t => t.id === id);
+        const categoriaId = transaccionActual?.detalles?.categoriaId;
+        
+        // Si no tenemos categoriaId, buscar por nombre de categoría
+        let finalCategoriaId = categoriaId;
+        if (!finalCategoriaId && data.categoria) {
+          try {
+            const categoriasResponse = await api.get('/categorias-gastos');
+            const categoria = categoriasResponse.data.find((cat: { id: number; nombre: string }) => cat.nombre === data.categoria);
+            finalCategoriaId = categoria?.id;
+          } catch (error) {
+            console.warn('Error al obtener categorías:', error);
+          }
+        }
+        
+        const gastoPayload = {
           descripcion: data.descripcion,
           monto: data.monto,
           fecha: data.fecha,
-          referencia: data.referencia,
-          observaciones: data.observaciones
-        });
+          observaciones: data.observaciones,
+          categoriaId: finalCategoriaId || 1 // Default a 1 si no se encuentra
+        };
+        
+        console.log('Enviando datos de gasto:', gastoPayload);
+        console.log('URL:', `/gastos/${realId}`);
+        
+        await api.patch(`/gastos/${realId}`, gastoPayload);
       }
       
       // Recargar datos

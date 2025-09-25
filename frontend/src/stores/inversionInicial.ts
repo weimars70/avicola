@@ -138,10 +138,10 @@ export const useInversionInicialStore = defineStore('inversionInicial', () => {
       const inversionData = {
         montoTotal: sanitizeNumber(montoTotal),
         montoRecuperado: sanitizeNumber(montoRecuperado),
-        porcentajeRecuperado: sanitizeNumber(porcentajeRecuperado.toFixed(2)),
+        porcentajeRecuperado: sanitizeNumber(typeof porcentajeRecuperado === 'number' && !isNaN(porcentajeRecuperado) ? porcentajeRecuperado.toFixed(2) : '0'),
         montoRestante: sanitizeNumber(montoRestante),
         fechaInicio: fechaInicioStr,
-        promedioMensualRecuperacion: sanitizeNumber(promedioMensualRecuperacion.toFixed(0))
+        promedioMensualRecuperacion: sanitizeNumber(typeof promedioMensualRecuperacion === 'number' && !isNaN(promedioMensualRecuperacion) ? promedioMensualRecuperacion.toFixed(0) : '0')
       };
       
       console.log('Datos finales de inversión:', inversionData);

@@ -532,8 +532,55 @@ export function useFinanzas() {
     }).format(value);
   };
 
-  const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString('es-CO');
+  const formatDate = (date: string): string => {
+    if (!date) return '';
+    
+    // Validar que la fecha tenga el formato correcto
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      return date;
+    }
+    
+    // Evitar problemas de timezone parseando la fecha manualmente
+    const parts = date.split('-');
+    if (parts.length !== 3) return date;
+    
+    const year = parseInt(parts[0]!, 10);
+    const month = parseInt(parts[1]!, 10);
+    const day = parseInt(parts[2]!, 10);
+    
+    if (isNaN(year) || isNaN(month) || isNaN(day)) return date;
+    
+    const localDate = new Date(year, month - 1, day);
+    
+    return localDate.toLocaleDateString('es-CO', {
+      timeZone: 'America/Bogota',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    });
+  };
+
+  // Función para asegurar que las fechas se envíen correctamente al backend
+  const ensureDateFormat = (date: string): string => {
+    if (!date) return '';
+    
+    // Si ya está en formato YYYY-MM-DD, devolverlo tal como está
+    if (/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      return date;
+    }
+    
+    // Si es una fecha en otro formato, intentar convertirla
+    const dateObj = new Date(date);
+    if (isNaN(dateObj.getTime())) {
+      return date; // Si no es una fecha válida, devolver tal como está
+    }
+    
+    // Convertir a formato YYYY-MM-DD en timezone local
+    const year = dateObj.getFullYear();
+    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const day = String(dateObj.getDate()).padStart(2, '0');
+    
+    return `${year}-${month}-${day}`;
   };
 
   return {
@@ -590,5 +637,6 @@ export function useFinanzas() {
     // Utilidades
     formatCurrency,
     formatDate,
+    ensureDateFormat,
   };
 }

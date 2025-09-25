@@ -588,11 +588,12 @@ const getColumnIcon = (columnName: string) => {
 const cargarDatosCalendario = async (mes?: number, año?: number) => {
   try {
     const fechaActual = new Date();
-    const mesCalendario = mes ?? fechaActual.getMonth() + 1;
+    // Usar el mismo formato que otras páginas para consistencia
+    const mesCalendario = mes ?? fechaActual.getMonth();
     const añoCalendario = año ?? fechaActual.getFullYear();
     
-    const fechaInicio = new Date(añoCalendario, mesCalendario - 1, 1);
-    const fechaFin = new Date(añoCalendario, mesCalendario, 0);
+    const fechaInicio = new Date(añoCalendario, mesCalendario, 1);
+    const fechaFin = new Date(añoCalendario, mesCalendario + 1, 0);
     
     const response = await api.get('/finanzas/datos-diarios', {
       params: {
@@ -601,7 +602,8 @@ const cargarDatosCalendario = async (mes?: number, año?: number) => {
       }
     });
     
-    datosCalendario.value = response.data;
+    // Forzar reactividad
+    datosCalendario.value = { ...response.data };
   } catch (error) {
     console.error('Error cargando datos del calendario:', error);
   }

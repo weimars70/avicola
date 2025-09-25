@@ -162,11 +162,11 @@
                 </div>
               </div>
 
-              <div v-if="salida.nombreComprador" class="detail-item">
+              <div class="detail-item">
                 <q-icon name="person" class="detail-icon" />
                 <div class="detail-info">
                   <div class="detail-label">Comprador</div>
-                  <div class="detail-value">{{ salida.nombreComprador }}</div>
+                  <div class="detail-value">{{ salida.nombreComprador || 'Sin especificar' }}</div>
                 </div>
               </div>
 
@@ -174,7 +174,7 @@
                 <q-icon name="attach_money" class="detail-icon" />
                 <div class="detail-info">
                   <div class="detail-label">Valor</div>
-                  <div class="detail-value">${{ salida.valor.toFixed(2) }}</div>
+                  <div class="detail-value">${{ typeof salida.valor === 'number' ? salida.valor.toFixed(2) : parseFloat(salida.valor || '0').toFixed(2) }}</div>
                 </div>
               </div>
             </div>
@@ -226,6 +226,12 @@
           <template v-slot:body-cell-canasta="props">
             <q-td :props="props">
               {{ props.row.canasta?.nombre || 'N/A' }}
+            </q-td>
+          </template>
+          
+          <template v-slot:body-cell-nombreComprador="props">
+            <q-td :props="props">
+              {{ props.row.nombreComprador || 'Sin especificar' }}
             </q-td>
           </template>
           
@@ -387,7 +393,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useSalidasStore } from 'src/stores/salidas';
 import { useTiposHuevoStore } from 'src/stores/tipos-huevo';
 import { useCanastasStore } from 'src/stores/canastas';
@@ -539,12 +545,17 @@ const tipoHuevoOptions = computed(() => {
 
 const canastasOptions = computed(() => {
   console.log('Canastas disponibles:', canastasStore.canastas);
-  const options = canastasStore.canastas
-    .filter(canasta => canasta.activo)
-    .map(canasta => ({
-      label: canasta.nombre,
-      value: canasta.id
-    }));
+  let canastas = canastasStore.canastas.filter(canasta => canasta.activo);
+  
+  // Filtrar canastas por tipo de huevo seleccionado
+  if (form.value.tipoHuevoId) {
+    canastas = canastas.filter(canasta => canasta.tipoHuevoId === form.value.tipoHuevoId);
+  }
+  
+  const options = canastas.map(canasta => ({
+    label: `${canasta.nombre} (${canasta.unidadesPorCanasta} unidades)`,
+    value: canasta.id
+  }));
   console.log('Opciones de canastas generadas:', options);
   return options;
 });
@@ -665,21 +676,25 @@ const fetchSalidas = async () => {
 const openDialog = (salida: Salida | null = null) => {
   editingSalida.value = salida;
   if (salida) {
+    // Al editar, usar la fecha original de la salida
+    const fechaOriginal = salida.fecha || salida.createdAt?.split('T')[0] || new Date().toISOString().split('T')[0];
     form.value = {
       tipoHuevoId: salida.tipoHuevoId,
       canastaId: salida.canastaId || '',
       unidades: salida.unidades,
       valor: salida.valor || 0,
-      fecha: salida.fecha || salida.createdAt.split('T')[0] || '',
+      fecha: fechaOriginal || '',
       nombreComprador: salida.nombreComprador || ''
     };
   } else {
+    // Al crear nueva salida, usar fecha actual
+    const today = new Date().toISOString().split('T')[0];
     form.value = {
       tipoHuevoId: '',
       canastaId: '',
       unidades: 0,
       valor: 0,
-      fecha: new Date().toISOString().split('T')[0] || '',
+      fecha: today || '',
       nombreComprador: ''
     };
   }
@@ -689,27 +704,79 @@ const openDialog = (salida: Salida | null = null) => {
 const closeDialog = () => {
   dialog.value = false;
   editingSalida.value = null;
+  const today = new Date().toISOString().split('T')[0];
   form.value = {
     tipoHuevoId: '',
     canastaId: '',
     unidades: 0,
     valor: 0,
-    fecha: new Date().toISOString().split('T')[0] || '',
+    fecha: today || '',
     nombreComprador: ''
   };
 };
 
 const saveSalida = async () => {
+  // Validar campos requeridos
+  if (!form.value.tipoHuevoId) {
+    $q.notify({
+      type: 'negative',
+      message: 'Debe seleccionar un tipo de huevo'
+    });
+    return;
+  }
+  
+  if (!form.value.canastaId) {
+    $q.notify({
+      type: 'negative',
+      message: 'Debe seleccionar una canasta'
+    });
+    return;
+  }
+  
+  if (!form.value.fecha) {
+    $q.notify({
+      type: 'negative',
+      message: 'Debe seleccionar una fecha'
+    });
+    return;
+  }
+  
+  if (form.value.unidades <= 0) {
+    $q.notify({
+      type: 'negative',
+      message: 'Las unidades deben ser mayor a 0'
+    });
+    return;
+  }
+  
+  if (!form.value.valor || form.value.valor <= 0) {
+    $q.notify({
+      type: 'negative',
+      message: 'El valor debe ser mayor a 0'
+    });
+    return;
+  }
+
   saving.value = true;
   try {
+    // Asegurar que todos los campos requeridos estén presentes
+    const salidaData = {
+      tipoHuevoId: form.value.tipoHuevoId,
+      canastaId: form.value.canastaId,
+      unidades: form.value.unidades,
+      valor: form.value.valor,
+      fecha: form.value.fecha,
+      nombreComprador: form.value.nombreComprador || '' // Asegurar que siempre se envíe, aunque sea vacío
+    };
+    
     if (editingSalida.value) {
-      await salidasStore.updateSalida(editingSalida.value.id, form.value);
+      await salidasStore.updateSalida(editingSalida.value.id, salidaData);
       $q.notify({
         type: 'positive',
         message: 'Salida actualizada correctamente'
       });
     } else {
-      await salidasStore.createSalida(form.value);
+      await salidasStore.createSalida(salidaData);
       $q.notify({
         type: 'positive',
         message: 'Salida creada correctamente'
@@ -752,7 +819,48 @@ const confirmDelete = (salida: Salida) => {
   });
 };
 
+// Limpiar canasta cuando cambie el tipo de huevo
+watch(
+  () => form.value.tipoHuevoId,
+  (newTipoHuevoId, oldTipoHuevoId) => {
+    if (newTipoHuevoId !== oldTipoHuevoId && form.value.canastaId) {
+      // Verificar si la canasta actual es compatible con el nuevo tipo de huevo
+      const canastaActual = canastasStore.canastas.find(c => c.id === form.value.canastaId);
+      if (canastaActual && canastaActual.tipoHuevoId !== newTipoHuevoId) {
+        form.value.canastaId = '';
+        form.value.valor = 0;
+      }
+    }
+  }
+);
 
+// Autocompletado del valor basado en la canasta seleccionada
+watch(
+  [() => form.value.tipoHuevoId, () => form.value.canastaId],
+  ([tipoHuevoId, canastaId]) => {
+    if (tipoHuevoId && canastaId) {
+      // Buscar la canasta seleccionada
+      const canasta = canastasStore.canastas.find(c => c.id === canastaId);
+      
+      if (canasta) {
+        // Usar el valor real de la canasta guardado en la base de datos
+        form.value.valor = canasta.valorCanasta;
+      }
+    }
+  },
+  { immediate: false }
+);
+
+// Asegurar que la fecha tenga un valor por defecto
+watch(
+  () => dialog.value,
+  (newValue) => {
+    if (newValue && !form.value.fecha) {
+      const today = new Date().toISOString().split('T')[0];
+      form.value.fecha = today || '';
+    }
+  }
+);
 
 onMounted(() => {
   void fetchSalidas();

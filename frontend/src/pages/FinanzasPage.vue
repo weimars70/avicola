@@ -343,7 +343,7 @@
                 <q-card class="bg-purple-1">
                   <q-card-section>
                     <div class="text-h6">ROI Estimado</div>
-                    <div class="text-h4 text-purple">{{ ((resumen.utilidadNeta / Math.max(resumen.totalGastos, 1)) * 100).toFixed(1) }}%</div>
+                    <div class="text-h4 text-purple">{{ (() => { const roi = (resumen.utilidadNeta / Math.max(resumen.totalGastos, 1)) * 100; return typeof roi === 'number' && !isNaN(roi) ? roi.toFixed(1) : '0.0'; })() }}%</div>
                   </q-card-section>
                 </q-card>
               </div>
@@ -468,7 +468,7 @@
                   </div>
                   <div class="kpi-info">
                     <div class="kpi-value">{{ formatCurrency(inversionStore.inversionInicial.montoRecuperado) }}</div>
-                    <div class="kpi-label">Recuperado ({{ inversionStore.inversionInicial.porcentajeRecuperado.toFixed(1) }}%)</div>
+                    <div class="kpi-label">Recuperado ({{ typeof inversionStore.inversionInicial.porcentajeRecuperado === 'number' ? inversionStore.inversionInicial.porcentajeRecuperado.toFixed(1) : '0.0' }}%)</div>
                   </div>
                 </q-card-section>
               </q-card>
@@ -515,7 +515,7 @@
             rounded
           />
           <div class="text-center text-caption q-mt-xs">
-            {{ inversionStore.inversionInicial.porcentajeRecuperado.toFixed(1) }}% recuperado
+            {{ typeof inversionStore.inversionInicial.porcentajeRecuperado === 'number' ? inversionStore.inversionInicial.porcentajeRecuperado.toFixed(1) : '0.0' }}% recuperado
           </div>
         </div>
         
@@ -1061,14 +1061,19 @@ const cargarDatosCalendario = async (mes?: number, año?: number) => {
     const mesConsulta = mes !== undefined ? mes : fechaActual.getMonth();
     const añoConsulta = año !== undefined ? año : fechaActual.getFullYear();
     
-    const fechaInicio = `${añoConsulta}-${String(mesConsulta + 1).padStart(2, '0')}-01`;
-    const ultimoDia = new Date(añoConsulta, mesConsulta + 1, 0).getDate();
-    const fechaFin = `${añoConsulta}-${String(mesConsulta + 1).padStart(2, '0')}-${String(ultimoDia).padStart(2, '0')}`;
+    // Usar el mismo formato que otras páginas para consistencia
+    const fechaInicio = new Date(añoConsulta, mesConsulta, 1);
+    const fechaFin = new Date(añoConsulta, mesConsulta + 1, 0);
     
     const response = await api.get('/finanzas/datos-diarios', {
-      params: { fechaInicio, fechaFin }
+      params: {
+        fechaInicio: fechaInicio.toISOString().split('T')[0],
+        fechaFin: fechaFin.toISOString().split('T')[0]
+      }
     });
-    datosCalendario.value = response.data;
+    
+    // Forzar reactividad
+    datosCalendario.value = { ...response.data };
   } catch (error) {
     console.error('Error al cargar datos del calendario:', error);
   }

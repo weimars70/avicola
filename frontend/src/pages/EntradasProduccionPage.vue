@@ -713,11 +713,12 @@ const confirmDelete = (entrada: EntradaProduccion) => {
 
 // Funciones del calendario
 const cargarDatosCalendario = async (mes?: number, año?: number) => {
+  const fechaActual = new Date();
+  const mesCalendario = mes ?? fechaActual.getMonth();
+  const añoCalendario = año ?? fechaActual.getFullYear();
+  
   try {
-    const fechaActual = new Date();
-    const mesCalendario = mes ?? fechaActual.getMonth();
-    const añoCalendario = año ?? fechaActual.getFullYear();
-    
+    // Usar el mes directamente como viene del calendario (0-11)
     const fechaInicio = new Date(añoCalendario, mesCalendario, 1);
     const fechaFin = new Date(añoCalendario, mesCalendario + 1, 0);
     
@@ -728,11 +729,12 @@ const cargarDatosCalendario = async (mes?: number, año?: number) => {
       }
     });
     
-    datosCalendarioFormateados.value = response.data;
+    // Asegurar que los datos se actualicen correctamente
+    datosCalendarioFormateados.value = { ...response.data };
   } catch (error) {
     console.error('Error cargando datos del calendario:', error);
     // Fallback a datos locales en caso de error
-    generarDatosCalendarioLocal(mes ?? new Date().getMonth(), año ?? new Date().getFullYear());
+    generarDatosCalendarioLocal(mesCalendario, añoCalendario);
   }
 };
 
@@ -755,7 +757,8 @@ const generarDatosCalendarioLocal = (mes: number, año: number) => {
     return acc;
   }, {} as Record<string, { produccion: number }>);
 
-  datosCalendarioFormateados.value = datosAgrupados;
+  // Forzar reactividad usando spread operator
+  datosCalendarioFormateados.value = { ...datosAgrupados };
 };
 
 const onCambioMes = (mes: number, año: number) => {

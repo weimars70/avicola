@@ -87,7 +87,27 @@ export class GastosController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateGastoDto: UpdateGastoDto,
   ) {
-    return this.gastosService.update(id, updateGastoDto);
+    console.log('=== CONTROLADOR GASTOS: PATCH ===');
+    console.log('ID recibido:', id);
+    console.log('DTO recibido:', JSON.stringify(updateGastoDto));
+    console.log('Tipo de datos:', {
+      descripcion: typeof updateGastoDto.descripcion,
+      monto: typeof updateGastoDto.monto,
+      fecha: typeof updateGastoDto.fecha,
+      observaciones: typeof updateGastoDto.observaciones,
+      categoriaId: typeof updateGastoDto.categoriaId
+    });
+    
+    try {
+      const result = this.gastosService.update(id, updateGastoDto);
+      console.log('=== CONTROLADOR GASTOS: ÉXITO ===');
+      return result;
+    } catch (error) {
+      console.error('=== CONTROLADOR GASTOS: ERROR ===');
+      console.error('Error:', error.message);
+      console.error('Stack:', error.stack);
+      throw error;
+    }
   }
 
   @Delete(':id')

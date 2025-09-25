@@ -216,7 +216,7 @@
               <div class="col-12 col-md-3">
                 <div class="text-subtitle2 text-green-8">Recuperado</div>
                 <div class="text-h6 text-green-9">${{ inversionStore.inversionInicial.montoRecuperado.toLocaleString() }}</div>
-                <div class="text-caption text-green-7">{{ inversionStore.inversionInicial.porcentajeRecuperado.toFixed(1) }}%</div>
+                <div class="text-caption text-green-7">{{ typeof inversionStore.inversionInicial.porcentajeRecuperado === 'number' ? inversionStore.inversionInicial.porcentajeRecuperado.toFixed(1) : '0.0' }}%</div>
               </div>
               
               <div class="col-12 col-md-3">
@@ -241,7 +241,7 @@
                 rounded
               />
               <div class="text-center text-caption q-mt-xs">
-                Progreso de Recuperación: {{ inversionStore.inversionInicial.porcentajeRecuperado.toFixed(1) }}%
+                Progreso de Recuperación: {{ typeof inversionStore.inversionInicial.porcentajeRecuperado === 'number' ? inversionStore.inversionInicial.porcentajeRecuperado.toFixed(1) : '0.0' }}%
               </div>
             </div>
           </q-card-section>
@@ -303,6 +303,15 @@
               <span :class="props.row.tipo === 'ingreso' ? 'text-green text-weight-bold' : 'text-red text-weight-bold'">
                 {{ props.row.tipo === 'ingreso' ? '+' : '-' }}${{ props.value.toLocaleString() }}
               </span>
+            </q-td>
+          </template>
+          
+          <template v-slot:body-cell-nombreComprador="props">
+            <q-td :props="props">
+              <span v-if="props.row.nombreComprador" class="text-primary">
+                {{ props.row.nombreComprador }}
+              </span>
+              <span v-else class="text-grey-5">-</span>
             </q-td>
           </template>
           
@@ -412,6 +421,15 @@
               outlined
               rows="3"
             />
+            
+            <!-- Campo para nombre del comprador (solo para transacciones con salidaId) -->
+            <q-input
+              v-if="editingTransaction?.salidaId"
+              v-model="form.nombreComprador"
+              label="Nombre del Comprador"
+              outlined
+              hint="Nombre de la persona que realizó la compra"
+            />
           </q-form>
         </q-card-section>
 
@@ -458,12 +476,13 @@ interface TransactionForm {
   categoria: string;
   referencia: string;
   observaciones: string;
+  nombreComprador: string;
 }
 
 const $q = useQuasar();
 const historialStore = useHistorialFinancieroStore();
 const inversionStore = useInversionInicialStore();
-const { syncIngresosFromSalidas, loading: finanzasLoading } = useFinanzas();
+const { syncIngresosFromSalidas, loading: finanzasLoading, ensureDateFormat } = useFinanzas();
 
 // Estado local
 const dialog = ref(false);
@@ -491,7 +510,8 @@ const form = ref<TransactionForm>({
   fecha: date.formatDate(new Date(), 'YYYY-MM-DD'),
   categoria: '',
   referencia: '',
-  observaciones: ''
+  observaciones: '',
+  nombreComprador: ''
 });
 
 // Opciones
@@ -510,6 +530,30 @@ const pagination = ref({
   rowsPerPage: 15
 });
 
+// Función para formatear fechas correctamente para Colombia
+const formatDateColombia = (dateString: string) => {
+  if (!dateString) return '';
+  
+  // Evitar problemas de timezone parseando la fecha manualmente
+  const parts = dateString.split('-');
+  if (parts.length !== 3) return dateString;
+  
+  const year = parseInt(parts[0]!, 10);
+  const month = parseInt(parts[1]!, 10);
+  const day = parseInt(parts[2]!, 10);
+  
+  if (isNaN(year) || isNaN(month) || isNaN(day)) return dateString;
+  
+  const localDate = new Date(year, month - 1, day);
+  
+  return localDate.toLocaleDateString('es-CO', {
+    timeZone: 'America/Bogota',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  });
+};
+
 // Columnas de la tabla
 const columns = [
   {
@@ -518,7 +562,7 @@ const columns = [
     align: 'left' as const,
     field: 'fecha',
     sortable: true,
-    format: (val: string) => date.formatDate(val, 'DD/MM/YYYY')
+    format: (val: string) => formatDateColombia(val)
   },
   {
     name: 'tipo',
@@ -553,6 +597,13 @@ const columns = [
     label: 'Referencia',
     align: 'left' as const,
     field: 'referencia',
+    sortable: true
+  },
+  {
+    name: 'nombreComprador',
+    label: 'Comprador',
+    align: 'left' as const,
+    field: 'nombreComprador',
     sortable: true
   },
   {
@@ -610,14 +661,19 @@ const cargarDatosCalendario = async (mes?: number, año?: number) => {
     const mesConsulta = mes !== undefined ? mes : fechaActual.getMonth();
     const añoConsulta = año !== undefined ? año : fechaActual.getFullYear();
     
-    const fechaInicio = `${añoConsulta}-${String(mesConsulta + 1).padStart(2, '0')}-01`;
-    const ultimoDia = new Date(añoConsulta, mesConsulta + 1, 0).getDate();
-    const fechaFin = `${añoConsulta}-${String(mesConsulta + 1).padStart(2, '0')}-${String(ultimoDia).padStart(2, '0')}`;
+    // Usar el mismo formato que otras páginas para consistencia
+    const fechaInicio = new Date(añoConsulta, mesConsulta, 1);
+    const fechaFin = new Date(añoConsulta, mesConsulta + 1, 0);
     
     const response = await api.get('/finanzas/datos-diarios', {
-      params: { fechaInicio, fechaFin }
+      params: {
+        fechaInicio: fechaInicio.toISOString().split('T')[0],
+        fechaFin: fechaFin.toISOString().split('T')[0]
+      }
     });
-    datosCalendario.value = response.data;
+    
+    // Forzar reactividad
+    datosCalendario.value = { ...response.data };
   } catch (error) {
     console.error('Error al cargar datos del calendario:', error);
   }
@@ -654,10 +710,11 @@ const openTransactionDialog = (transaction?: TransaccionFinanciera) => {
       tipo: transaction.tipo,
       descripcion: transaction.descripcion,
       monto: transaction.monto,
-      fecha: transaction.fecha,
+      fecha: ensureDateFormat(transaction.fecha),
       categoria: transaction.categoria || '',
       referencia: transaction.referencia || '',
-      observaciones: transaction.observaciones || ''
+      observaciones: transaction.observaciones || '',
+      nombreComprador: transaction.nombreComprador || ''
     };
   } else {
     editingTransaction.value = null;
@@ -680,7 +737,8 @@ const resetForm = () => {
     fecha: date.formatDate(new Date(), 'YYYY-MM-DD'),
     categoria: '',
     referencia: '',
-    observaciones: ''
+    observaciones: '',
+    nombreComprador: ''
   };
 };
 
@@ -700,10 +758,11 @@ const saveTransaction = async () => {
         tipo: form.value.tipo,
         descripcion: form.value.descripcion,
         monto: form.value.monto || 0,
-        fecha: form.value.fecha,
+        fecha: ensureDateFormat(form.value.fecha),
         categoria: form.value.categoria,
         referencia: form.value.referencia,
-        observaciones: form.value.observaciones
+        observaciones: form.value.observaciones,
+        nombreComprador: form.value.nombreComprador
       });
 
       if (result.success) {

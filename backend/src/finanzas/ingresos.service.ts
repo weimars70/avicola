@@ -23,12 +23,14 @@ export class IngresosService {
   async findAll(): Promise<Ingreso[]> {
     return await this.ingresosRepository.find({
       where: { activo: true },
+      relations: ['salida'],
       order: { fecha: 'DESC' },
     });
   }
 
   async findAllIncludingInactive(): Promise<Ingreso[]> {
     return await this.ingresosRepository.find({
+      relations: ['salida'],
       order: { fecha: 'DESC' },
     });
   }
@@ -36,6 +38,7 @@ export class IngresosService {
   async findOne(id: string): Promise<Ingreso> {
     const ingreso = await this.ingresosRepository.findOne({
       where: { id, activo: true },
+      relations: ['salida'],
     });
 
     if (!ingreso) {
@@ -51,6 +54,7 @@ export class IngresosService {
         fecha: Between(fechaInicio, fechaFin),
         activo: true,
       },
+      relations: ['salida'],
       order: { fecha: 'DESC' },
     });
   }
@@ -58,6 +62,7 @@ export class IngresosService {
   async findByTipo(tipo: string): Promise<Ingreso[]> {
     return await this.ingresosRepository.find({
       where: { tipo, activo: true },
+      relations: ['salida'],
       order: { fecha: 'DESC' },
     });
   }
