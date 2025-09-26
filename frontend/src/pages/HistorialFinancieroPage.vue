@@ -2,7 +2,7 @@
   <q-page class="q-pa-lg">
     <!-- Header -->
     <div class="row items-center justify-between q-mb-lg">
-      <div class="col">
+      <div class="col-12 col-md-8">
         <div class="text-h4 q-mb-sm">
           <q-icon name="history" class="q-mr-sm text-primary" />
           Historial Financiero
@@ -11,21 +11,30 @@
           Registro completo de todas las transacciones financieras
         </div>
       </div>
-      <div class="col-auto">
-        <q-btn
-          color="secondary"
-          icon="sync"
-          label="Sincronizar Ingresos"
-          @click="syncIngresos"
-          :loading="finanzasLoading"
-          class="q-mr-sm"
-        />
-        <q-btn
-          color="primary"
-          icon="add"
-          label="Nueva Transacción"
-          @click="openTransactionDialog()"
-        />
+      <div class="col-12 col-md-4 q-mt-md q-mt-md-none">
+        <div class="row q-gutter-sm justify-end">
+          <q-btn
+            color="secondary"
+            icon="sync"
+            :label="$q.screen.gt.xs ? 'Sincronizar Ingresos' : ''"
+            @click="syncIngresos"
+            :loading="finanzasLoading"
+            :size="$q.screen.gt.xs ? 'md' : 'sm'"
+            :round="$q.screen.lt.sm"
+          >
+            <q-tooltip v-if="$q.screen.lt.sm">Sincronizar Ingresos</q-tooltip>
+          </q-btn>
+          <q-btn
+            color="primary"
+            icon="add"
+            :label="$q.screen.gt.xs ? 'Nueva Transacción' : ''"
+            @click="openTransactionDialog()"
+            :size="$q.screen.gt.xs ? 'md' : 'sm'"
+            :round="$q.screen.lt.sm"
+          >
+            <q-tooltip v-if="$q.screen.lt.sm">Nueva Transacción</q-tooltip>
+          </q-btn>
+        </div>
       </div>
     </div>
 
@@ -150,10 +159,12 @@
         <q-card class="summary-card summary-card--ingresos">
           <q-card-section class="summary-card__content">
             <div class="summary-card__icon">
-              <q-icon name="trending_up" size="2.5rem" />
+              <q-icon name="trending_up" :size="$q.screen.gt.xs ? '2.5rem' : '2rem'" />
             </div>
             <div class="summary-card__info">
-              <div class="summary-card__value">${{ resumen.totalIngresos.toLocaleString() }}</div>
+              <div class="summary-card__value" :class="{ 'text-small': resumen.totalIngresos > 999999 }">
+                ${{ formatCurrency(resumen.totalIngresos) }}
+              </div>
               <div class="summary-card__label">Total Ingresos</div>
             </div>
           </q-card-section>
@@ -163,10 +174,12 @@
         <q-card class="summary-card summary-card--gastos">
           <q-card-section class="summary-card__content">
             <div class="summary-card__icon">
-              <q-icon name="trending_down" size="2.5rem" />
+              <q-icon name="trending_down" :size="$q.screen.gt.xs ? '2.5rem' : '2rem'" />
             </div>
             <div class="summary-card__info">
-              <div class="summary-card__value">${{ resumen.totalGastos.toLocaleString() }}</div>
+              <div class="summary-card__value" :class="{ 'text-small': resumen.totalGastos > 999999 }">
+                ${{ formatCurrency(resumen.totalGastos) }}
+              </div>
               <div class="summary-card__label">Total Gastos</div>
             </div>
           </q-card-section>
@@ -176,11 +189,11 @@
         <q-card class="summary-card" :class="resumen.balance >= 0 ? 'summary-card--balance-positive' : 'summary-card--balance-negative'">
           <q-card-section class="summary-card__content">
             <div class="summary-card__icon">
-              <q-icon name="account_balance" size="2.5rem" />
+              <q-icon name="account_balance" :size="$q.screen.gt.xs ? '2.5rem' : '2rem'" />
             </div>
             <div class="summary-card__info">
-              <div class="summary-card__value">
-                ${{ resumen.balance.toLocaleString() }}
+              <div class="summary-card__value" :class="{ 'text-small': Math.abs(resumen.balance) > 999999 }">
+                ${{ formatCurrency(resumen.balance) }}
               </div>
               <div class="summary-card__label">Balance</div>
             </div>
@@ -919,6 +932,18 @@ const getTipoLabel = (tipo: string) => {
   }
 };
 
+// Función para formatear moneda con abreviaciones para números grandes
+const formatCurrency = (amount: number) => {
+  if (Math.abs(amount) >= 1000000000) {
+    return (amount / 1000000000).toFixed(1) + 'B';
+  } else if (Math.abs(amount) >= 1000000) {
+    return (amount / 1000000).toFixed(1) + 'M';
+  } else if (Math.abs(amount) >= 1000) {
+    return (amount / 1000).toFixed(0) + 'K';
+  }
+  return amount.toLocaleString();
+};
+
 // Lifecycle
 onMounted(() => {
   void loadTransactions();
@@ -990,6 +1015,10 @@ onMounted(() => {
   font-weight: 700;
   line-height: 1.2;
   margin-bottom: 4px;
+}
+
+.summary-card__value.text-small {
+  font-size: 1.4rem;
 }
 
 .summary-card__label {

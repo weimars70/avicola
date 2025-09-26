@@ -547,7 +547,8 @@ const loadResumen = async () => {
   loading.value = true;
   try {
     await inventarioStore.fetchResumenInventario(undefined, filtroTipoHuevo.value || undefined);
-    resumen.value = inventarioStore.resumenInventario;
+    // Forzar reactividad con spread operator
+    resumen.value = [...inventarioStore.resumenInventario];
     
     $q.notify({
       type: 'positive',

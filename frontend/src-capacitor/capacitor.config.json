@@ -1,5 +1,6 @@
 {
-  "appId": "eggvisor",
-  "appName": "Quasar App",
+  "appId": "com.eggvisor.app",
+  "appName": "Eggvisor",
   "webDir": "www"
 }
+

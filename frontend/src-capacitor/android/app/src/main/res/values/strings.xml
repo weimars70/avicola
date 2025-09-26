@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Eggvisor</string>
+    <string name="title_activity_main">Eggvisor</string>
+    <string name="package_name">com.eggvisor.app</string>
+    <string name="custom_url_scheme">com.eggvisor.app</string>
+</resources>

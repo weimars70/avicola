@@ -54,7 +54,9 @@
             <!-- Solo Gastos (para página de finanzas) -->
             <div v-if="mostrarGastos && !mostrarIngresos" class="dato-item gastos-solo">
               <span class="icono">💰</span>
-              <span class="valor">${{ (dia.datos && dia.datos.gastos) || 0 }}</span>
+              <span class="valor" :class="{ 'large-number': (dia.datos?.gastos || 0) > 999 }">
+                ${{ formatCalendarValue(dia.datos?.gastos) }}
+              </span>
             </div>
             
             <!-- Calendario completo (historial financiero) -->
@@ -62,25 +64,33 @@
                <!-- Producción de huevos -->
                <div v-if="mostrarProduccion" class="dato-item produccion">
                  <span class="icono">🥚</span>
-                 <span class="valor">{{ (dia.datos && dia.datos.produccion) || 0 }}</span>
+                 <span class="valor" :class="{ 'large-number': (dia.datos?.produccion || 0) > 999 }">
+                   {{ formatCalendarValue(dia.datos?.produccion) }}
+                 </span>
                </div>
                
                <!-- Ingresos (salidas monetarias) -->
                <div v-if="mostrarIngresos" class="dato-item ingresos">
                  <span class="icono">$</span>
-                 <span class="valor">{{ (dia.datos && dia.datos.ingresos) || 0 }}</span>
+                 <span class="valor" :class="{ 'large-number': (dia.datos?.ingresos || 0) > 999 }">
+                   {{ formatCalendarValue(dia.datos?.ingresos) }}
+                 </span>
                </div>
                
                <!-- Canastas -->
                <div v-if="mostrarCanastas" class="dato-item canastas">
                  <span class="icono">🧺</span>
-                 <span class="valor">{{ (dia.datos && dia.datos.canastas) || 0 }}</span>
+                 <span class="valor" :class="{ 'large-number': (dia.datos?.canastas || 0) > 999 }">
+                   {{ formatCalendarValue(dia.datos?.canastas) }}
+                 </span>
                </div>
                
                <!-- Gastos -->
                <div v-if="mostrarGastos" class="dato-item gastos">
                  <span class="icono">💸</span>
-                 <span class="valor">${{ (dia.datos && dia.datos.gastos) || 0 }}</span>
+                 <span class="valor" :class="{ 'large-number': (dia.datos?.gastos || 0) > 999 }">
+                   ${{ formatCalendarValue(dia.datos?.gastos) }}
+                 </span>
                </div>
              </template>
           </div>
@@ -245,6 +255,18 @@ const mesSiguiente = () => {
     mesActual.value++
   }
   emit('cambioMes', mesActual.value, añoActual.value)
+}
+
+// Función para formatear valores en el calendario
+const formatCalendarValue = (value: number | undefined) => {
+  if (!value || value === 0) return '0'
+  
+  if (value >= 1000000) {
+    return (value / 1000000).toFixed(1) + 'M'
+  } else if (value >= 1000) {
+    return (value / 1000).toFixed(0) + 'K'
+  }
+  return value.toString()
 }
 
 
@@ -422,10 +444,18 @@ onMounted(() => {
 }
 
 .valor {
+  font-size: 10px;
   font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  max-width: 40px;
+}
+
+/* Estilos específicos para números grandes */
+.valor.large-number {
+  font-size: 8px;
+  max-width: 35px;
 }
 
 .calendario-leyenda {
@@ -467,15 +497,58 @@ onMounted(() => {
 
 @media (max-width: 768px) {
   .calendario-financiero {
-    padding: 15px;
+    padding: 12px;
+    margin: 0 -8px;
+  }
+  
+  .calendario-header {
+    margin-bottom: 16px;
+    padding: 12px 16px;
+    border-radius: 8px;
+  }
+  
+  .mes-año h6 {
+    font-size: 1.1rem;
+  }
+  
+  .nav-btn {
+    padding: 8px;
+  }
+  
+  .dias-semana {
+    margin-bottom: 8px;
+  }
+  
+  .dia-semana-header {
+    padding: 8px 2px;
+    font-size: 10px;
   }
   
   .dia-celda {
-    min-height: 60px;
-    padding: 4px;
+    min-height: 70px;
+    padding: 6px 4px;
+  }
+  
+  .dia-numero {
+    font-size: 12px;
+    margin-bottom: 4px;
+  }
+  
+  .datos-container {
+    gap: 2px;
   }
   
   .dato-item {
+    font-size: 9px;
+    padding: 2px 4px;
+    gap: 4px;
+  }
+  
+  .icono {
+    font-size: 12px;
+  }
+  
+  .valor {
     font-size: 9px;
   }
   
@@ -483,6 +556,121 @@ onMounted(() => {
     flex-direction: column;
     align-items: center;
     gap: 8px;
+    margin-top: 16px;
+    padding: 12px;
+  }
+  
+  .leyenda-item {
+    font-size: 11px;
+    padding: 4px 8px;
+  }
+  
+  .leyenda-icono {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .calendario-financiero {
+    padding: 8px;
+    margin: 0 -4px;
+  }
+  
+  .calendario-header {
+    padding: 8px 12px;
+    margin-bottom: 12px;
+  }
+  
+  .mes-año h6 {
+    font-size: 1rem;
+  }
+  
+  .nav-btn {
+    padding: 6px;
+    min-width: 32px;
+    min-height: 32px;
+  }
+  
+  .dia-semana-header {
+    padding: 6px 1px;
+    font-size: 9px;
+  }
+  
+  .dia-celda {
+    min-height: 60px;
+    padding: 4px 2px;
+  }
+  
+  .dia-numero {
+    font-size: 11px;
+    margin-bottom: 2px;
+  }
+  
+  .datos-container {
+    gap: 1px;
+  }
+  
+  .dato-item {
+    font-size: 8px;
+    padding: 1px 3px;
+    gap: 2px;
+    border-radius: 4px;
+  }
+  
+  .icono {
+    font-size: 10px;
+  }
+  
+  .valor {
+    font-size: 8px;
+  }
+  
+  .leyenda {
+    margin-top: 12px;
+    padding: 8px;
+    gap: 6px;
+  }
+  
+  .leyenda-item {
+    font-size: 10px;
+    padding: 3px 6px;
+  }
+  
+  .leyenda-icono {
+    font-size: 12px;
+  }
+}
+
+/* Tablet Landscape Optimization */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .calendario-financiero {
+    padding: 20px;
+  }
+  
+  .dia-celda {
+    min-height: 80px;
+    padding: 8px;
+  }
+  
+  .dato-item {
+    font-size: 10px;
+  }
+}
+
+/* Large screens optimization */
+@media (min-width: 1025px) {
+  .calendario-financiero {
+    padding: 28px;
+  }
+  
+  .dia-celda {
+    min-height: 90px;
+    padding: 12px;
+  }
+  
+  .dato-item {
+    font-size: 12px;
+    padding: 5px 7px;
   }
 }
 </style>
