@@ -66,10 +66,16 @@ export const useInventarioStore = defineStore('inventario', () => {
 
   // Función getMovimientoById removida - ya no se usa
 
+  // Método para refrescar inventario después de ajustes
+  const refreshInventario = async () => {
+    await fetchResumenInventario();
+  };
+
   return {
     resumenInventario,
     loading,
     error,
     fetchResumenInventario,
+    refreshInventario,
   };
 });

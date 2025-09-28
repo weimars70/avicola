@@ -365,7 +365,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useInventarioStore } from 'src/stores/inventario';
 import { useTiposHuevoStore } from 'src/stores/tipos-huevo';
 import { useQuasar } from 'quasar';
@@ -571,6 +571,11 @@ onMounted(async () => {
   await tiposHuevoStore.fetchTiposHuevo();
   await loadResumen();
 });
+
+// Watcher para actualizar automáticamente cuando cambie el inventario
+watch(() => inventarioStore.resumenInventario, () => {
+  // No necesitamos recargar todo, el computed ya se actualizará automáticamente
+}, { deep: true });
 </script>
 
 <style scoped>

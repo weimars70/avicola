@@ -546,7 +546,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { api } from 'src/boot/axios';
 import { useInventarioStore } from 'src/stores/inventario';
 import { useActividades } from 'src/composables/useActividades';
@@ -750,6 +750,11 @@ const loadDashboardData = async () => {
 onMounted(async () => {
   await loadDashboardData();
 });
+
+// Watcher para actualizar automáticamente el resumen de inventario cuando cambie
+watch(() => inventarioStore.resumenInventario, (newResumen) => {
+  inventorySummary.value = [...newResumen.slice(0, 5)];
+}, { deep: true });
 </script>
 
 <style scoped>

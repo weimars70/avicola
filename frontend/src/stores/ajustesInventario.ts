@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import { api } from 'boot/axios';
 import type { AxiosError } from 'axios';
+import { useInventarioStore } from './inventario';
 
 interface ErrorResponse {
   message?: string;
@@ -74,6 +75,9 @@ export const useAjustesInventarioStore = defineStore('ajustesInventario', () => 
   const lotes = ref<AjusteLote[]>([]);
   const loading = ref(false);
   const error = ref<string | null>(null);
+  
+  // Obtener referencia al store de inventario para notificaciones globales
+  const inventarioStore = useInventarioStore();
 
   const createAjuste = async (ajusteData: CreateAjusteInventarioDto): Promise<AjusteInventario> => {
     loading.value = true;
@@ -82,6 +86,10 @@ export const useAjustesInventarioStore = defineStore('ajustesInventario', () => 
       const response = await api.post('/ajustes-inventario', ajusteData);
       const nuevoAjuste = response.data;
       ajustes.value.unshift(nuevoAjuste);
+      
+      // Notificar actualización global del inventario
+      await inventarioStore.refreshInventario();
+      
       return nuevoAjuste;
     } catch (err: unknown) {
       const axiosError = err as AxiosError;
@@ -146,6 +154,10 @@ export const useAjustesInventarioStore = defineStore('ajustesInventario', () => 
       const response = await api.post('/ajustes-inventario/lotes', loteData);
       const nuevoLote = response.data;
       lotes.value.unshift(nuevoLote);
+      
+      // Notificar actualización global del inventario
+      await inventarioStore.refreshInventario();
+      
       return nuevoLote;
     } catch (err: unknown) {
       const axiosError = err as AxiosError;

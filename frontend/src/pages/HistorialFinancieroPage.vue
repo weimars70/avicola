@@ -932,15 +932,8 @@ const getTipoLabel = (tipo: string) => {
   }
 };
 
-// Función para formatear moneda con abreviaciones para números grandes
+// Función para formatear moneda sin abreviaciones
 const formatCurrency = (amount: number) => {
-  if (Math.abs(amount) >= 1000000000) {
-    return (amount / 1000000000).toFixed(1) + 'B';
-  } else if (Math.abs(amount) >= 1000000) {
-    return (amount / 1000000).toFixed(1) + 'M';
-  } else if (Math.abs(amount) >= 1000) {
-    return (amount / 1000).toFixed(0) + 'K';
-  }
   return amount.toLocaleString();
 };
 
