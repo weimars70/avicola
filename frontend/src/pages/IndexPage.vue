@@ -328,7 +328,7 @@
               Acciones Rápidas
             </div>
             <div class="q-gutter-md">
-              <div class="action-card hover-lift" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; padding: 20px; cursor: pointer; transition: all 0.3s ease;" @click="$router.push('/entradas-produccion')">
+              <div class="action-card hover-lift" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; padding: 20px; cursor: pointer; transition: all 0.3s ease;" @click="router.push('/entradas-produccion')">
                 <div class="row items-center no-wrap">
                   <div class="col-auto q-mr-md">
                     <q-icon name="add_circle" size="32px" color="white" />
@@ -343,7 +343,7 @@
                 </div>
               </div>
               
-              <div class="action-card hover-lift" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border-radius: 16px; padding: 20px; cursor: pointer; transition: all 0.3s ease;" @click="$router.push('/galpones')">
+              <div class="action-card hover-lift" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border-radius: 16px; padding: 20px; cursor: pointer; transition: all 0.3s ease;" @click="router.push('/galpones')">
                 <div class="row items-center no-wrap">
                   <div class="col-auto q-mr-md">
                     <q-icon name="home" size="32px" color="white" />
@@ -358,7 +358,7 @@
                 </div>
               </div>
               
-              <div class="action-card hover-lift" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); border-radius: 16px; padding: 20px; cursor: pointer; transition: all 0.3s ease;" @click="$router.push('/inventario')">
+              <div class="action-card hover-lift" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); border-radius: 16px; padding: 20px; cursor: pointer; transition: all 0.3s ease;" @click="router.push('/inventario')">
                 <div class="row items-center no-wrap">
                   <div class="col-auto q-mr-md">
                     <q-icon name="inventory_2" size="32px" color="white" />
@@ -373,7 +373,7 @@
                 </div>
               </div>
               
-              <div class="action-card hover-lift" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); border-radius: 16px; padding: 20px; cursor: pointer; transition: all 0.3s ease;" @click="$router.push('/resumen')">
+              <div class="action-card hover-lift" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); border-radius: 16px; padding: 20px; cursor: pointer; transition: all 0.3s ease;" @click="router.push('/resumen')">
                 <div class="row items-center no-wrap action-card-content">
                   <div class="col-auto q-mr-md action-icon-container">
                     <q-icon name="assessment" size="32px" color="white" class="action-icon" />
@@ -552,6 +552,7 @@ import { useInventarioStore } from 'src/stores/inventario';
 import { useActividades } from 'src/composables/useActividades';
 import { useFinanzas } from 'src/composables/useFinanzas';
 import { useQuasar } from 'quasar';
+import { useRouter } from 'vue-router';
 import CalendarioFinanciero from 'src/components/CalendarioFinanciero.vue';
 
 interface Galpon {
@@ -577,6 +578,7 @@ interface InventorySummaryItem {
 const inventarioStore = useInventarioStore();
 const { syncIngresosFromSalidas, loading: finanzasLoading } = useFinanzas();
 const $q = useQuasar();
+const router = useRouter();
 
 const loading = ref(false);
 

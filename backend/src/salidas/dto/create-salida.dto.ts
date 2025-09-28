@@ -5,9 +5,9 @@ export class CreateSalidaDto {
   @IsString()
   tipoHuevoId: string;
 
-  @IsString()
   @IsOptional()
-  canastaId?: string;
+  @IsString()
+  canastaId?: string | null;
 
   @IsString()
   @IsOptional()
@@ -23,7 +23,7 @@ export class CreateSalidaDto {
   @Min(0)
   valor?: number;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsDateString()
-  fecha: string;
+  fecha?: string;
 }

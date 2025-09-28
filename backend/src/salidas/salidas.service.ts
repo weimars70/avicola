@@ -25,11 +25,15 @@ export class SalidasService {
     // Validar que el tipo de huevo existe
     const tipoHuevo = await this.tiposHuevoService.findOne(createSalidaDto.tipoHuevoId);
     
-    // Validar que la canasta existe
-    const canasta = await this.canastasService.findOne(createSalidaDto.canastaId);
+    let canasta = null;
+    let unidadesTotales = createSalidaDto.unidades;
     
-    // Calcular unidades totales (canastas * unidades por canasta)
-    const unidadesTotales = createSalidaDto.unidades * canasta.unidadesPorCanasta;
+    // Validar que la canasta existe solo si se proporciona
+    if (createSalidaDto.canastaId) {
+      canasta = await this.canastasService.findOne(createSalidaDto.canastaId);
+      // Calcular unidades totales (canastas * unidades por canasta)
+      unidadesTotales = createSalidaDto.unidades * canasta.unidadesPorCanasta;
+    }
     
     // Reducir del inventario antes de crear la salida
     await this.inventarioStockService.reducirInventario(
@@ -42,12 +46,22 @@ export class SalidasService {
     
     // Crear automáticamente un ingreso por la venta
     try {
-      const monto = createSalidaDto.unidades * canasta.valorCanasta;
+      let monto = 0;
+      let descripcion = '';
+      
+      if (canasta) {
+        monto = createSalidaDto.unidades * canasta.valorCanasta;
+        descripcion = `Venta de ${createSalidaDto.unidades} ${canasta.nombre} de ${tipoHuevo.nombre}`;
+      } else {
+        // Si no hay canasta, usar el valor proporcionado o calcular basado en el tipo de huevo
+        monto = createSalidaDto.valor || (createSalidaDto.unidades * tipoHuevo.valorUnidad);
+        descripcion = `Venta de ${createSalidaDto.unidades} unidades de ${tipoHuevo.nombre}`;
+      }
       
       await this.ingresosService.create({
         monto,
         fecha: createSalidaDto.fecha,
-        descripcion: `Venta de ${createSalidaDto.unidades} ${canasta.nombre} de ${tipoHuevo.nombre}`,
+        descripcion,
         observaciones: `Generado automáticamente desde salida ${savedSalida.id}`,
         tipo: 'venta',
         salidaId: savedSalida.id,

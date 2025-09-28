@@ -395,6 +395,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue';
 import { useSalidasStore } from 'src/stores/salidas';
+import type { CreateSalidaDto, UpdateSalidaDto } from 'src/stores/salidas';
 import { useTiposHuevoStore } from 'src/stores/tipos-huevo';
 import { useCanastasStore } from 'src/stores/canastas';
 import { useQuasar } from 'quasar';
@@ -414,7 +415,7 @@ interface Canasta {
 interface Salida {
   id: string;
   tipoHuevoId: string;
-  canastaId?: string;
+  canastaId?: string | null | undefined; // Actualizar para permitir null y undefined
   unidades: number;
   valor?: number;
   fecha?: string;
@@ -442,7 +443,7 @@ const filter = ref({
 
 interface FormularioSalida {
   tipoHuevoId: string;
-  canastaId: string;
+  canastaId: string | null; // Permitir null
   unidades: number;
   valor?: number;
   fecha: string;
@@ -451,7 +452,7 @@ interface FormularioSalida {
 
 const form = ref<FormularioSalida>({
   tipoHuevoId: '',
-  canastaId: '',
+  canastaId: null, // Cambiar a null por defecto
   unidades: 0,
   valor: 0,
   fecha: new Date().toISOString().split('T')[0] || '', // Fecha actual por defecto
@@ -680,7 +681,7 @@ const openDialog = (salida: Salida | null = null) => {
     const fechaOriginal = salida.fecha || salida.createdAt?.split('T')[0] || new Date().toISOString().split('T')[0];
     form.value = {
       tipoHuevoId: salida.tipoHuevoId,
-      canastaId: salida.canastaId || '',
+      canastaId: salida.canastaId || null, // Usar null en lugar de string vacío para consistencia
       unidades: salida.unidades,
       valor: salida.valor || 0,
       fecha: fechaOriginal || '',
@@ -691,7 +692,7 @@ const openDialog = (salida: Salida | null = null) => {
     const today = new Date().toISOString().split('T')[0];
     form.value = {
       tipoHuevoId: '',
-      canastaId: '',
+      canastaId: null, // Usar null en lugar de string vacío para consistencia
       unidades: 0,
       valor: 0,
       fecha: today || '',
@@ -725,14 +726,6 @@ const saveSalida = async () => {
     return;
   }
   
-  if (!form.value.canastaId) {
-    $q.notify({
-      type: 'negative',
-      message: 'Debe seleccionar una canasta'
-    });
-    return;
-  }
-  
   if (!form.value.fecha) {
     $q.notify({
       type: 'negative',
@@ -748,35 +741,51 @@ const saveSalida = async () => {
     });
     return;
   }
-  
-  if (!form.value.valor || form.value.valor <= 0) {
-    $q.notify({
-      type: 'negative',
-      message: 'El valor debe ser mayor a 0'
-    });
-    return;
-  }
 
   saving.value = true;
   try {
-    // Asegurar que todos los campos requeridos estén presentes
-    const salidaData = {
-      tipoHuevoId: form.value.tipoHuevoId,
-      canastaId: form.value.canastaId,
-      unidades: form.value.unidades,
-      valor: form.value.valor,
-      fecha: form.value.fecha,
-      nombreComprador: form.value.nombreComprador || '' // Asegurar que siempre se envíe, aunque sea vacío
-    };
-    
     if (editingSalida.value) {
-      await salidasStore.updateSalida(editingSalida.value.id, salidaData);
+      // Para actualización, usar UpdateSalidaDto
+      const updateData: UpdateSalidaDto = {
+        tipoHuevoId: form.value.tipoHuevoId,
+        canastaId: form.value.canastaId || null,
+        unidades: parseInt(String(form.value.unidades), 10),
+        fecha: form.value.fecha,
+      };
+
+      // Solo incluir campos opcionales si tienen valores válidos
+      if (form.value.valor && form.value.valor > 0) {
+        updateData.valor = parseFloat(String(form.value.valor));
+      }
+      
+      if (form.value.nombreComprador && form.value.nombreComprador.trim()) {
+        updateData.nombreComprador = form.value.nombreComprador.trim();
+      }
+
+      await salidasStore.updateSalida(editingSalida.value.id, updateData);
       $q.notify({
         type: 'positive',
         message: 'Salida actualizada correctamente'
       });
     } else {
-      await salidasStore.createSalida(salidaData);
+      // Para creación, usar CreateSalidaDto
+      const createData: CreateSalidaDto = {
+        tipoHuevoId: form.value.tipoHuevoId,
+        canastaId: form.value.canastaId || null,
+        unidades: parseInt(String(form.value.unidades), 10),
+        fecha: form.value.fecha,
+      };
+
+      // Solo incluir campos opcionales si tienen valores válidos
+      if (form.value.valor && form.value.valor > 0) {
+        createData.valor = parseFloat(String(form.value.valor));
+      }
+      
+      if (form.value.nombreComprador && form.value.nombreComprador.trim()) {
+        createData.nombreComprador = form.value.nombreComprador.trim();
+      }
+
+      await salidasStore.createSalida(createData);
       $q.notify({
         type: 'positive',
         message: 'Salida creada correctamente'
@@ -784,10 +793,39 @@ const saveSalida = async () => {
     }
     closeDialog();
     await fetchSalidas();
-  } catch {
+  } catch (error: unknown) {
+    console.error('Error al guardar salida:', error);
+    
+    let errorMessage = 'Error al guardar la salida';
+    
+    // Type guard para verificar si es un error de Axios
+    const isAxiosError = (err: unknown): err is { response?: { status?: number; data?: { message?: string | string[] } }; code?: string } => {
+      return typeof err === 'object' && err !== null;
+    };
+    
+    if (isAxiosError(error)) {
+      // Manejo específico de errores 400 (Bad Request)
+      if (error.response?.status === 400) {
+        const validationErrors = error.response.data?.message;
+        if (Array.isArray(validationErrors)) {
+          errorMessage = `Error de validación: ${validationErrors.join(', ')}`;
+        } else if (typeof validationErrors === 'string') {
+          errorMessage = `Error de validación: ${validationErrors}`;
+        } else {
+          errorMessage = 'Error de validación en los datos enviados';
+        }
+      } else if (error.response?.status === 500) {
+        errorMessage = 'Error interno del servidor';
+      } else if (error.code === 'ECONNABORTED') {
+        errorMessage = 'Tiempo de espera agotado. Intente nuevamente';
+      } else if (error.code === 'ECONNREFUSED') {
+        errorMessage = 'No se pudo conectar con el servidor';
+      }
+    }
+    
     $q.notify({
       type: 'negative',
-      message: 'Error al guardar la salida'
+      message: errorMessage
     });
   } finally {
     saving.value = false;

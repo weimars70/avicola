@@ -15,7 +15,7 @@ interface Canasta {
 export interface Salida {
   id: string;
   tipoHuevoId: string;
-  canastaId?: string;
+  canastaId?: string | null | undefined; // Agregar undefined para compatibilidad con exactOptionalPropertyTypes
   unidades: number;
   valor?: number;
   fecha?: string;
@@ -28,7 +28,7 @@ export interface Salida {
 
 export interface CreateSalidaDto {
   tipoHuevoId: string;
-  canastaId: string;
+  canastaId?: string | null; // Permitir null y undefined
   unidades: number;
   valor?: number;
   fecha?: string;
@@ -37,7 +37,7 @@ export interface CreateSalidaDto {
 
 export interface UpdateSalidaDto {
   tipoHuevoId?: string;
-  canastaId?: string;
+  canastaId?: string | null; // Permitir null y undefined
   unidades?: number;
   valor?: number;
   fecha?: string;

@@ -733,6 +733,14 @@ const cargarDatosCalendario = async (mes?: number, año?: number) => {
     datosCalendarioFormateados.value = { ...response.data };
   } catch (error) {
     console.error('Error cargando datos del calendario:', error);
+    
+    // Mostrar mensaje informativo al usuario
+    if ((error as Error & { code?: string })?.code === 'ECONNABORTED') {
+      console.warn('Timeout al cargar datos del servidor, usando datos locales');
+    } else {
+      console.warn('Error de conexión, usando datos locales disponibles');
+    }
+    
     // Fallback a datos locales en caso de error
     generarDatosCalendarioLocal(mesCalendario, añoCalendario);
   }

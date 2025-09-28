@@ -1271,7 +1271,7 @@ const removeHuevoConsumo = (index: number) => {
   }
 };
 
-const fetchTiposHuevo = async () => {
+const fetchTiposHuevo = async (reintentos = 3) => {
   try {
     const response = await api.get('/tipos-huevo');
     tiposHuevo.value = response.data;
@@ -1279,6 +1279,22 @@ const fetchTiposHuevo = async () => {
     console.log('Primer tipo de huevo:', tiposHuevo.value[0]);
   } catch (error) {
     console.error('Error cargando tipos de huevo:', error);
+    
+    // Implementar retry automático para errores de timeout
+    if (reintentos > 0 && (error as Error & { code?: string })?.code === 'ECONNABORTED') {
+      console.log(`Reintentando carga de tipos de huevo... (${4 - reintentos}/3)`);
+      setTimeout(() => {
+        void fetchTiposHuevo(reintentos - 1);
+      }, 2000); // Esperar 2 segundos antes de reintentar
+    } else {
+      // Fallback a datos por defecto si fallan todos los reintentos
+      tiposHuevo.value = [
+        { id: '1', nombre: 'Huevo Grande', valorUnidad: 0 },
+        { id: '2', nombre: 'Huevo Mediano', valorUnidad: 0 },
+        { id: '3', nombre: 'Huevo Pequeño', valorUnidad: 0 }
+      ];
+      console.warn('Usando tipos de huevo por defecto debido a errores de conexión');
+    }
   }
 };
 
