@@ -41,7 +41,13 @@ export class SalidasService {
       unidadesTotales
     );
     
-    const salida = this.salidasRepository.create(createSalidaDto);
+    // Asegurar que siempre haya una fecha definida
+    const fechaFinal = createSalidaDto.fecha || new Date().toISOString().split('T')[0];
+    
+    const salida = this.salidasRepository.create({
+      ...createSalidaDto,
+      fecha: fechaFinal // Asegurar que la salida siempre tenga una fecha
+    });
     const savedSalida = await this.salidasRepository.save(salida);
     
     // Crear automáticamente un ingreso por la venta
@@ -55,12 +61,11 @@ export class SalidasService {
       } else {
         // Si no hay canasta, usar el valor proporcionado o calcular basado en el tipo de huevo
         monto = createSalidaDto.valor || (createSalidaDto.unidades * tipoHuevo.valorUnidad);
-        descripcion = `Venta de ${createSalidaDto.unidades} unidades de ${tipoHuevo.nombre}`;
       }
       
       await this.ingresosService.create({
         monto,
-        fecha: createSalidaDto.fecha,
+        fecha: fechaFinal, // Usar la misma fecha que la salida
         descripcion,
         observaciones: `Generado automáticamente desde salida ${savedSalida.id}`,
         tipo: 'venta',
@@ -133,7 +138,7 @@ export class SalidasService {
   async getSalidasDiarias(fechaInicio: string, fechaFin: string): Promise<any[]> {
     const query = `
       SELECT 
-        salida."createdAt"::date as fecha,
+        salida.fecha as fecha,
         SUM(
           CASE 
             WHEN salida."canastaId" IS NOT NULL THEN salida.unidades * canasta."unidadesPorCanasta"
@@ -142,8 +147,8 @@ export class SalidasService {
         ) as salidas
       FROM salidas salida
       LEFT JOIN canastas canasta ON salida."canastaId" = canasta.id
-      WHERE salida."createdAt"::date BETWEEN $1 AND $2
-      GROUP BY salida."createdAt"::date
+      WHERE salida.fecha BETWEEN $1 AND $2
+      GROUP BY salida.fecha
       ORDER BY fecha ASC
     `;
     
@@ -153,11 +158,11 @@ export class SalidasService {
   async getCanastasDiarias(fechaInicio: string, fechaFin: string): Promise<any[]> {
     const query = `
       SELECT 
-        salida."createdAt"::date as fecha,
+        salida.fecha as fecha,
         SUM(salida.unidades) as canastas
       FROM salidas salida
-      WHERE salida."createdAt"::date BETWEEN $1 AND $2
-      GROUP BY salida."createdAt"::date
+      WHERE salida.fecha BETWEEN $1 AND $2
+      GROUP BY salida.fecha
       ORDER BY fecha ASC
     `;
     

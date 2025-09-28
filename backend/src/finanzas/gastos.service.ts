@@ -122,8 +122,8 @@ export class GastosService {
   }
 
   async update(id: string, updateGastoDto: UpdateGastoDto): Promise<Gasto> {
-    // Verificar que el gasto existe
-    await this.findOne(id);
+    // Buscar el gasto existente
+    const gasto = await this.findOne(id);
 
     // Verificar que la categoría existe si se está actualizando
     if (updateGastoDto.categoriaId) {
@@ -137,8 +137,11 @@ export class GastosService {
       updateData.categoriaId = Number(updateData.categoriaId);
     }
     
-    await this.gastosRepository.update(id, updateData);
-    return this.findOne(id);
+    // Aplicar los cambios al objeto existente
+    Object.assign(gasto, updateData);
+    
+    // Guardar los cambios
+    return await this.gastosRepository.save(gasto);
   }
 
   async remove(id: string): Promise<void> {
