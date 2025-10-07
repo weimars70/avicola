@@ -68,7 +68,7 @@ export const useGalponesStore = defineStore('galpones', () => {
       const id_empresa = localStorage.getItem('id_empresa');
       if (id_empresa) {
         params.append('id_empresa', id_empresa);
-        console.log('Enviando id_empresa:', id_empresa);
+        //console.log('Enviando id_empresa:', id_empresa);
       } else {
         console.error('No se encontró id_empresa en localStorage');
       }

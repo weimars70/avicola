@@ -99,10 +99,11 @@ export class EntradasProduccionService {
     });
   }
 
-  async findByDateRange(fechaInicio: string, fechaFin: string): Promise<EntradaProduccion[]> {
+  async findByDateRange(fechaInicio: string, fechaFin: string, id_empresa?: number): Promise<EntradaProduccion[]> {
     return this.entradasProduccionRepository.find({
       where: {
-        fecha: Between(new Date(fechaInicio), new Date(fechaFin))
+        fecha: Between(new Date(fechaInicio), new Date(fechaFin)),
+        ...(id_empresa ? { id_empresa } : {})
       },
       relations: ['galpon', 'tipoHuevo'],
       order: { fecha: 'DESC' }
@@ -150,12 +151,18 @@ export class EntradasProduccionService {
     await this.entradasProduccionRepository.remove(entradaProduccion);
   }
 
-  async getProduccionDiaria(fechaInicio: string, fechaFin: string): Promise<any[]> {
-    const result = await this.entradasProduccionRepository
+  async getProduccionDiaria(fechaInicio: string, fechaFin: string, id_empresa?: number): Promise<any[]> {
+    const queryBuilder = this.entradasProduccionRepository
       .createQueryBuilder('entrada')
       .select('DATE(entrada.fecha)', 'fecha')
       .addSelect('SUM(entrada.unidades)', 'total')
-      .where('entrada.fecha BETWEEN :fechaInicio AND :fechaFin', { fechaInicio, fechaFin })
+      .where('entrada.fecha BETWEEN :fechaInicio AND :fechaFin', { fechaInicio, fechaFin });
+    
+    if (id_empresa) {
+      queryBuilder.andWhere('entrada.id_empresa = :id_empresa', { id_empresa });
+    }
+    
+    const result = await queryBuilder
       .groupBy('DATE(entrada.fecha)')
       .orderBy('fecha', 'ASC')
       .getRawMany();

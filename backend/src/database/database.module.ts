@@ -30,7 +30,7 @@ import { Rendimiento } from '../finanzas/entities/rendimiento.entity';
         database: configService.get<string>('DB_NAME', 'galpones_db'),
         entities: [User, Galpon, TipoHuevo, Canasta, EntradaProduccion, Salida, Inventario, AjusteInventario, AjusteLote, CategoriaGasto, Gasto, Ingreso, Rendimiento],
         synchronize: configService.get('NODE_ENV') !== 'production',
-        logging: configService.get('NODE_ENV') === 'development',
+        //logging: configService.get('NODE_ENV') === 'development',
       }),
       inject: [ConfigService],
     }),

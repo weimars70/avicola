@@ -69,13 +69,14 @@ export class GastosController {
   getTotalGastosByDateRange(
     @Query('fechaInicio') fechaInicio: string,
     @Query('fechaFin') fechaFin: string,
+    @Query('id_empresa') id_empresa: number,
   ) {
-    return this.gastosService.getTotalGastosByDateRange(fechaInicio, fechaFin);
+    return this.gastosService.getTotalGastosByDateRange(fechaInicio, fechaFin, id_empresa || 1);
   }
 
   @Get('total-by-categoria')
-  getTotalGastosByCategoria() {
-    return this.gastosService.getTotalGastosByCategoria();
+  getTotalGastosByCategoria(@Query('id_empresa') id_empresa: number) {
+    return this.gastosService.getTotalGastosByCategoria(id_empresa || 1);
   }
 
   @Get(':id')

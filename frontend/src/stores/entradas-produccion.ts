@@ -49,17 +49,9 @@ export const useEntradasProduccionStore = defineStore('entradas-produccion', () 
   const loading = ref(false);
   const error = ref<string | null>(null);
   const lastFetch = ref<number>(0);
-  const cacheTimeout = 5 * 60 * 1000; // 5 minutos
   const pagination = ref({ page: 1, limit: 20, total: 0 });
 
-  const fetchEntradasProduccion = async (forceRefresh = false, page = 1, limit = 20, filters?: { galponId?: string; tipoHuevoId?: string; fechaInicio?: string; fechaFin?: string }) => {
-    const now = Date.now();
-    
-    // Verificar caché si no es refresh forzado y no hay filtros
-    if (!forceRefresh && !filters && entradasProduccion.value.length > 0 && (now - lastFetch.value) < cacheTimeout) {
-      return;
-    }
-
+  const fetchEntradasProduccion = async (page = 1, limit = 20, filters?: { galponId?: string; tipoHuevoId?: string; fechaInicio?: string; fechaFin?: string }) => {
     loading.value = true;
     error.value = null;
     try {
@@ -88,7 +80,7 @@ export const useEntradasProduccionStore = defineStore('entradas-produccion', () 
         total: response.data.total || entradasProduccion.value.length
       };
       
-      lastFetch.value = now;
+      lastFetch.value = Date.now();
     } catch (err) {
       error.value = 'Error al cargar las entradas de producción';
       throw err;
@@ -166,7 +158,7 @@ export const useEntradasProduccionStore = defineStore('entradas-produccion', () 
 
   const loadMore = async (filters?: { galponId?: string; tipoHuevoId?: string; fechaInicio?: string; fechaFin?: string }) => {
     if (pagination.value.page * pagination.value.limit < pagination.value.total) {
-      await fetchEntradasProduccion(false, pagination.value.page + 1, pagination.value.limit, filters);
+      await fetchEntradasProduccion(pagination.value.page + 1, pagination.value.limit, filters);
     }
   };
 

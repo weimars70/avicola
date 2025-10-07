@@ -136,7 +136,7 @@ export class SalidasService {
     await this.salidasRepository.remove(salida);
   }
 
-  async getSalidasDiarias(fechaInicio: string, fechaFin: string): Promise<any[]> {
+  async getSalidasDiarias(fechaInicio: string, fechaFin: string, id_empresa?: number): Promise<any[]> {
     const query = `
       SELECT 
         salida.fecha as fecha,
@@ -149,24 +149,26 @@ export class SalidasService {
       FROM salidas salida
       LEFT JOIN canastas canasta ON salida."canastaId" = canasta.id
       WHERE salida.fecha BETWEEN $1 AND $2
+      ${id_empresa ? 'AND salida.id_empresa = $3' : ''}
       GROUP BY salida.fecha
       ORDER BY fecha ASC
     `;
     
-    return this.salidasRepository.query(query, [fechaInicio, fechaFin]);
+    return this.salidasRepository.query(query, id_empresa ? [fechaInicio, fechaFin, id_empresa] : [fechaInicio, fechaFin]);
   }
 
-  async getCanastasDiarias(fechaInicio: string, fechaFin: string): Promise<any[]> {
+  async getCanastasDiarias(fechaInicio: string, fechaFin: string, id_empresa?: number): Promise<any[]> {
     const query = `
       SELECT 
         salida.fecha as fecha,
         SUM(salida.unidades) as canastas
       FROM salidas salida
       WHERE salida.fecha BETWEEN $1 AND $2
+      ${id_empresa ? 'AND salida.id_empresa = $3' : ''}
       GROUP BY salida.fecha
       ORDER BY fecha ASC
     `;
     
-    return this.salidasRepository.query(query, [fechaInicio, fechaFin]);
+    return this.salidasRepository.query(query, id_empresa ? [fechaInicio, fechaFin, id_empresa] : [fechaInicio, fechaFin]);
   }
 }

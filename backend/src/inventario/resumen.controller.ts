@@ -21,7 +21,7 @@ export class ResumenController {
     if (!id_empresa) {
       throw new Error('No hay empresa asociada al usuario logueado');
     }
-    const empresaId = parseInt(id_empresa);
-    return this.resumenService.getInventarioResumen(galponId, tipoHuevoId, empresaId);
+    const id_empresa_num = parseInt(id_empresa);
+    return this.resumenService.getInventarioResumen(galponId, tipoHuevoId, id_empresa_num);
   }
 }

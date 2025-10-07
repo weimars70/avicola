@@ -53,16 +53,20 @@ export class RendimientoController {
   }
 
   @Post('calcular-diario')
-  calcularRendimientoDiario(@Body('fecha') fecha: string) {
-    return this.rendimientoService.calcularRendimientoDiario(fecha);
+  calcularRendimientoDiario(
+    @Body('fecha') fecha: string,
+    @Query('id_empresa') id_empresa?: number
+  ) {
+    return this.rendimientoService.calcularRendimientoDiario(fecha, id_empresa || 1);
   }
 
   @Post('calcular-mensual')
   calcularRendimientoMensual(
     @Body('año', ParseIntPipe) año: number,
     @Body('mes', ParseIntPipe) mes: number,
+    @Query('id_empresa') id_empresa?: number
   ) {
-    return this.rendimientoService.calcularRendimientoMensual(año, mes);
+    return this.rendimientoService.calcularRendimientoMensual(año, mes, id_empresa || 1);
   }
 
   @Get(':id')

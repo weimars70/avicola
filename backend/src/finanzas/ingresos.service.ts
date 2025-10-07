@@ -92,11 +92,14 @@ export class IngresosService {
     return parseFloat(result.total) || 0;
   }
 
-  async getTotalIngresosByDateRange(fechaInicio: string, fechaFin: string): Promise<number> {
+  async getTotalIngresosByDateRange(fechaInicio: string, fechaFin: string, id_empresa: number): Promise<number> {
     const result = await this.ingresosRepository
       .createQueryBuilder('ingreso')
       .select('SUM(ingreso.monto)', 'total')
-      .where('ingreso.activo = :activo', { activo: true })
+      .where('ingreso.activo = :activo AND ingreso.id_empresa = :id_empresa', { 
+        activo: true,
+        id_empresa 
+      })
       .andWhere('ingreso.fecha BETWEEN :fechaInicio AND :fechaFin', {
         fechaInicio,
         fechaFin,
@@ -106,13 +109,16 @@ export class IngresosService {
     return parseFloat(result.total) || 0;
   }
 
-  async getTotalIngresosByTipo(): Promise<any[]> {
+  async getTotalIngresosByTipo(id_empresa: number): Promise<any[]> {
     const result = await this.ingresosRepository
       .createQueryBuilder('ingreso')
       .select('ingreso.tipo', 'tipo')
       .addSelect('SUM(ingreso.monto)', 'total')
       .addSelect('COUNT(ingreso.id)', 'cantidad')
-      .where('ingreso.activo = :activo', { activo: true })
+      .where('ingreso.activo = :activo AND ingreso.id_empresa = :id_empresa', { 
+        activo: true,
+        id_empresa 
+      })
       .groupBy('ingreso.tipo')
       .getRawMany();
 
@@ -154,13 +160,19 @@ export class IngresosService {
     return ingresosCreados;
   }
 
-  async getIngresosDiarios(fechaInicio: string, fechaFin: string): Promise<any[]> {
-    const result = await this.ingresosRepository
+  async getIngresosDiarios(fechaInicio: string, fechaFin: string, id_empresa?: number): Promise<any[]> {
+    const queryBuilder = this.ingresosRepository
       .createQueryBuilder('ingreso')
       .select('DATE(ingreso.fecha)', 'fecha')
       .addSelect('SUM(ingreso.monto)', 'total')
       .where('ingreso.fecha BETWEEN :fechaInicio AND :fechaFin', { fechaInicio, fechaFin })
-      .andWhere('ingreso.activo = :activo', { activo: true })
+      .andWhere('ingreso.activo = :activo', { activo: true });
+    
+    if (id_empresa) {
+      queryBuilder.andWhere('ingreso.id_empresa = :id_empresa', { id_empresa });
+    }
+    
+    const result = await queryBuilder
       .groupBy('DATE(ingreso.fecha)')
       .orderBy('fecha', 'ASC')
       .getRawMany();

@@ -35,6 +35,9 @@ export class Ingreso {
   @Column({ type: 'boolean', default: true })
   activo: boolean;
 
+  @Column({ type: 'int', nullable: false })
+  id_empresa: number;
+
   // Relación con Salida (para ingresos por ventas)
   @Column({ type: 'uuid', nullable: true })
   salidaId?: string;

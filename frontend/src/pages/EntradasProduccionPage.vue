@@ -774,8 +774,8 @@ const onCambioMes = (mes: number, año: number) => {
 };
 
 onMounted(async () => {
-  void fetchEntradas();
-  void galponesStore.fetchGalpones();
+  await fetchEntradas();
+  await galponesStore.fetchGalpones();
   await tiposHuevoStore.fetchTiposHuevo();
   initializeEntradas();
   

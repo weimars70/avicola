@@ -52,7 +52,17 @@ export const useAuthStore = defineStore('auth', () => {
       
       api.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
       
+      // Siempre forzar una recarga completa de la página al iniciar sesión
+      // Esto garantiza que se limpie cualquier estado o caché anterior
+      console.log('Iniciando sesión con empresa:', userData.id_empresa);
+      
+      // Establecer un flag para indicar que es un nuevo inicio de sesión
+      localStorage.setItem('fresh_login', 'true');
+      
+      // Forzar recarga completa de la página para limpiar todo el estado
+      window.location.href = '/';
       return { success: true, message: 'Inicio de sesión exitoso' };
+      
     } catch (error: unknown) {
       console.error('Error durante el login:', error);
       const axiosError = error as { response?: { data?: { message?: string } } };
@@ -77,14 +87,22 @@ export const useAuthStore = defineStore('auth', () => {
   };
 
   const initializeAuth = async () => {
-    console.log('token.value initialize:::', token.value);
+    //console.log('token.value initialize:::', token.value);
     if (token.value) {
       // Decodificar el token para verificar su estructura
       try {
         const tokenParts = token.value.split('.');
         if (tokenParts.length === 3 && tokenParts[1]) {
           const payload = JSON.parse(atob(tokenParts[1]));
-          console.log('Token payload:', payload);
+          //console.log('Token payload:', payload);
+          //console.log('Extrayendo id_empresa del token:', payload.id_empresa);
+          
+          if (payload.id_empresa) {
+            localStorage.setItem('id_empresa', payload.id_empresa.toString());
+            //console.log('✅ id_empresa guardado en localStorage:', payload.id_empresa);
+          } else {
+            console.error('⚠️ Token no contiene id_empresa');
+          }
         }
       } catch (e) {
         console.error('Error al decodificar el token:', e);
@@ -95,7 +113,7 @@ export const useAuthStore = defineStore('auth', () => {
       api.defaults.headers.common['Authorization'] = tokenStr;
       
       // Verificar que el header se ha configurado correctamente
-      console.log('Header de autorización configurado:', api.defaults.headers.common['Authorization']);
+      //console.log('Header de autorización configurado:', api.defaults.headers.common['Authorization']);
       
       try {
         // Guardar los datos originales del localStorage antes de la petición
@@ -122,7 +140,7 @@ export const useAuthStore = defineStore('auth', () => {
             
             // SOLUCIÓN: Mantener el id_empresa almacenado localmente en lugar de usar el del servidor
             response.data.id_empresa = storedIdEmpresa;
-            console.log('Se mantuvo el id_empresa original:', storedIdEmpresa);
+            //console.log('Se mantuvo el id_empresa original:', storedIdEmpresa);
           }
         } else if (response.data.id_empresa === undefined && storedIdEmpresa !== null) {
           console.warn('id_empresa no está presente en la respuesta del perfil, usando el valor almacenado');
@@ -151,7 +169,7 @@ export const useAuthStore = defineStore('auth', () => {
          // localStorage.setItem('id_empresa', response.data.id_empresa.toString());
         }
         
-        console.log('Datos de usuario actualizados (con correcciones si fueron necesarias):', response.data);
+        //console.log('Datos de usuario actualizados (con correcciones si fueron necesarias):', response.data);
       } catch (error: unknown) {
         console.error('Error al inicializar autenticación:', error);
         // Solo limpiar el token si hay un error 401 (no autorizado)

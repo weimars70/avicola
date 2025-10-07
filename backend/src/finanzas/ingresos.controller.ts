@@ -62,13 +62,14 @@ export class IngresosController {
   getTotalIngresosByDateRange(
     @Query('fechaInicio') fechaInicio: string,
     @Query('fechaFin') fechaFin: string,
+    @Query('id_empresa') id_empresa: number,
   ) {
-    return this.ingresosService.getTotalIngresosByDateRange(fechaInicio, fechaFin);
+    return this.ingresosService.getTotalIngresosByDateRange(fechaInicio, fechaFin, id_empresa || 1);
   }
 
   @Get('total-by-tipo')
-  getTotalIngresosByTipo() {
-    return this.ingresosService.getTotalIngresosByTipo();
+  getTotalIngresosByTipo(@Query('id_empresa') id_empresa: number) {
+    return this.ingresosService.getTotalIngresosByTipo(id_empresa || 1);
   }
 
   @Post('sync-from-salidas')

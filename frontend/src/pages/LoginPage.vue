@@ -117,6 +117,8 @@ const onSubmit = async () => {
         message: 'Inicio de sesión exitoso',
         position: 'top'
       });
+      
+      // La recarga por cambio de empresa ahora se maneja directamente en auth.ts
       void router.push('/');
     } else {
       $q.notify({
