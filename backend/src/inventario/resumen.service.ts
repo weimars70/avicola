@@ -16,12 +16,17 @@ export class ResumenService {
     private inventarioRepository: Repository<Inventario>,
   ) {}
 
-  async getInventarioResumen(galponId?: string, tipoHuevoId?: string) {
+  async getInventarioResumen(galponId?: string, tipoHuevoId?: string, id_empresa?: number) {
+    if (!id_empresa) {
+      throw new Error('No hay empresa asociada al usuario logueado');
+    }
+    
     // Construir query para entradas
     const entradasQuery = this.entradasRepository
       .createQueryBuilder('entrada')
       .leftJoinAndSelect('entrada.galpon', 'galpon')
-      .leftJoinAndSelect('entrada.tipoHuevo', 'tipoHuevo');
+      .leftJoinAndSelect('entrada.tipoHuevo', 'tipoHuevo')
+      .where('entrada.id_empresa = :id_empresa', { id_empresa });
 
     if (galponId) {
       entradasQuery.andWhere('entrada.galponId = :galponId', { galponId });

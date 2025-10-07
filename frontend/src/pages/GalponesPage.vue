@@ -457,6 +457,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useGalponesStore } from 'src/stores/galpones';
+import { useAuthStore } from 'src/stores/auth';
 import { useQuasar, date } from 'quasar';
 import { useViewMode } from 'src/composables/useViewMode';
 import ViewModeToggle from 'src/components/ViewModeToggle.vue';
@@ -477,10 +478,12 @@ interface GalponForm {
   descripcion: string;
   capacidad: number;
   activo: boolean;
+  id_empresa?: number;
 }
 
 const $q = useQuasar();
 const galponesStore = useGalponesStore();
+const authStore = useAuthStore();
 const { viewMode, isCardsView, setViewMode } = useViewMode();
 
 const loading = ref(false);
@@ -645,7 +648,8 @@ const closeDialog = () => {
     nombre: '',
     descripcion: '',
     capacidad: 1,
-    activo: true
+    activo: true,
+    id_empresa: Number(localStorage.getItem('id_empresa') )
   };
 };
 
@@ -653,13 +657,43 @@ const saveGalpon = async () => {
   saving.value = true;
   try {
     if (editingGalpon.value) {
-      await galponesStore.updateGalpon(editingGalpon.value.id, form.value);
+      // Para edición, incluir id_usuario_actualiza
+      await galponesStore.updateGalpon(
+        editingGalpon.value.id, 
+        { 
+          ...form.value,
+          id_usuario_actualiza: authStore.id_usuario as string
+        }
+      );
       $q.notify({
         type: 'positive',
         message: 'Galpón actualizado correctamente'
       });
     } else {
-      await galponesStore.createGalpon(form.value);
+      // Para creación, obtener id_empresa del localStorage para asegurar consistencia
+      const id_empresa = Number(localStorage.getItem('id_empresa'));
+
+      console.log('id_empresa:', id_empresa);
+      
+      // Verificar que id_usuario exista en localStorage
+      const id_usuario = authStore.id_usuario as string;
+      console.log('id_usuario:', id_usuario);
+      
+      if (!id_usuario) {
+        throw new Error('No se encontró el ID de usuario en la sesión');
+      }
+      
+      const galponData = {
+        ...form.value,
+        id_empresa: id_empresa,
+        id_usuario_inserta: id_usuario
+      };
+      
+      console.log('Datos enviados al crear galpón:', galponData);
+      console.log('id_empresa usado:', id_empresa);
+      console.log('authStore.id_usuario:', id_usuario);
+      
+      await galponesStore.createGalpon(galponData);
       $q.notify({
         type: 'positive',
         message: 'Galpón creado correctamente'

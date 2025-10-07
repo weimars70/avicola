@@ -21,7 +21,7 @@ export class SalidasService {
     private ingresosService: IngresosService,
   ) {}
 
-  async create(createSalidaDto: CreateSalidaDto): Promise<Salida> {
+  async create(createSalidaDto: CreateSalidaDto, id_empresa: number): Promise<Salida> {
     // Validar que el tipo de huevo existe
     const tipoHuevo = await this.tiposHuevoService.findOne(createSalidaDto.tipoHuevoId);
     
@@ -30,7 +30,7 @@ export class SalidasService {
     
     // Validar que la canasta existe solo si se proporciona
     if (createSalidaDto.canastaId) {
-      canasta = await this.canastasService.findOne(createSalidaDto.canastaId);
+      canasta = await this.canastasService.findOne(createSalidaDto.canastaId, id_empresa);
       // Calcular unidades totales (canastas * unidades por canasta)
       unidadesTotales = createSalidaDto.unidades * canasta.unidadesPorCanasta;
     }
@@ -79,16 +79,17 @@ export class SalidasService {
     return savedSalida;
   }
 
-  async findAll(): Promise<Salida[]> {
+  async findAll(id_empresa: number): Promise<Salida[]> {
     return this.salidasRepository.find({
+      where: { id_empresa },
       relations: ['tipoHuevo', 'canasta'],
       order: { createdAt: 'DESC' }
     });
   }
 
-  async findOne(id: string): Promise<Salida> {
+  async findOne(id: string, id_empresa: number): Promise<Salida> {
     const salida = await this.salidasRepository.findOne({
-      where: { id },
+      where: { id, id_empresa },
       relations: ['tipoHuevo', 'canasta']
     });
     
@@ -99,8 +100,8 @@ export class SalidasService {
     return salida;
   }
 
-  async update(id: string, updateSalidaDto: UpdateSalidaDto): Promise<Salida> {
-    const salida = await this.findOne(id);
+  async update(id: string, updateSalidaDto: UpdateSalidaDto, id_empresa: number): Promise<Salida> {
+    const salida = await this.findOne(id, id_empresa);
     const unidadesOriginales = salida.unidades;
     const tipoHuevoOriginal = salida.tipoHuevoId;
     
@@ -110,8 +111,8 @@ export class SalidasService {
     }
     
     // Validar canasta si se está actualizando
-    if (updateSalidaDto.canastaId) {
-      await this.canastasService.findOne(updateSalidaDto.canastaId);
+    if (updateSalidaDto.canastaId && updateSalidaDto.id_empresa) {
+      await this.canastasService.findOne(updateSalidaDto.canastaId, updateSalidaDto.id_empresa);
     }
     
     // Si cambian las unidades o el tipo de huevo, ajustar inventario
@@ -130,8 +131,8 @@ export class SalidasService {
     return this.salidasRepository.save(salida);
   }
 
-  async remove(id: string): Promise<void> {
-    const salida = await this.findOne(id);
+  async remove(id: string, id_empresa: number): Promise<void> {
+    const salida = await this.findOne(id, id_empresa);
     await this.salidasRepository.remove(salida);
   }
 

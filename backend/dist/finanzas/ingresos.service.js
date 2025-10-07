@@ -77,11 +77,14 @@ let IngresosService = class IngresosService {
         ingreso.activo = false;
         await this.ingresosRepository.save(ingreso);
     }
-    async getTotalIngresos() {
+    async getTotalIngresos(id_empresa) {
         const result = await this.ingresosRepository
             .createQueryBuilder('ingreso')
             .select('SUM(ingreso.monto)', 'total')
-            .where('ingreso.activo = :activo', { activo: true })
+            .where('ingreso.activo = :activo AND ingreso.id_empresa = :id_empresa', {
+            activo: true,
+            id_empresa
+        })
             .getRawOne();
         return parseFloat(result.total) || 0;
     }
@@ -112,9 +115,9 @@ let IngresosService = class IngresosService {
             cantidad: parseInt(item.cantidad) || 0,
         }));
     }
-    async syncIngresosFromSalidas() {
+    async syncIngresosFromSalidas(id_empresa) {
         var _a, _b;
-        const salidas = await this.salidasService.findAll();
+        const salidas = await this.salidasService.findAll(id_empresa);
         const ingresosCreados = [];
         for (const salida of salidas) {
             const ingresoExistente = await this.ingresosRepository.findOne({

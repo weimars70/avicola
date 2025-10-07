@@ -22,6 +22,14 @@ export class AuthController {
   @Get('profile')
   @UseGuards(JwtAuthGuard)
   async getProfile(@Request() req) {
-    return this.authService.getProfile(req.user.sub);
+    console.log('Request headers:', req.headers);
+    console.log('Request user object:', req.user);
+    console.log('User sub value:', req.user?.sub);
+    
+    // Obtener userId del query param si está disponible
+    const userId = req.query.userId || req.user?.sub;
+    console.log('Using userId:', userId);
+    
+    return this.authService.getProfile(userId);
   }
 }

@@ -45,6 +45,10 @@ __decorate([
     __metadata("design:type", Boolean)
 ], User.prototype, "activo", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ type: 'int' }),
+    __metadata("design:type", Number)
+], User.prototype, "id_empresa", void 0);
+__decorate([
     (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Date)
 ], User.prototype, "createdAt", void 0);

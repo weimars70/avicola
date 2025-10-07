@@ -21,6 +21,10 @@ __decorate([
 ], Inventario.prototype, "id", void 0);
 __decorate([
     (0, typeorm_1.Column)(),
+    __metadata("design:type", Number)
+], Inventario.prototype, "id_empresa", void 0);
+__decorate([
+    (0, typeorm_1.Column)(),
     __metadata("design:type", String)
 ], Inventario.prototype, "tipoHuevoId", void 0);
 __decorate([
@@ -42,6 +46,6 @@ __decorate([
 ], Inventario.prototype, "tipoHuevo", void 0);
 exports.Inventario = Inventario = __decorate([
     (0, typeorm_1.Entity)('inventario'),
-    (0, typeorm_1.Unique)(['tipoHuevoId'])
+    (0, typeorm_1.Unique)(['tipoHuevoId', 'id_empresa'])
 ], Inventario);
 //# sourceMappingURL=inventario.entity.js.map

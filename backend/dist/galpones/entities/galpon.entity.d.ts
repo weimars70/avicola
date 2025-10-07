@@ -4,6 +4,7 @@ export declare class Galpon {
     descripcion: string;
     capacidad: number;
     activo: boolean;
+    id_empresa: number;
     createdAt: Date;
     updatedAt: Date;
 }

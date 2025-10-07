@@ -116,7 +116,7 @@ let AjustesInventarioService = class AjustesInventarioService {
                 tipoHuevoId: ajusteItem.tipoHuevoId,
                 cantidadAjuste: ajusteItem.cantidadAjuste,
                 tipoAjuste: ajusteItem.tipoAjuste,
-                descripcion: ajusteItem.descripcion,
+                descripcion: ajusteItem.descripcion || createAjusteLoteDto.descripcionGeneral,
                 usuarioId: createAjusteLoteDto.usuarioId,
                 ajusteLoteId: savedLote.id,
                 cantidadAnterior,
@@ -163,6 +163,14 @@ let AjustesInventarioService = class AjustesInventarioService {
     async removeLote(id) {
         const lote = await this.findOneLote(id);
         if (lote.ajustes && lote.ajustes.length > 0) {
+            for (const ajuste of lote.ajustes) {
+                if (ajuste.tipoAjuste === 'suma') {
+                    await this.inventarioStockService.reducirStock(ajuste.tipoHuevoId, ajuste.cantidadAjuste);
+                }
+                else {
+                    await this.inventarioStockService.aumentarStock(ajuste.tipoHuevoId, ajuste.cantidadAjuste);
+                }
+            }
             await this.ajustesRepository.remove(lote.ajustes);
         }
         await this.ajustesLoteRepository.remove(lote);

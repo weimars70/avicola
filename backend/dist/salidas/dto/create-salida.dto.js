@@ -11,6 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CreateSalidaDto = void 0;
 const class_validator_1 = require("class-validator");
+const class_transformer_1 = require("class-transformer");
 class CreateSalidaDto {
 }
 exports.CreateSalidaDto = CreateSalidaDto;
@@ -20,8 +21,8 @@ __decorate([
     __metadata("design:type", String)
 ], CreateSalidaDto.prototype, "tipoHuevoId", void 0);
 __decorate([
-    (0, class_validator_1.IsString)(),
     (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CreateSalidaDto.prototype, "canastaId", void 0);
 __decorate([
@@ -42,8 +43,14 @@ __decorate([
     __metadata("design:type", Number)
 ], CreateSalidaDto.prototype, "valor", void 0);
 __decorate([
-    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsDateString)(),
     __metadata("design:type", String)
 ], CreateSalidaDto.prototype, "fecha", void 0);
+__decorate([
+    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsInt)(),
+    (0, class_transformer_1.Type)(() => Number),
+    __metadata("design:type", Number)
+], CreateSalidaDto.prototype, "id_empresa", void 0);
 //# sourceMappingURL=create-salida.dto.js.map

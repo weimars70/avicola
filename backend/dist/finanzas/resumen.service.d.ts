@@ -6,7 +6,7 @@ export declare class ResumenService {
     private readonly salidasService;
     private readonly ingresosService;
     constructor(gastosService: GastosService, salidasService: SalidasService, ingresosService: IngresosService);
-    getResumenFinanciero(): Promise<{
+    getResumenFinanciero(id_empresa: number): Promise<{
         totalGastos: number;
         totalGastosOperativos: number;
         totalInversionInicial: number;

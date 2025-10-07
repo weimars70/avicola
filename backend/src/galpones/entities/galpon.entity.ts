@@ -16,6 +16,15 @@ export class Galpon {
 
   @Column({ default: true })
   activo: boolean;
+  
+  @Column({ nullable: false })
+  id_empresa: number;
+  
+  @Column({ type: 'uuid', nullable: false })
+  id_usuario_inserta: string;
+  
+  @Column({ type: 'uuid', nullable: true })
+  id_usuario_actualiza: string;
 
   @CreateDateColumn()
   createdAt: Date;

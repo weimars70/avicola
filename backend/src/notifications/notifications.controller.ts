@@ -28,7 +28,7 @@ export class NotificationsController {
     res.setHeader('Access-Control-Allow-Headers', 'Cache-Control');
 
     // Enviar mensaje inicial
-    res.write('data: {"type":"connected","message":"Conectado al sistema de notificaciones"}\n\n');
+    res.write('data: {"type":"connected","message":""}\n\n');
 
     // Mantener la conexión abierta
     const keepAlive = setInterval(() => {

@@ -26,6 +26,46 @@ if (token) {
   api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 }
 
+// Interceptor para añadir id_empresa a todas las peticiones y manejar id_usuario_inserta/id_usuario_actualiza
+api.interceptors.request.use(
+  (config) => {
+    const id_empresa = localStorage.getItem('id_empresa');
+    const id_usuario = localStorage.getItem('id_usuario');
+    
+    // Añadir id_empresa a todas las peticiones como query parameter
+    // Solo si no existe ya en los parámetros de la URL
+    if (id_empresa) {
+      // Verificar si la URL ya contiene id_empresa como parámetro
+      const urlHasIdEmpresa = config.url?.includes('id_empresa=');
+      const paramsHasIdEmpresa = config.params && 'id_empresa' in config.params;
+      
+      if (!urlHasIdEmpresa && !paramsHasIdEmpresa) {
+        config.params = { ...config.params, id_empresa };
+        //console.log(`Interceptor añadiendo id_empresa: ${id_empresa} a ${config.url}`);
+      }
+    } else {
+      console.error('Interceptor: No se encontró id_empresa en localStorage');
+    }
+    
+    // Añadir id_usuario_inserta o id_usuario_actualiza según el método
+    // Excluir rutas de autenticación para no añadir campos adicionales
+    const isAuthRoute = config.url?.includes('/auth/');
+    
+    if (config.method?.toLowerCase() === 'post' && id_usuario && config.data && !isAuthRoute) {
+      config.data = { ...config.data, id_usuario_inserta: id_usuario };
+    }
+    
+    if ((config.method?.toLowerCase() === 'put' || config.method?.toLowerCase() === 'patch') && id_usuario && config.data && !isAuthRoute) {
+      config.data = { ...config.data, id_usuario_actualiza: id_usuario };
+    }
+    
+    return config;
+  },
+  (error) => {
+    return Promise.reject(new Error(error?.message || 'Error en la solicitud'));
+  }
+);
+
 // Interceptor para manejar errores de autenticación
 api.interceptors.response.use(
   (response) => response,
@@ -33,6 +73,8 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       // Redirigir al login si el token es inválido
       localStorage.removeItem('token');
+      localStorage.removeItem('id_usuario');
+      localStorage.removeItem('id_empresa');
       delete api.defaults.headers.common['Authorization'];
       window.location.href = '/login';
     }

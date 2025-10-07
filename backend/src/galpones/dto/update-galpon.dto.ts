@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsBoolean, IsNumber, Min, MaxLength } from 'class-validator';
+import { IsString, IsOptional, IsBoolean, IsNumber, Min, MaxLength, IsNotEmpty,  IsUUID } from 'class-validator';
 
 export class UpdateGalponDto {
   @IsOptional()
@@ -19,4 +19,8 @@ export class UpdateGalponDto {
   @IsOptional()
   @IsBoolean()
   activo?: boolean;
+  
+  @IsNotEmpty()
+  @IsUUID()
+  id_usuario_actualiza?: string;
 }

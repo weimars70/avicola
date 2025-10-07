@@ -43,9 +43,9 @@ let GalponesService = GalponesService_1 = class GalponesService {
             throw error;
         }
     }
-    async findAll() {
+    async findAll(id_empresa) {
         return await this.galponesRepository.find({
-            where: { activo: true },
+            where: { activo: true, id_empresa },
             order: { nombre: 'ASC' },
         });
     }

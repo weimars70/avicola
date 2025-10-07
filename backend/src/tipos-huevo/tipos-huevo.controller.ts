@@ -8,6 +8,8 @@ import {
   Delete,
   UseGuards,
   ParseUUIDPipe,
+  Query,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { TiposHuevoService } from './tipos-huevo.service';
 import { CreateTipoHuevoDto } from './dto/create-tipo-huevo.dto';
@@ -25,8 +27,8 @@ export class TiposHuevoController {
   }
 
   @Get()
-  findAll() {
-    return this.tiposHuevoService.findAll();
+  findAll(@Query('id_empresa', new ParseIntPipe({ errorHttpStatusCode: 400 })) id_empresa: number) {
+    return this.tiposHuevoService.findAll(id_empresa);
   }
 
   @Get('all')

@@ -7,7 +7,7 @@ export declare class EntradasProduccionController {
     constructor(entradasProduccionService: EntradasProduccionService);
     create(createEntradaProduccionDto: CreateEntradaProduccionDto): Promise<import("./entities/entrada-produccion.entity").EntradaProduccion>;
     createMasivas(createEntradasMasivasDto: CreateEntradasMasivasDto): Promise<import("./entities/entrada-produccion.entity").EntradaProduccion[]>;
-    findAll(): Promise<import("./entities/entrada-produccion.entity").EntradaProduccion[]>;
+    findAll(id_empresa: number): Promise<import("./entities/entrada-produccion.entity").EntradaProduccion[]>;
     findOne(id: string): Promise<import("./entities/entrada-produccion.entity").EntradaProduccion>;
     update(id: string, updateEntradaProduccionDto: UpdateEntradaProduccionDto): Promise<import("./entities/entrada-produccion.entity").EntradaProduccion>;
     remove(id: string): Promise<void>;

@@ -12,7 +12,7 @@ export declare class IngresosController {
     getTotalIngresos(): Promise<number>;
     getTotalIngresosByDateRange(fechaInicio: string, fechaFin: string): Promise<number>;
     getTotalIngresosByTipo(): Promise<any[]>;
-    syncIngresosFromSalidas(): Promise<import("./entities/ingreso.entity").Ingreso[]>;
+    syncIngresosFromSalidas(id_empresa: number): Promise<import("./entities/ingreso.entity").Ingreso[]>;
     findOne(id: string): Promise<import("./entities/ingreso.entity").Ingreso>;
     update(id: string, updateIngresoDto: UpdateIngresoDto): Promise<import("./entities/ingreso.entity").Ingreso>;
     remove(id: string): Promise<void>;

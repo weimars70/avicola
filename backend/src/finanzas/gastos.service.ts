@@ -74,9 +74,9 @@ export class GastosService {
     return await this.gastosRepository.save(gasto);
   }
 
-  async findAll(): Promise<Gasto[]> {
+  async findAll(id_empresa: number): Promise<Gasto[]> {
     return await this.gastosRepository.find({
-      where: { activo: true },
+      where: { activo: true, id_empresa },
       relations: ['categoria'],
       order: { fecha: 'DESC' },
     });
@@ -163,34 +163,43 @@ export class GastosService {
       .getRawMany();
   }
 
-  async getTotalGastos(): Promise<number> {
+  async getTotalGastos(id_empresa: number): Promise<number> {
     const result = await this.gastosRepository
       .createQueryBuilder('gasto')
       .select('SUM(gasto.monto)', 'total')
-      .where('gasto.activo = :activo', { activo: true })
+      .where('gasto.activo = :activo AND gasto.id_empresa = :id_empresa', { 
+        activo: true,
+        id_empresa 
+      })
       .getRawOne();
     
     return parseFloat(result.total) || 0;
   }
 
-  async getTotalGastosExcluyendoInversion(): Promise<number> {
+  async getTotalGastosExcluyendoInversion(id_empresa: number): Promise<number> {
     const result = await this.gastosRepository
       .createQueryBuilder('gasto')
       .leftJoin('gasto.categoria', 'categoria')
       .select('SUM(gasto.monto)', 'total')
-      .where('gasto.activo = :activo', { activo: true })
+      .where('gasto.activo = :activo AND gasto.id_empresa = :id_empresa', { 
+        activo: true,
+        id_empresa 
+      })
       .andWhere('categoria.nombre != :inversionInicial', { inversionInicial: 'Inversión Inicial' })
       .getRawOne();
     
     return parseFloat(result.total) || 0;
   }
 
-  async getTotalInversionInicial(): Promise<number> {
+  async getTotalInversionInicial(id_empresa: number): Promise<number> {
     const result = await this.gastosRepository
       .createQueryBuilder('gasto')
       .leftJoin('gasto.categoria', 'categoria')
       .select('SUM(gasto.monto)', 'total')
-      .where('gasto.activo = :activo', { activo: true })
+      .where('gasto.activo = :activo AND gasto.id_empresa = :id_empresa', { 
+        activo: true,
+        id_empresa 
+      })
       .andWhere('categoria.nombre = :inversionInicial', { inversionInicial: 'Inversión Inicial' })
       .getRawOne();
     

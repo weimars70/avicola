@@ -23,7 +23,12 @@ export class FinanzasController {
   async getResumenFinanciero(
     @Query('fechaInicio') fechaInicio?: string,
     @Query('fechaFin') fechaFin?: string,
+    @Query('id_empresa') id_empresa?: string,
   ) {
+    if (!id_empresa) {
+      throw new Error('No hay empresa asociada al usuario logueado');
+    }
+    const empresaId = parseInt(id_empresa);
     let totalIngresos: number;
     let totalGastos: number;
     let totalGastosOperativos: number;
@@ -36,13 +41,13 @@ export class FinanzasController {
       totalGastos = await this.gastosService.getTotalGastosByDateRange(fechaInicio, fechaFin);
       totalGastosOperativos = await this.gastosService.getTotalGastosByDateRangeExcluyendoInversion(fechaInicio, fechaFin);
     } else {
-      totalIngresos = await this.ingresosService.getTotalIngresos();
-      totalGastos = await this.gastosService.getTotalGastos();
-      totalGastosOperativos = await this.gastosService.getTotalGastosExcluyendoInversion();
+      totalIngresos = await this.ingresosService.getTotalIngresos(empresaId);
+      totalGastos = await this.gastosService.getTotalGastos(empresaId);
+      totalGastosOperativos = await this.gastosService.getTotalGastosExcluyendoInversion(empresaId);
     }
 
     // Obtener inversión inicial total (no por rango de fechas)
-    totalInversionInicial = await this.gastosService.getTotalInversionInicial();
+    totalInversionInicial = await this.gastosService.getTotalInversionInicial(empresaId);
     
     gastosPorCategoria = await this.gastosService.getTotalGastosByCategoria();
     ingresosPorTipo = await this.ingresosService.getTotalIngresosByTipo();
@@ -77,7 +82,7 @@ export class FinanzasController {
     const meses = [];
     
     // Obtener inversión inicial total una sola vez
-    const totalInversionInicial = await this.gastosService.getTotalInversionInicial();
+    const totalInversionInicial = await this.gastosService.getTotalInversionInicial(1);
 
     for (let mes = 1; mes <= 12; mes++) {
       const fechaInicio = `${añoActual}-${mes.toString().padStart(2, '0')}-01`;
@@ -135,8 +140,13 @@ export class FinanzasController {
   }
 
   @Get('dashboard-kpis')
-  async getDashboardKpis() {
+  async getDashboardKpis(@Query('id_empresa') id_empresa?: string) {
     try {
+      if (!id_empresa) {
+        throw new Error('No hay empresa asociada al usuario logueado');
+      }
+      const empresaId = parseInt(id_empresa);
+      
       // Obtener fecha actual para calcular datos del mes
       const now = new Date();
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -153,13 +163,13 @@ export class FinanzasController {
       const ingresosDelMes = await this.ingresosService.getTotalIngresosByDateRange(fechaInicio, fechaFin);
 
       // Obtener inventario actual total
-      const resumenInventario = await this.inventarioResumenService.getInventarioResumen();
+      const resumenInventario = await this.inventarioResumenService.getInventarioResumen(null, null, empresaId);
       const inventarioActual = Object.values(resumenInventario).reduce((total: number, item: any) => {
         return total + (item.stockActual || 0);
       }, 0);
 
       // Obtener galpones y estadísticas
-      const galpones = await this.galponesService.findAll();
+      const galpones = await this.galponesService.findAll(empresaId);
       const galponesActivos = galpones.filter(g => g.activo).length;
       const totalGalpones = galpones.length;
       

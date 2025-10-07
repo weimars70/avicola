@@ -4,5 +4,6 @@ export declare class CreateCanastaDto {
     valorCanasta: number;
     unidadesPorCanasta: number;
     tipoHuevoId: string;
+    id_empresa: number;
     activo?: boolean;
 }

@@ -38,4 +38,9 @@ __decorate([
     (0, class_validator_1.IsBoolean)(),
     __metadata("design:type", Boolean)
 ], CreateGalponDto.prototype, "activo", void 0);
+__decorate([
+    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsInt)(),
+    __metadata("design:type", Number)
+], CreateGalponDto.prototype, "id_empresa", void 0);
 //# sourceMappingURL=create-galpon.dto.js.map

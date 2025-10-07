@@ -20,17 +20,18 @@ let ActividadesController = class ActividadesController {
     constructor(actividadesService) {
         this.actividadesService = actividadesService;
     }
-    async getActividadesRecientes(limit) {
+    async getActividadesRecientes(id_empresa, limit) {
         const limitNumber = limit ? parseInt(limit, 10) : 10;
-        return this.actividadesService.getActividadesRecientes(limitNumber);
+        return this.actividadesService.getActividades(id_empresa);
     }
 };
 exports.ActividadesController = ActividadesController;
 __decorate([
     (0, common_1.Get)('recientes'),
-    __param(0, (0, common_1.Query)('limit')),
+    __param(0, (0, common_1.Query)('id_empresa', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Query)('limit')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [Number, String]),
     __metadata("design:returntype", Promise)
 ], ActividadesController.prototype, "getActividadesRecientes", null);
 exports.ActividadesController = ActividadesController = __decorate([

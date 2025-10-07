@@ -22,11 +22,13 @@ export class AuthService {
 
   async login(loginDto: LoginDto) {
     const user = await this.validateUser(loginDto.email, loginDto.password);
+    
     if (!user) {
       throw new UnauthorizedException('Credenciales inválidas');
     }
 
-    const payload = { email: user.email, sub: user.id, rol: user.rol };
+    const payload = { email: user.email, sub: user.id, rol: user.rol, id_empresa: user.id_empresa };
+    
     return {
       access_token: this.jwtService.sign(payload),
       user: {
@@ -35,6 +37,7 @@ export class AuthService {
         nombre: user.nombre,
         apellido: user.apellido,
         rol: user.rol,
+        id_empresa: user.id_empresa,
       },
     };
   }
@@ -46,8 +49,26 @@ export class AuthService {
   }
 
   async getProfile(userId: string) {
-    const user = await this.usersService.findOne(userId);
-    const { password, ...result } = user;
-    return result;
+    console.log('userId::::', userId);
+    
+    // Validar que userId no sea undefined
+    if (!userId) {
+      throw new UnauthorizedException('Usuario no autenticado correctamente');
+    }
+    
+    try {
+      const user = await this.usersService.findOne(userId);
+      console.log('user::::', user);
+      
+      if (!user) {
+        throw new UnauthorizedException('Usuario no encontrado');
+      }
+      
+      const { password, ...result } = user;
+      return { ...result, id_empresa: user.id_empresa };
+    } catch (error) {
+      console.error('Error en getProfile:', error);
+      throw new UnauthorizedException('Error al obtener el perfil del usuario');
+    }
   }
 }

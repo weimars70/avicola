@@ -6,6 +6,7 @@ export declare class EntradaProduccion {
     fecha: Date;
     tipoHuevoId: string;
     unidades: number;
+    id_empresa: number;
     createdAt: Date;
     updatedAt: Date;
     galpon: Galpon;

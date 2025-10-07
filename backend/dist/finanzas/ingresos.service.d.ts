@@ -15,9 +15,9 @@ export declare class IngresosService {
     findByTipo(tipo: string): Promise<Ingreso[]>;
     update(id: string, updateIngresoDto: UpdateIngresoDto): Promise<Ingreso>;
     remove(id: string): Promise<void>;
-    getTotalIngresos(): Promise<number>;
+    getTotalIngresos(id_empresa: number): Promise<number>;
     getTotalIngresosByDateRange(fechaInicio: string, fechaFin: string): Promise<number>;
     getTotalIngresosByTipo(): Promise<any[]>;
-    syncIngresosFromSalidas(): Promise<Ingreso[]>;
+    syncIngresosFromSalidas(id_empresa: number): Promise<Ingreso[]>;
     getIngresosDiarios(fechaInicio: string, fechaFin: string): Promise<any[]>;
 }

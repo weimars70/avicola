@@ -5,7 +5,7 @@ export declare class InventarioStockController {
     private readonly inventarioStockService;
     constructor(inventarioStockService: InventarioStockService);
     create(createInventarioDto: CreateInventarioDto): Promise<import("./entities/inventario.entity").Inventario>;
-    findAll(tipoHuevoId?: string): Promise<import("./entities/inventario.entity").Inventario> | Promise<import("./entities/inventario.entity").Inventario[]>;
+    findAll(id_empresa: number): Promise<import("./entities/inventario.entity").Inventario[]>;
     getVistaInventario(): Promise<any[]>;
     findByTipoHuevo(tipoHuevoId: string): Promise<import("./entities/inventario.entity").Inventario>;
     findOne(id: number): Promise<import("./entities/inventario.entity").Inventario>;

@@ -20,6 +20,10 @@ __decorate([
 ], TipoHuevo.prototype, "id", void 0);
 __decorate([
     (0, typeorm_1.Column)(),
+    __metadata("design:type", Number)
+], TipoHuevo.prototype, "id_empresa", void 0);
+__decorate([
+    (0, typeorm_1.Column)(),
     __metadata("design:type", String)
 ], TipoHuevo.prototype, "nombre", void 0);
 __decorate([

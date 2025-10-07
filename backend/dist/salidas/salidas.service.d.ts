@@ -13,11 +13,11 @@ export declare class SalidasService {
     private inventarioStockService;
     private ingresosService;
     constructor(salidasRepository: Repository<Salida>, tiposHuevoService: TiposHuevoService, canastasService: CanastasService, inventarioStockService: InventarioStockService, ingresosService: IngresosService);
-    create(createSalidaDto: CreateSalidaDto): Promise<Salida>;
-    findAll(): Promise<Salida[]>;
-    findOne(id: string): Promise<Salida>;
-    update(id: string, updateSalidaDto: UpdateSalidaDto): Promise<Salida>;
-    remove(id: string): Promise<void>;
+    create(createSalidaDto: CreateSalidaDto, id_empresa: number): Promise<Salida>;
+    findAll(id_empresa: number): Promise<Salida[]>;
+    findOne(id: string, id_empresa: number): Promise<Salida>;
+    update(id: string, updateSalidaDto: UpdateSalidaDto, id_empresa: number): Promise<Salida>;
+    remove(id: string, id_empresa: number): Promise<void>;
     getSalidasDiarias(fechaInicio: string, fechaFin: string): Promise<any[]>;
     getCanastasDiarias(fechaInicio: string, fechaFin: string): Promise<any[]>;
 }

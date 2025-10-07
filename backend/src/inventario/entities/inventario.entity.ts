@@ -2,10 +2,13 @@ import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, CreateDa
 import { TipoHuevo } from '../../tipos-huevo/entities/tipo-huevo.entity';
 
 @Entity('inventario')
-@Unique(['tipoHuevoId'])
+@Unique(['tipoHuevoId', 'id_empresa'])
 export class Inventario {
   @PrimaryGeneratedColumn()
   id: number;
+
+  @Column()
+  id_empresa: number;
 
   @Column()
   tipoHuevoId: string;

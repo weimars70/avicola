@@ -14,7 +14,7 @@ export declare class EntradasProduccionService {
     constructor(entradasProduccionRepository: Repository<EntradaProduccion>, galponesRepository: Repository<Galpon>, tiposHuevoRepository: Repository<TipoHuevo>, inventarioStockService: InventarioStockService);
     create(createEntradaProduccionDto: CreateEntradaProduccionDto): Promise<EntradaProduccion>;
     createMasivas(createEntradasMasivasDto: CreateEntradasMasivasDto): Promise<EntradaProduccion[]>;
-    findAll(): Promise<EntradaProduccion[]>;
+    findAll(id_empresa: number): Promise<EntradaProduccion[]>;
     findByDateRange(fechaInicio: string, fechaFin: string): Promise<EntradaProduccion[]>;
     findOne(id: string): Promise<EntradaProduccion>;
     update(id: string, updateEntradaProduccionDto: UpdateEntradaProduccionDto): Promise<EntradaProduccion>;

@@ -28,6 +28,8 @@ interface CreateGalponDto {
   ubicacion?: string;
   capacidad: number;
   activo?: boolean;
+  id_empresa: number;
+  id_usuario_inserta?: string;
 }
 
 interface UpdateGalponDto {
@@ -36,6 +38,7 @@ interface UpdateGalponDto {
   ubicacion?: string;
   capacidad?: number;
   activo?: boolean;
+  id_usuario_actualiza?: string;
 }
 
 export const useGalponesStore = defineStore('galpones', () => {
@@ -60,11 +63,23 @@ export const useGalponesStore = defineStore('galpones', () => {
       const params = new URLSearchParams();
       params.append('page', page.toString());
       params.append('limit', limit.toString());
+      
+      // Obtener id_empresa del localStorage o del store de autenticación
+      const id_empresa = localStorage.getItem('id_empresa');
+      if (id_empresa) {
+        params.append('id_empresa', id_empresa);
+        console.log('Enviando id_empresa:', id_empresa);
+      } else {
+        console.error('No se encontró id_empresa en localStorage');
+      }
+      
       if (includeInactive) {
         params.append('includeInactive', 'true');
       }
       
-      const response = await api.get(`/galpones?${params.toString()}`);
+      const url = `/galpones?${params.toString()}`;
+      console.log('URL de petición:', url);
+      const response = await api.get(url);
       
       if (page === 1) {
         galpones.value = response.data.items || response.data;
@@ -87,10 +102,12 @@ export const useGalponesStore = defineStore('galpones', () => {
   };
 
   const createGalpon = async (galponData: CreateGalponDto) => {
+    console.log('Datos a enviar al crear galpón:', galponData);
     loading.value = true;
     error.value = null;
     try {
       const response = await api.post('/galpones', galponData);
+      console.log('Respuesta del servidor al crear galpón:', response.data);
       galpones.value.push(response.data);
       return { success: true, data: response.data };
     } catch (err: unknown) {

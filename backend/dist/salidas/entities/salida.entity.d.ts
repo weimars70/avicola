@@ -9,6 +9,7 @@ export declare class Salida {
     valor?: number;
     fecha?: string;
     activo: boolean;
+    id_empresa: number;
     createdAt: Date;
     updatedAt: Date;
     tipoHuevo: TipoHuevo;

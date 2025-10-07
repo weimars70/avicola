@@ -17,4 +17,8 @@ export class CreateEntradaProduccionDto {
   @IsInt()
   @Min(1)
   unidades: number;
+  
+  @IsNotEmpty()
+  @IsInt()
+  id_empresa: number;
 }

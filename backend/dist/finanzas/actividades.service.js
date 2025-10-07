@@ -20,7 +20,7 @@ let ActividadesService = class ActividadesService {
         this.salidasService = salidasService;
         this.entradasProduccionService = entradasProduccionService;
     }
-    async getActividadesRecientes(limit = 10) {
+    async getActividades(id_empresa) {
         const actividades = [];
         try {
             const entradas = await this.entradasProduccionService.findAll();
@@ -36,7 +36,7 @@ let ActividadesService = class ActividadesService {
                     color: 'positive'
                 });
             });
-            const salidas = await this.salidasService.findAll();
+            const salidas = await this.salidasService.findAll(id_empresa);
             const salidasRecientes = salidas.slice(0, 20);
             salidasRecientes.forEach(salida => {
                 var _a, _b;
@@ -67,7 +67,7 @@ let ActividadesService = class ActividadesService {
             });
             return actividades
                 .sort((a, b) => b.fecha.getTime() - a.fecha.getTime())
-                .slice(0, limit);
+                .slice(0, 10);
         }
         catch (error) {
             console.error('Error obteniendo actividades recientes:', error);

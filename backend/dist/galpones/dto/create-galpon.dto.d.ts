@@ -3,4 +3,5 @@ export declare class CreateGalponDto {
     descripcion?: string;
     capacidad: number;
     activo?: boolean;
+    id_empresa: number;
 }

@@ -1,8 +1,9 @@
 export declare class CreateSalidaDto {
     tipoHuevoId: string;
-    canastaId?: string;
+    canastaId?: string | null;
     nombreComprador?: string;
     unidades: number;
     valor?: number;
-    fecha: string;
+    fecha?: string;
+    id_empresa: number;
 }

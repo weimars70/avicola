@@ -9,6 +9,8 @@ import {
   UseGuards,
   ParseUUIDPipe,
   Logger,
+  Query,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { GalponesService } from './galpones.service';
 import { CreateGalponDto } from './dto/create-galpon.dto';
@@ -41,8 +43,8 @@ export class GalponesController {
   }
 
   @Get()
-  findAll() {
-    return this.galponesService.findAll();
+  findAll(@Query('id_empresa', new ParseIntPipe({ errorHttpStatusCode: 400 })) id_empresa: number) {
+    return this.galponesService.findAll(id_empresa);
   }
 
   @Get('all')

@@ -37,9 +37,9 @@ export class GalponesService {
     }
   }
 
-  async findAll(): Promise<Galpon[]> {
+  async findAll(id_empresa: number): Promise<Galpon[]> {
     return await this.galponesRepository.find({
-      where: { activo: true },
+      where: { activo: true, id_empresa },
       order: { nombre: 'ASC' },
     });
   }

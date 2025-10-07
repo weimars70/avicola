@@ -8,6 +8,8 @@ import {
   Delete,
   ValidationPipe,
   UsePipes,
+  Query,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { EntradasProduccionService } from './entradas-produccion.service';
 import { CreateEntradaProduccionDto } from './dto/create-entrada-produccion.dto';
@@ -31,8 +33,8 @@ export class EntradasProduccionController {
   }
 
   @Get()
-  findAll() {
-    return this.entradasProduccionService.findAll();
+  findAll(@Query('id_empresa', new ParseIntPipe({ errorHttpStatusCode: 400 })) id_empresa: number) {
+    return this.entradasProduccionService.findAll(id_empresa);
   }
 
   @Get(':id')

@@ -6,7 +6,7 @@ export declare class GalponesController {
     private readonly logger;
     constructor(galponesService: GalponesService);
     create(createGalponDto: CreateGalponDto): Promise<import("./entities/galpon.entity").Galpon>;
-    findAll(): Promise<import("./entities/galpon.entity").Galpon[]>;
+    findAll(id_empresa: number): Promise<import("./entities/galpon.entity").Galpon[]>;
     findAllIncludingInactive(): Promise<import("./entities/galpon.entity").Galpon[]>;
     findOne(id: string): Promise<import("./entities/galpon.entity").Galpon>;
     update(id: string, updateGalponDto: UpdateGalponDto): Promise<import("./entities/galpon.entity").Galpon>;

@@ -1,4 +1,5 @@
-import { IsNotEmpty, IsString, IsInt, Min, IsDateString, IsOptional, IsNumber } from 'class-validator';
+import { IsNotEmpty, IsString, IsInt, Min, IsDateString, IsOptional, IsNumber, IsUUID } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class CreateSalidaDto {
   @IsNotEmpty()
@@ -26,4 +27,17 @@ export class CreateSalidaDto {
   @IsOptional()
   @IsDateString()
   fecha?: string;
+
+  @IsNotEmpty()
+  @IsInt()
+  @Type(() => Number)
+  id_empresa: number;
+  
+  @IsOptional()
+  @IsUUID()
+  id_usuario_inserta?: string;
+  
+  @IsOptional()
+  @IsUUID()
+  id_usuario_actualiza?: string;
 }

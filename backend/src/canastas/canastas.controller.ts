@@ -8,6 +8,8 @@ import {
   Delete,
   UseGuards,
   ParseUUIDPipe,
+  Query,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { CanastasService } from './canastas.service';
 import { CreateCanastaDto } from './dto/create-canasta.dto';
@@ -25,30 +27,37 @@ export class CanastasController {
   }
 
   @Get()
-  findAll() {
-    return this.canastasService.findAll();
+  findAll(@Query('id_empresa', new ParseIntPipe({ errorHttpStatusCode: 400 })) id_empresa: number) {
+    return this.canastasService.findAllByEmpresa(id_empresa);
   }
 
   @Get('all')
-  findAllIncludingInactive() {
-    return this.canastasService.findAllIncludingInactive();
+  findAllIncludingInactive(@Query('id_empresa', new ParseIntPipe({ errorHttpStatusCode: 400 })) id_empresa: number) {
+    return this.canastasService.findAllIncludingInactive(id_empresa);
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseUUIDPipe) id: string) {
-    return this.canastasService.findOne(id);
+  findOne(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query('id_empresa', ParseIntPipe) id_empresa: number,
+  ) {
+    return this.canastasService.findOne(id, id_empresa);
   }
 
   @Patch(':id')
   update(
     @Param('id', ParseUUIDPipe) id: string,
+    @Query('id_empresa', ParseIntPipe) id_empresa: number,
     @Body() updateCanastaDto: UpdateCanastaDto,
   ) {
-    return this.canastasService.update(id, updateCanastaDto);
+    return this.canastasService.update(id, id_empresa, updateCanastaDto);
   }
 
   @Delete(':id')
-  remove(@Param('id', ParseUUIDPipe) id: string) {
-    return this.canastasService.remove(id);
+  remove(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query('id_empresa', ParseIntPipe) id_empresa: number,
+  ) {
+    return this.canastasService.remove(id, id_empresa);
   }
 }

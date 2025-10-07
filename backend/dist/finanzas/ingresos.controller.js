@@ -46,8 +46,8 @@ let IngresosController = class IngresosController {
     getTotalIngresosByTipo() {
         return this.ingresosService.getTotalIngresosByTipo();
     }
-    syncIngresosFromSalidas() {
-        return this.ingresosService.syncIngresosFromSalidas();
+    syncIngresosFromSalidas(id_empresa) {
+        return this.ingresosService.syncIngresosFromSalidas(id_empresa);
     }
     findOne(id) {
         return this.ingresosService.findOne(id);
@@ -117,8 +117,9 @@ __decorate([
 ], IngresosController.prototype, "getTotalIngresosByTipo", null);
 __decorate([
     (0, common_1.Post)('sync-from-salidas'),
+    __param(0, (0, common_1.Query)('id_empresa', common_1.ParseIntPipe)),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
 ], IngresosController.prototype, "syncIngresosFromSalidas", null);
 __decorate([

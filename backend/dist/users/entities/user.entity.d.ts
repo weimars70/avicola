@@ -6,6 +6,7 @@ export declare class User {
     password: string;
     rol: string;
     activo: boolean;
+    id_empresa: number;
     createdAt: Date;
     updatedAt: Date;
 }

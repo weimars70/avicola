@@ -40,8 +40,8 @@ let GalponesController = GalponesController_1 = class GalponesController {
             throw error;
         }
     }
-    findAll() {
-        return this.galponesService.findAll();
+    findAll(id_empresa) {
+        return this.galponesService.findAll(id_empresa);
     }
     findAllIncludingInactive() {
         return this.galponesService.findAllIncludingInactive();
@@ -109,8 +109,9 @@ __decorate([
 ], GalponesController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
+    __param(0, Query('id_empresa', ParseIntPipe)),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
 ], GalponesController.prototype, "findAll", null);
 __decorate([

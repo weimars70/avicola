@@ -25,8 +25,8 @@ let TiposHuevoController = class TiposHuevoController {
     create(createTipoHuevoDto) {
         return this.tiposHuevoService.create(createTipoHuevoDto);
     }
-    findAll() {
-        return this.tiposHuevoService.findAll();
+    findAll(id_empresa) {
+        return this.tiposHuevoService.findAll(id_empresa);
     }
     findAllIncludingInactive() {
         return this.tiposHuevoService.findAllIncludingInactive();
@@ -51,8 +51,9 @@ __decorate([
 ], TiposHuevoController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
+    __param(0, Query('id_empresa', ParseIntPipe)),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
 ], TiposHuevoController.prototype, "findAll", null);
 __decorate([

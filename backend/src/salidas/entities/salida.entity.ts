@@ -28,6 +28,15 @@ export class Salida {
   @Column({ default: true })
   activo: boolean;
 
+  @Column({ type: 'int' })
+  id_empresa: number;
+  
+  @Column({ type: 'uuid', nullable: true })
+  id_usuario_inserta: string;
+  
+  @Column({ type: 'uuid', nullable: true })
+  id_usuario_actualiza: string;
+
   @CreateDateColumn()
   createdAt: Date;
 
@@ -42,6 +51,4 @@ export class Salida {
   @ManyToOne(() => Canasta, { nullable: true })
   @JoinColumn({ name: 'canastaId' })
   canasta: Canasta;
-
-
 }

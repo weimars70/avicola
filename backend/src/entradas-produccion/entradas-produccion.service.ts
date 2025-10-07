@@ -91,10 +91,11 @@ export class EntradasProduccionService {
     return savedEntradas;
   }
 
-  async findAll(): Promise<EntradaProduccion[]> {
-    return this.entradasProduccionRepository.find({
+  async findAll(id_empresa: number): Promise<EntradaProduccion[]> {
+    return await this.entradasProduccionRepository.find({
+      where: { id_empresa },
       relations: ['galpon', 'tipoHuevo'],
-      order: { createdAt: 'DESC' }
+      order: { fecha: 'DESC' },
     });
   }
 

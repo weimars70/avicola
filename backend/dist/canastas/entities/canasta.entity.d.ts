@@ -7,6 +7,7 @@ export declare class Canasta {
     unidadesPorCanasta: number;
     tipoHuevo: TipoHuevo;
     tipoHuevoId: string;
+    id_empresa: number;
     activo: boolean;
     createdAt: Date;
     updatedAt: Date;

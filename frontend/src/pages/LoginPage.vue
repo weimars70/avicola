@@ -110,7 +110,7 @@ const onSubmit = async () => {
       email: form.value.email,
       password: form.value.password
     });
-
+    
     if (result.success) {
       $q.notify({
         type: 'positive',

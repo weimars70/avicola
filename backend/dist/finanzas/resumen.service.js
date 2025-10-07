@@ -20,14 +20,14 @@ let ResumenService = class ResumenService {
         this.salidasService = salidasService;
         this.ingresosService = ingresosService;
     }
-    async getResumenFinanciero() {
-        const totalGastos = await this.gastosService.getTotalGastos();
-        const totalGastosOperativos = await this.gastosService.getTotalGastosExcluyendoInversion();
-        const totalInversionInicial = await this.gastosService.getTotalInversionInicial();
-        const ingresos = await this.ingresosService.syncIngresosFromSalidas();
-        const totalIngresos = await this.ingresosService.getTotalIngresos();
-        const gastos = await this.gastosService.findAll();
-        const salidas = await this.salidasService.findAll();
+    async getResumenFinanciero(id_empresa) {
+        const totalGastos = await this.gastosService.getTotalGastos(id_empresa);
+        const totalGastosOperativos = await this.gastosService.getTotalGastosExcluyendoInversion(id_empresa);
+        const totalInversionInicial = await this.gastosService.getTotalInversionInicial(id_empresa);
+        const ingresos = await this.ingresosService.syncIngresosFromSalidas(id_empresa);
+        const totalIngresos = await this.ingresosService.getTotalIngresos(id_empresa);
+        const gastos = await this.gastosService.findAll(id_empresa);
+        const salidas = await this.salidasService.findAll(id_empresa);
         const utilidadOperativa = totalIngresos - totalGastosOperativos;
         const utilidadNeta = totalIngresos - totalGastos;
         const recuperacionInversion = totalInversionInicial > 0 ? (utilidadOperativa / totalInversionInicial) * 100 : 0;

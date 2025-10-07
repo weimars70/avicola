@@ -6,8 +6,8 @@ export declare class InventarioStockService {
     private inventarioRepository;
     constructor(inventarioRepository: Repository<Inventario>);
     create(createInventarioDto: CreateInventarioDto): Promise<Inventario>;
-    findAll(): Promise<Inventario[]>;
-    findByTipoHuevo(tipoHuevoId: string): Promise<Inventario | null>;
+    findAll(id_empresa: number): Promise<Inventario[]>;
+    findByTipoHuevo(tipoHuevoId: string, id_empresa: number): Promise<Inventario | null>;
     findOne(id: number): Promise<Inventario>;
     update(id: number, updateInventarioDto: UpdateInventarioDto): Promise<Inventario>;
     remove(id: number): Promise<void>;

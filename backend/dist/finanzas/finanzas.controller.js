@@ -180,12 +180,10 @@ let FinanzasController = class FinanzasController {
             let fin = fechaFin;
             if (!inicio || !fin) {
                 const ahora = new Date();
-                const año = ahora.getFullYear();
-                const mes = ahora.getMonth();
-                const primerDia = new Date(año, mes, 1);
-                const ultimoDia = new Date(año, mes + 1, 0);
-                inicio = primerDia.toISOString().split('T')[0];
-                fin = ultimoDia.toISOString().split('T')[0];
+                const hace7Dias = new Date(ahora);
+                hace7Dias.setDate(ahora.getDate() - 7);
+                inicio = hace7Dias.toISOString().split('T')[0];
+                fin = ahora.toISOString().split('T')[0];
             }
             const ingresosDiarios = await this.ingresosService.getIngresosDiarios(inicio, fin);
             const produccionDiaria = await this.entradasProduccionService.getProduccionDiaria(inicio, fin);

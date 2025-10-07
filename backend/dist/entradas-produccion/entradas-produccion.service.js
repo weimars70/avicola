@@ -67,10 +67,11 @@ let EntradasProduccionService = class EntradasProduccionService {
         }
         return savedEntradas;
     }
-    async findAll() {
-        return this.entradasProduccionRepository.find({
+    async findAll(id_empresa) {
+        return await this.entradasProduccionRepository.find({
+            where: { id_empresa },
             relations: ['galpon', 'tipoHuevo'],
-            order: { createdAt: 'DESC' }
+            order: { fecha: 'DESC' },
         });
     }
     async findByDateRange(fechaInicio, fechaFin) {

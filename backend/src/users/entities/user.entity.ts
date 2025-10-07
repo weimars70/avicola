@@ -25,6 +25,9 @@ export class User {
   @Column({ default: true })
   activo: boolean;
 
+  @Column({ type: 'int' })
+  id_empresa: number;
+
   @CreateDateColumn()
   createdAt: Date;
 

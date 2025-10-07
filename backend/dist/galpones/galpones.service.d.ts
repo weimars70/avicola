@@ -7,7 +7,7 @@ export declare class GalponesService {
     private readonly logger;
     constructor(galponesRepository: Repository<Galpon>);
     create(createGalponDto: CreateGalponDto): Promise<Galpon>;
-    findAll(): Promise<Galpon[]>;
+    findAll(id_empresa: number): Promise<Galpon[]>;
     findOne(id: string): Promise<Galpon>;
     update(id: string, updateGalponDto: UpdateGalponDto): Promise<Galpon>;
     remove(id: string): Promise<void>;

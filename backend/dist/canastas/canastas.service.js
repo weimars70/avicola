@@ -28,16 +28,16 @@ let CanastasService = class CanastasService {
         const canasta = this.canastasRepository.create(createCanastaDto);
         return this.canastasRepository.save(canasta);
     }
-    async findAll() {
+    async findAllByEmpresa(id_empresa) {
         return await this.canastasRepository.find({
-            where: { activo: true },
+            where: { activo: true, id_empresa },
             relations: ['tipoHuevo'],
             order: { nombre: 'ASC' },
         });
     }
-    async findOne(id) {
+    async findOne(id, id_empresa) {
         const canasta = await this.canastasRepository.findOne({
-            where: { id, activo: true },
+            where: { id, activo: true, id_empresa },
             relations: ['tipoHuevo'],
         });
         if (!canasta) {
@@ -45,21 +45,23 @@ let CanastasService = class CanastasService {
         }
         return canasta;
     }
-    async update(id, updateCanastaDto) {
+    async update(id, id_empresa, updateCanastaDto) {
         if (updateCanastaDto.tipoHuevoId) {
             await this.tiposHuevoService.findOne(updateCanastaDto.tipoHuevoId);
         }
-        await this.canastasRepository.update(id, updateCanastaDto);
-        return this.findOne(id);
+        const existing = await this.findOne(id, id_empresa);
+        await this.canastasRepository.update({ id, id_empresa }, updateCanastaDto);
+        return this.findOne(id, id_empresa);
     }
-    async remove(id) {
-        const canasta = await this.findOne(id);
+    async remove(id, id_empresa) {
+        const canasta = await this.findOne(id, id_empresa);
         canasta.activo = false;
         canasta.updatedAt = new Date();
         await this.canastasRepository.save(canasta);
     }
-    async findAllIncludingInactive() {
+    async findAllIncludingInactive(id_empresa) {
         return await this.canastasRepository.find({
+            where: { id_empresa },
             relations: ['tipoHuevo'],
             order: { nombre: 'ASC' },
         });

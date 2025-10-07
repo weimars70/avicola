@@ -1,4 +1,5 @@
-import { IsEmail, IsString, MinLength, IsOptional } from 'class-validator';
+import { IsEmail, IsString, MinLength, IsOptional, IsInt, IsNotEmpty } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class CreateUserDto {
   @IsEmail()
@@ -20,4 +21,9 @@ export class CreateUserDto {
 
   @IsOptional()
   activo?: boolean;
+
+  @IsNotEmpty()
+  @IsInt()
+  @Type(() => Number)
+  id_empresa: number;
 }

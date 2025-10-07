@@ -37,6 +37,10 @@ __decorate([
     __metadata("design:type", Number)
 ], EntradaProduccion.prototype, "unidades", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ nullable: false }),
+    __metadata("design:type", Number)
+], EntradaProduccion.prototype, "id_empresa", void 0);
+__decorate([
     (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Date)
 ], EntradaProduccion.prototype, "createdAt", void 0);

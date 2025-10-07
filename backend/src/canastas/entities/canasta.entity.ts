@@ -25,6 +25,9 @@ export class Canasta {
   @Column()
   tipoHuevoId: string;
 
+  @Column({ type: 'int' })
+  id_empresa: number;
+
   @Column({ default: true })
   activo: boolean;
 

@@ -16,7 +16,12 @@ export class ResumenController {
   getResumen(
     @Query('galponId') galponId?: string,
     @Query('tipoHuevoId') tipoHuevoId?: string,
+    @Query('id_empresa') id_empresa?: string,
   ) {
-    return this.resumenService.getInventarioResumen(galponId, tipoHuevoId);
+    if (!id_empresa) {
+      throw new Error('No hay empresa asociada al usuario logueado');
+    }
+    const empresaId = parseInt(id_empresa);
+    return this.resumenService.getInventarioResumen(galponId, tipoHuevoId, empresaId);
   }
 }

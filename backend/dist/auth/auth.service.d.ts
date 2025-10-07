@@ -14,6 +14,7 @@ export declare class AuthService {
             nombre: any;
             apellido: any;
             rol: any;
+            id_empresa: any;
         };
     }>;
     register(createUserDto: any): Promise<{
@@ -23,10 +24,12 @@ export declare class AuthService {
         apellido: string;
         rol: string;
         activo: boolean;
+        id_empresa: number;
         createdAt: Date;
         updatedAt: Date;
     }>;
     getProfile(userId: string): Promise<{
+        id_empresa: number;
         id: string;
         email: string;
         nombre: string;

@@ -48,6 +48,12 @@ __decorate([
 ], UpdateCanastaDto.prototype, "tipoHuevoId", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsInt)(),
+    (0, class_transformer_1.Type)(() => Number),
+    __metadata("design:type", Number)
+], UpdateCanastaDto.prototype, "id_empresa", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsBoolean)(),
     __metadata("design:type", Boolean)
 ], UpdateCanastaDto.prototype, "activo", void 0);

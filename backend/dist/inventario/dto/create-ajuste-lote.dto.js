@@ -16,22 +16,22 @@ class AjusteItemDto {
 }
 exports.AjusteItemDto = AjusteItemDto;
 __decorate([
-    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsUUID)(),
     (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
 ], AjusteItemDto.prototype, "tipoHuevoId", void 0);
 __decorate([
-    (0, class_validator_1.IsInt)(),
-    (0, class_validator_1.Min)(1),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsPositive)(),
     __metadata("design:type", Number)
 ], AjusteItemDto.prototype, "cantidadAjuste", void 0);
 __decorate([
-    (0, class_validator_1.IsEnum)(['suma', 'resta']),
+    (0, class_validator_1.IsIn)(['suma', 'resta']),
     __metadata("design:type", String)
 ], AjusteItemDto.prototype, "tipoAjuste", void 0);
 __decorate([
     (0, class_validator_1.IsString)(),
-    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsOptional)(),
     __metadata("design:type", String)
 ], AjusteItemDto.prototype, "descripcion", void 0);
 class CreateAjusteLoteDto {

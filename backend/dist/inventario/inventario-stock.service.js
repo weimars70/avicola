@@ -25,15 +25,16 @@ let InventarioStockService = class InventarioStockService {
         const inventario = this.inventarioRepository.create(createInventarioDto);
         return await this.inventarioRepository.save(inventario);
     }
-    async findAll() {
+    async findAll(id_empresa) {
         return await this.inventarioRepository.find({
+            where: { id_empresa },
             relations: ['tipoHuevo'],
             order: { tipoHuevo: { nombre: 'ASC' } },
         });
     }
-    async findByTipoHuevo(tipoHuevoId) {
+    async findByTipoHuevo(tipoHuevoId, id_empresa) {
         return await this.inventarioRepository.findOne({
-            where: { tipoHuevoId },
+            where: { tipoHuevoId, id_empresa },
             relations: ['tipoHuevo'],
         });
     }

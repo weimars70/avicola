@@ -59,9 +59,9 @@ let GastosService = class GastosService {
         });
         return await this.gastosRepository.save(gasto);
     }
-    async findAll() {
+    async findAll(id_empresa) {
         return await this.gastosRepository.find({
-            where: { activo: true },
+            where: { activo: true, id_empresa },
             relations: ['categoria'],
             order: { fecha: 'DESC' },
         });
@@ -100,7 +100,7 @@ let GastosService = class GastosService {
         return gasto;
     }
     async update(id, updateGastoDto) {
-        await this.findOne(id);
+        const gasto = await this.findOne(id);
         if (updateGastoDto.categoriaId) {
             await this.categoriasGastosService.findOne(updateGastoDto.categoriaId.toString());
         }
@@ -108,8 +108,8 @@ let GastosService = class GastosService {
         if (updateData.categoriaId) {
             updateData.categoriaId = Number(updateData.categoriaId);
         }
-        await this.gastosRepository.update(id, updateData);
-        return this.findOne(id);
+        Object.assign(gasto, updateData);
+        return await this.gastosRepository.save(gasto);
     }
     async remove(id) {
         await this.findOne(id);
@@ -126,30 +126,39 @@ let GastosService = class GastosService {
             .groupBy('categoria.id')
             .getRawMany();
     }
-    async getTotalGastos() {
+    async getTotalGastos(id_empresa) {
         const result = await this.gastosRepository
             .createQueryBuilder('gasto')
             .select('SUM(gasto.monto)', 'total')
-            .where('gasto.activo = :activo', { activo: true })
+            .where('gasto.activo = :activo AND gasto.id_empresa = :id_empresa', {
+            activo: true,
+            id_empresa
+        })
             .getRawOne();
         return parseFloat(result.total) || 0;
     }
-    async getTotalGastosExcluyendoInversion() {
+    async getTotalGastosExcluyendoInversion(id_empresa) {
         const result = await this.gastosRepository
             .createQueryBuilder('gasto')
             .leftJoin('gasto.categoria', 'categoria')
             .select('SUM(gasto.monto)', 'total')
-            .where('gasto.activo = :activo', { activo: true })
+            .where('gasto.activo = :activo AND gasto.id_empresa = :id_empresa', {
+            activo: true,
+            id_empresa
+        })
             .andWhere('categoria.nombre != :inversionInicial', { inversionInicial: 'Inversión Inicial' })
             .getRawOne();
         return parseFloat(result.total) || 0;
     }
-    async getTotalInversionInicial() {
+    async getTotalInversionInicial(id_empresa) {
         const result = await this.gastosRepository
             .createQueryBuilder('gasto')
             .leftJoin('gasto.categoria', 'categoria')
             .select('SUM(gasto.monto)', 'total')
-            .where('gasto.activo = :activo', { activo: true })
+            .where('gasto.activo = :activo AND gasto.id_empresa = :id_empresa', {
+            activo: true,
+            id_empresa
+        })
             .andWhere('categoria.nombre = :inversionInicial', { inversionInicial: 'Inversión Inicial' })
             .getRawOne();
         return parseFloat(result.total) || 0;

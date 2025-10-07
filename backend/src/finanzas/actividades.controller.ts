@@ -1,6 +1,6 @@
-import { Controller, Get, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Query, UseGuards, ParseIntPipe } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { ActividadesService, ActividadReciente } from './actividades.service';
+import { ActividadesService } from './actividades.service';
 
 @Controller('actividades')
 @UseGuards(JwtAuthGuard)
@@ -9,9 +9,10 @@ export class ActividadesController {
 
   @Get('recientes')
   async getActividadesRecientes(
-    @Query('limit') limit?: string,
-  ): Promise<ActividadReciente[]> {
+    @Query('id_empresa', ParseIntPipe) id_empresa: number,
+    @Query('limit') limit?: string
+  ) {
     const limitNumber = limit ? parseInt(limit, 10) : 10;
-    return this.actividadesService.getActividadesRecientes(limitNumber);
+    return this.actividadesService.getActividades(id_empresa);
   }
 }

@@ -19,6 +19,11 @@ class CreateTipoHuevoDto {
 }
 exports.CreateTipoHuevoDto = CreateTipoHuevoDto;
 __decorate([
+    (0, class_validator_1.IsNumber)(),
+    (0, class_transformer_1.Type)(() => Number),
+    __metadata("design:type", Number)
+], CreateTipoHuevoDto.prototype, "id_empresa", void 0);
+__decorate([
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.MaxLength)(100),
     __metadata("design:type", String)

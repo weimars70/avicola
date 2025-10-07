@@ -24,6 +24,10 @@ export class CreateCanastaDto {
   @IsUUID()
   tipoHuevoId: string;
 
+  @IsInt()
+  @Type(() => Number)
+  id_empresa: number;
+
   @IsOptional()
   @IsBoolean()
   activo?: boolean = true;

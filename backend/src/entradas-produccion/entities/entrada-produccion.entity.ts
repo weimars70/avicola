@@ -19,6 +19,9 @@ export class EntradaProduccion {
   @Column({ type: 'int' })
   unidades: number;
 
+  @Column({ nullable: false })
+  id_empresa: number;
+
   @CreateDateColumn()
   createdAt: Date;
 

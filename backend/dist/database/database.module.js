@@ -40,7 +40,7 @@ exports.DatabaseModule = DatabaseModule = __decorate([
                     database: configService.get('DB_NAME', 'galpones_db'),
                     entities: [user_entity_1.User, galpon_entity_1.Galpon, tipo_huevo_entity_1.TipoHuevo, canasta_entity_1.Canasta, entrada_produccion_entity_1.EntradaProduccion, salida_entity_1.Salida, inventario_entity_1.Inventario, ajuste_inventario_entity_1.AjusteInventario, ajuste_lote_entity_1.AjusteLote, categoria_gasto_entity_1.CategoriaGasto, gasto_entity_1.Gasto, ingreso_entity_1.Ingreso, rendimiento_entity_1.Rendimiento],
                     synchronize: configService.get('NODE_ENV') !== 'production',
-                    logging: configService.get('NODE_ENV') === 'development',
+                    //logging: configService.get('NODE_ENV') === 'development',
                 }),
                 inject: [config_1.ConfigService],
             }),

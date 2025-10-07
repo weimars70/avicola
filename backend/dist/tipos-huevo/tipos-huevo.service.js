@@ -25,9 +25,9 @@ let TiposHuevoService = class TiposHuevoService {
         const tipoHuevo = this.tiposHuevoRepository.create(createTipoHuevoDto);
         return await this.tiposHuevoRepository.save(tipoHuevo);
     }
-    async findAll() {
+    async findAll(id_empresa) {
         return await this.tiposHuevoRepository.find({
-            where: { activo: true },
+            where: { activo: true, id_empresa },
             order: { nombre: 'ASC' },
         });
     }

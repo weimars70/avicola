@@ -22,17 +22,17 @@ export class CanastasService {
     return this.canastasRepository.save(canasta);
   }
 
-  async findAll(): Promise<Canasta[]> {
+  async findAllByEmpresa(id_empresa: number): Promise<Canasta[]> {
     return await this.canastasRepository.find({
-      where: { activo: true },
+      where: { activo: true, id_empresa },
       relations: ['tipoHuevo'],
       order: { nombre: 'ASC' },
     });
   }
 
-  async findOne(id: string): Promise<Canasta> {
+  async findOne(id: string, id_empresa: number): Promise<Canasta> {
     const canasta = await this.canastasRepository.findOne({
-      where: { id, activo: true },
+      where: { id, activo: true, id_empresa },
       relations: ['tipoHuevo'],
     });
 
@@ -43,27 +43,27 @@ export class CanastasService {
     return canasta;
   }
 
-  async update(id: string, updateCanastaDto: UpdateCanastaDto): Promise<Canasta> {
+  async update(id: string, id_empresa: number, updateCanastaDto: UpdateCanastaDto): Promise<Canasta> {
     // Validar que el tipo de huevo existe si se está actualizando
     if (updateCanastaDto.tipoHuevoId) {
       await this.tiposHuevoService.findOne(updateCanastaDto.tipoHuevoId);
     }
-    
-    await this.canastasRepository.update(id, updateCanastaDto);
-    return this.findOne(id);
+    // Asegurar que no se actualicen registros de otra empresa
+    const existing = await this.findOne(id, id_empresa);
+    await this.canastasRepository.update({ id, id_empresa }, updateCanastaDto);
+    return this.findOne(id, id_empresa);
   }
 
-  async remove(id: string): Promise<void> {
-    const canasta = await this.findOne(id);
-    
+  async remove(id: string, id_empresa: number): Promise<void> {
+    const canasta = await this.findOne(id, id_empresa);
     canasta.activo = false;
     canasta.updatedAt = new Date();
-    
     await this.canastasRepository.save(canasta);
   }
 
-  async findAllIncludingInactive(): Promise<Canasta[]> {
+  async findAllIncludingInactive(id_empresa: number): Promise<Canasta[]> {
     return await this.canastasRepository.find({
+      where: { id_empresa },
       relations: ['tipoHuevo'],
       order: { nombre: 'ASC' },
     });

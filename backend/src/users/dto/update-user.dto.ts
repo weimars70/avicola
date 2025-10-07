@@ -1,4 +1,5 @@
-import { IsEmail, IsString, MinLength, IsOptional } from 'class-validator';
+import { IsEmail, IsString, MinLength, IsOptional, IsInt } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class UpdateUserDto {
   @IsOptional()
@@ -24,4 +25,9 @@ export class UpdateUserDto {
 
   @IsOptional()
   activo?: boolean;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  id_empresa?: number;
 }

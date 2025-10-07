@@ -27,11 +27,8 @@ export class InventarioStockController {
   }
 
   @Get()
-  findAll(@Query('tipoHuevoId') tipoHuevoId?: string) {
-    if (tipoHuevoId) {
-      return this.inventarioStockService.findByTipoHuevo(tipoHuevoId);
-    }
-    return this.inventarioStockService.findAll();
+  findAll(@Query('id_empresa', new ParseIntPipe({ errorHttpStatusCode: 400 })) id_empresa: number) {
+    return this.inventarioStockService.findAll(id_empresa);
   }
 
   @Get('vista/inventario')
@@ -42,8 +39,9 @@ export class InventarioStockController {
   @Get('tipo-huevo/:tipoHuevoId')
   findByTipoHuevo(
     @Param('tipoHuevoId', ParseUUIDPipe) tipoHuevoId: string,
+    @Query('id_empresa', new ParseIntPipe({ errorHttpStatusCode: 400 })) id_empresa: number,
   ) {
-    return this.inventarioStockService.findByTipoHuevo(tipoHuevoId);
+    return this.inventarioStockService.findByTipoHuevo(tipoHuevoId, id_empresa);
   }
 
   @Get(':id')

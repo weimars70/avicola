@@ -29,6 +29,11 @@ export class UpdateCanastaDto {
   tipoHuevoId?: string;
 
   @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  id_empresa?: number;
+
+  @IsOptional()
   @IsBoolean()
   activo?: boolean;
 }

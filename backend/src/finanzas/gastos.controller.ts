@@ -36,8 +36,9 @@ export class GastosController {
   }
 
   @Get()
-  findAll() {
-    return this.gastosService.findAll();
+  findAll(@Query('id_empresa') id_empresa: number) {
+    // Usar el id_empresa de la petición
+    return this.gastosService.findAll(id_empresa || 1);
   }
 
   @Get('all-including-inactive')
@@ -59,8 +60,9 @@ export class GastosController {
   }
 
   @Get('total')
-  getTotalGastos() {
-    return this.gastosService.getTotalGastos();
+  getTotalGastos(@Query('id_empresa') id_empresa: number) {
+    // Usar el id_empresa de la petición
+    return this.gastosService.getTotalGastos(id_empresa || 1);
   }
 
   @Get('total-by-date-range')

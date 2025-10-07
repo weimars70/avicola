@@ -35,4 +35,9 @@ __decorate([
     (0, class_validator_1.Min)(1),
     __metadata("design:type", Number)
 ], CreateEntradaProduccionDto.prototype, "unidades", void 0);
+__decorate([
+    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsInt)(),
+    __metadata("design:type", Number)
+], CreateEntradaProduccionDto.prototype, "id_empresa", void 0);
 //# sourceMappingURL=create-entrada-produccion.dto.js.map

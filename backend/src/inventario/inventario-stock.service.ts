@@ -17,16 +17,17 @@ export class InventarioStockService {
     return await this.inventarioRepository.save(inventario);
   }
 
-  async findAll(): Promise<Inventario[]> {
+  async findAll(id_empresa: number): Promise<Inventario[]> {
     return await this.inventarioRepository.find({
+      where: { id_empresa },
       relations: ['tipoHuevo'],
       order: { tipoHuevo: { nombre: 'ASC' } },
     });
   }
 
-  async findByTipoHuevo(tipoHuevoId: string): Promise<Inventario | null> {
+  async findByTipoHuevo(tipoHuevoId: string, id_empresa: number): Promise<Inventario | null> {
     return await this.inventarioRepository.findOne({
-      where: { tipoHuevoId },
+      where: { tipoHuevoId, id_empresa },
       relations: ['tipoHuevo'],
     });
   }
@@ -58,8 +59,8 @@ export class InventarioStockService {
   }
 
   // Método principal para actualizar inventario desde entradas de producción
-  async actualizarInventario(tipoHuevoId: string, unidadesAgregar: number): Promise<Inventario> {
-    const inventarioExistente = await this.findByTipoHuevo(tipoHuevoId);
+  async actualizarInventario(tipoHuevoId: string, unidadesAgregar: number, id_empresa: number = 1): Promise<Inventario> {
+    const inventarioExistente = await this.findByTipoHuevo(tipoHuevoId, id_empresa);
 
     if (inventarioExistente) {
       // Actualizar inventario existente
@@ -70,14 +71,15 @@ export class InventarioStockService {
       const nuevoInventario = this.inventarioRepository.create({
         tipoHuevoId,
         unidades: unidadesAgregar,
+        id_empresa,
       });
       return await this.inventarioRepository.save(nuevoInventario);
     }
   }
 
   // Método para reducir inventario (para salidas)
-  async reducirInventario(tipoHuevoId: string, unidadesReducir: number): Promise<Inventario> {
-    const inventarioExistente = await this.findByTipoHuevo(tipoHuevoId);
+  async reducirInventario(tipoHuevoId: string, unidadesReducir: number, id_empresa: number = 1): Promise<Inventario> {
+    const inventarioExistente = await this.findByTipoHuevo(tipoHuevoId, id_empresa);
 
     if (!inventarioExistente) {
       throw new NotFoundException(`No hay inventario para el tipo de huevo ${tipoHuevoId}`);
@@ -94,8 +96,8 @@ export class InventarioStockService {
 
 
   // Método para aumentar stock (para correcciones o devoluciones)
-  async aumentarStock(tipoHuevoId: string, unidadesAumentar: number): Promise<Inventario> {
-    return this.actualizarInventario(tipoHuevoId, unidadesAumentar);
+  async aumentarStock(tipoHuevoId: string, unidadesAumentar: number, id_empresa: number = 1): Promise<Inventario> {
+    return this.actualizarInventario(tipoHuevoId, unidadesAumentar, id_empresa);
   }
 
   // Método para reducir stock (para salidas)

@@ -36,7 +36,7 @@ export class AjustesInventarioService {
     }
 
     // Obtener inventario actual
-    const inventarioActual = await this.inventarioStockService.findByTipoHuevo(createAjusteDto.tipoHuevoId);
+    const inventarioActual = await this.inventarioStockService.findByTipoHuevo(createAjusteDto.tipoHuevoId, 1);
     const cantidadAnterior = inventarioActual ? inventarioActual.unidades : 0;
 
     // Validar que no se puede restar más de lo que hay en stock
@@ -132,7 +132,7 @@ export class AjustesInventarioService {
       }
 
       // Obtener inventario actual
-      const inventarioActual = await this.inventarioStockService.findByTipoHuevo(ajusteItem.tipoHuevoId);
+      const inventarioActual = await this.inventarioStockService.findByTipoHuevo(ajusteItem.tipoHuevoId, 1);
       const cantidadAnterior = inventarioActual ? inventarioActual.unidades : 0;
 
       // Validar que no se puede restar más de lo que hay en stock
@@ -263,7 +263,7 @@ export class AjustesInventarioService {
     }
     
     // Obtener la cantidad actual del inventario
-    const inventarioActual = await this.inventarioStockService.findByTipoHuevo(updateAjusteDto.tipoHuevoId);
+    const inventarioActual = await this.inventarioStockService.findByTipoHuevo(updateAjusteDto.tipoHuevoId, 1);
     const cantidadAnterior = inventarioActual ? inventarioActual.unidades : 0;
     
     let cantidadNueva: number;

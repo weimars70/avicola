@@ -29,19 +29,32 @@ let SalidasService = class SalidasService {
         this.inventarioStockService = inventarioStockService;
         this.ingresosService = ingresosService;
     }
-    async create(createSalidaDto) {
+    async create(createSalidaDto, id_empresa) {
         const tipoHuevo = await this.tiposHuevoService.findOne(createSalidaDto.tipoHuevoId);
-        const canasta = await this.canastasService.findOne(createSalidaDto.canastaId);
-        const unidadesTotales = createSalidaDto.unidades * canasta.unidadesPorCanasta;
+        let canasta = null;
+        let unidadesTotales = createSalidaDto.unidades;
+        if (createSalidaDto.canastaId) {
+            canasta = await this.canastasService.findOne(createSalidaDto.canastaId, id_empresa);
+            unidadesTotales = createSalidaDto.unidades * canasta.unidadesPorCanasta;
+        }
         await this.inventarioStockService.reducirInventario(createSalidaDto.tipoHuevoId, unidadesTotales);
-        const salida = this.salidasRepository.create(createSalidaDto);
+        const fechaFinal = createSalidaDto.fecha || new Date().toISOString().split('T')[0];
+        const salida = this.salidasRepository.create(Object.assign(Object.assign({}, createSalidaDto), { fecha: fechaFinal }));
         const savedSalida = await this.salidasRepository.save(salida);
         try {
-            const monto = createSalidaDto.unidades * canasta.valorCanasta;
+            let monto = 0;
+            let descripcion = '';
+            if (canasta) {
+                monto = createSalidaDto.unidades * canasta.valorCanasta;
+                descripcion = `Venta de ${createSalidaDto.unidades} ${canasta.nombre} de ${tipoHuevo.nombre}`;
+            }
+            else {
+                monto = createSalidaDto.valor || (createSalidaDto.unidades * tipoHuevo.valorUnidad);
+            }
             await this.ingresosService.create({
                 monto,
-                fecha: createSalidaDto.fecha,
-                descripcion: `Venta de ${createSalidaDto.unidades} ${canasta.nombre} de ${tipoHuevo.nombre}`,
+                fecha: fechaFinal,
+                descripcion,
                 observaciones: `Generado automáticamente desde salida ${savedSalida.id}`,
                 tipo: 'venta',
                 salidaId: savedSalida.id,
@@ -52,15 +65,16 @@ let SalidasService = class SalidasService {
         }
         return savedSalida;
     }
-    async findAll() {
+    async findAll(id_empresa) {
         return this.salidasRepository.find({
+            where: { id_empresa },
             relations: ['tipoHuevo', 'canasta'],
             order: { createdAt: 'DESC' }
         });
     }
-    async findOne(id) {
+    async findOne(id, id_empresa) {
         const salida = await this.salidasRepository.findOne({
-            where: { id },
+            where: { id, id_empresa },
             relations: ['tipoHuevo', 'canasta']
         });
         if (!salida) {
@@ -68,15 +82,15 @@ let SalidasService = class SalidasService {
         }
         return salida;
     }
-    async update(id, updateSalidaDto) {
-        const salida = await this.findOne(id);
+    async update(id, updateSalidaDto, id_empresa) {
+        const salida = await this.findOne(id, id_empresa);
         const unidadesOriginales = salida.unidades;
         const tipoHuevoOriginal = salida.tipoHuevoId;
         if (updateSalidaDto.tipoHuevoId) {
             await this.tiposHuevoService.findOne(updateSalidaDto.tipoHuevoId);
         }
-        if (updateSalidaDto.canastaId) {
-            await this.canastasService.findOne(updateSalidaDto.canastaId);
+        if (updateSalidaDto.canastaId && updateSalidaDto.id_empresa) {
+            await this.canastasService.findOne(updateSalidaDto.canastaId, updateSalidaDto.id_empresa);
         }
         if (updateSalidaDto.unidades !== undefined || updateSalidaDto.tipoHuevoId) {
             const nuevoTipoHuevo = updateSalidaDto.tipoHuevoId || tipoHuevoOriginal;
@@ -87,14 +101,14 @@ let SalidasService = class SalidasService {
         Object.assign(salida, updateSalidaDto);
         return this.salidasRepository.save(salida);
     }
-    async remove(id) {
-        const salida = await this.findOne(id);
+    async remove(id, id_empresa) {
+        const salida = await this.findOne(id, id_empresa);
         await this.salidasRepository.remove(salida);
     }
     async getSalidasDiarias(fechaInicio, fechaFin) {
         const query = `
       SELECT 
-        salida."createdAt"::date as fecha,
+        salida.fecha as fecha,
         SUM(
           CASE 
             WHEN salida."canastaId" IS NOT NULL THEN salida.unidades * canasta."unidadesPorCanasta"
@@ -103,8 +117,8 @@ let SalidasService = class SalidasService {
         ) as salidas
       FROM salidas salida
       LEFT JOIN canastas canasta ON salida."canastaId" = canasta.id
-      WHERE salida."createdAt"::date BETWEEN $1 AND $2
-      GROUP BY salida."createdAt"::date
+      WHERE salida.fecha BETWEEN $1 AND $2
+      GROUP BY salida.fecha
       ORDER BY fecha ASC
     `;
         return this.salidasRepository.query(query, [fechaInicio, fechaFin]);
@@ -112,11 +126,11 @@ let SalidasService = class SalidasService {
     async getCanastasDiarias(fechaInicio, fechaFin) {
         const query = `
       SELECT 
-        salida."createdAt"::date as fecha,
+        salida.fecha as fecha,
         SUM(salida.unidades) as canastas
       FROM salidas salida
-      WHERE salida."createdAt"::date BETWEEN $1 AND $2
-      GROUP BY salida."createdAt"::date
+      WHERE salida.fecha BETWEEN $1 AND $2
+      GROUP BY salida.fecha
       ORDER BY fecha ASC
     `;
         return this.salidasRepository.query(query, [fechaInicio, fechaFin]);

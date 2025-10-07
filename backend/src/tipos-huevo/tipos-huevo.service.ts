@@ -17,9 +17,9 @@ export class TiposHuevoService {
     return await this.tiposHuevoRepository.save(tipoHuevo);
   }
 
-  async findAll(): Promise<TipoHuevo[]> {
+  async findAll(id_empresa: number): Promise<TipoHuevo[]> {
     return await this.tiposHuevoRepository.find({
-      where: { activo: true },
+      where: { activo: true, id_empresa },
       order: { nombre: 'ASC' },
     });
   }

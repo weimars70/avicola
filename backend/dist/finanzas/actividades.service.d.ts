@@ -15,5 +15,5 @@ export declare class ActividadesService {
     private readonly salidasService;
     private readonly entradasProduccionService;
     constructor(gastosService: GastosService, salidasService: SalidasService, entradasProduccionService: EntradasProduccionService);
-    getActividadesRecientes(limit?: number): Promise<ActividadReciente[]>;
+    getActividades(id_empresa: number): Promise<ActividadReciente[]>;
 }

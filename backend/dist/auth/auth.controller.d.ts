@@ -12,6 +12,7 @@ export declare class AuthController {
             nombre: any;
             apellido: any;
             rol: any;
+            id_empresa: any;
         };
     }>;
     register(createUserDto: CreateUserDto): Promise<{
@@ -21,10 +22,12 @@ export declare class AuthController {
         apellido: string;
         rol: string;
         activo: boolean;
+        id_empresa: number;
         createdAt: Date;
         updatedAt: Date;
     }>;
     getProfile(req: any): Promise<{
+        id_empresa: number;
         id: string;
         email: string;
         nombre: string;

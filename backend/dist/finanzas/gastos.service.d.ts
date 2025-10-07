@@ -14,7 +14,7 @@ export declare class GastosService {
     constructor(gastosRepository: Repository<Gasto>, categoriasGastosService: CategoriasGastosService, inventarioStockService: InventarioStockService, tiposHuevoService: TiposHuevoService);
     create(createGastoDto: CreateGastoDto): Promise<Gasto>;
     createConsumoPropio(createConsumoPropioDto: CreateConsumoPropioDto): Promise<Gasto>;
-    findAll(): Promise<Gasto[]>;
+    findAll(id_empresa: number): Promise<Gasto[]>;
     findAllIncludingInactive(): Promise<Gasto[]>;
     findByDateRange(fechaInicio: string, fechaFin: string): Promise<Gasto[]>;
     findByCategoria(categoriaId: number): Promise<Gasto[]>;
@@ -22,9 +22,9 @@ export declare class GastosService {
     update(id: string, updateGastoDto: UpdateGastoDto): Promise<Gasto>;
     remove(id: string): Promise<void>;
     getTotalGastosByCategoria(): Promise<any[]>;
-    getTotalGastos(): Promise<number>;
-    getTotalGastosExcluyendoInversion(): Promise<number>;
-    getTotalInversionInicial(): Promise<number>;
+    getTotalGastos(id_empresa: number): Promise<number>;
+    getTotalGastosExcluyendoInversion(id_empresa: number): Promise<number>;
+    getTotalInversionInicial(id_empresa: number): Promise<number>;
     getTotalGastosByDateRange(fechaInicio: string, fechaFin: string): Promise<number>;
     getTotalGastosByDateRangeExcluyendoInversion(fechaInicio: string, fechaFin: string): Promise<number>;
     getGastosDiarios(fechaInicio: string, fechaFin: string): Promise<any[]>;

@@ -79,11 +79,14 @@ export class IngresosService {
     await this.ingresosRepository.save(ingreso);
   }
 
-  async getTotalIngresos(): Promise<number> {
+  async getTotalIngresos(id_empresa: number): Promise<number> {
     const result = await this.ingresosRepository
       .createQueryBuilder('ingreso')
       .select('SUM(ingreso.monto)', 'total')
-      .where('ingreso.activo = :activo', { activo: true })
+      .where('ingreso.activo = :activo AND ingreso.id_empresa = :id_empresa', { 
+        activo: true,
+        id_empresa 
+      })
       .getRawOne();
 
     return parseFloat(result.total) || 0;
@@ -121,8 +124,8 @@ export class IngresosService {
   }
 
   // Método para sincronizar ingresos desde salidas
-  async syncIngresosFromSalidas(): Promise<Ingreso[]> {
-    const salidas = await this.salidasService.findAll();
+  async syncIngresosFromSalidas(id_empresa: number): Promise<Ingreso[]> {
+    const salidas = await this.salidasService.findAll(id_empresa);
     const ingresosCreados: Ingreso[] = [];
 
     for (const salida of salidas) {

@@ -21,20 +21,20 @@ let SalidasController = class SalidasController {
     constructor(salidasService) {
         this.salidasService = salidasService;
     }
-    create(createSalidaDto) {
-        return this.salidasService.create(createSalidaDto);
+    create(createSalidaDto, id_empresa) {
+        return this.salidasService.create(createSalidaDto, id_empresa);
     }
-    findAll() {
-        return this.salidasService.findAll();
+    findAll(id_empresa) {
+        return this.salidasService.findAll(id_empresa);
     }
-    findOne(id) {
-        return this.salidasService.findOne(id);
+    findOne(id, id_empresa) {
+        return this.salidasService.findOne(id, id_empresa);
     }
-    update(id, updateSalidaDto) {
-        return this.salidasService.update(id, updateSalidaDto);
+    update(id, updateSalidaDto, id_empresa) {
+        return this.salidasService.update(id, updateSalidaDto, id_empresa);
     }
-    remove(id) {
-        return this.salidasService.remove(id);
+    remove(id, id_empresa) {
+        return this.salidasService.remove(id, id_empresa);
     }
 };
 exports.SalidasController = SalidasController;
@@ -42,21 +42,24 @@ __decorate([
     (0, common_1.Post)(),
     (0, common_1.UsePipes)(new common_1.ValidationPipe({ transform: true })),
     __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Query)('id_empresa', common_1.ParseIntPipe)),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [create_salida_dto_1.CreateSalidaDto]),
+    __metadata("design:paramtypes", [create_salida_dto_1.CreateSalidaDto, Number]),
     __metadata("design:returntype", void 0)
 ], SalidasController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
+    __param(0, (0, common_1.Query)('id_empresa', common_1.ParseIntPipe)),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
 ], SalidasController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Get)(':id'),
     __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Query)('id_empresa', common_1.ParseIntPipe)),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, Number]),
     __metadata("design:returntype", void 0)
 ], SalidasController.prototype, "findOne", null);
 __decorate([
@@ -64,15 +67,17 @@ __decorate([
     (0, common_1.UsePipes)(new common_1.ValidationPipe({ transform: true })),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
+    __param(2, (0, common_1.Query)('id_empresa', common_1.ParseIntPipe)),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, update_salida_dto_1.UpdateSalidaDto]),
+    __metadata("design:paramtypes", [String, update_salida_dto_1.UpdateSalidaDto, Number]),
     __metadata("design:returntype", void 0)
 ], SalidasController.prototype, "update", null);
 __decorate([
     (0, common_1.Delete)(':id'),
     __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Query)('id_empresa', common_1.ParseIntPipe)),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, Number]),
     __metadata("design:returntype", void 0)
 ], SalidasController.prototype, "remove", null);
 exports.SalidasController = SalidasController = __decorate([

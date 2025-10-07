@@ -25,20 +25,20 @@ let CanastasController = class CanastasController {
     create(createCanastaDto) {
         return this.canastasService.create(createCanastaDto);
     }
-    findAll() {
-        return this.canastasService.findAll();
+    findAll(id_empresa) {
+        return this.canastasService.findAllByEmpresa(id_empresa);
     }
-    findAllIncludingInactive() {
-        return this.canastasService.findAllIncludingInactive();
+    findAllIncludingInactive(id_empresa) {
+        return this.canastasService.findAllIncludingInactive(id_empresa);
     }
-    findOne(id) {
-        return this.canastasService.findOne(id);
+    findOne(id, id_empresa) {
+        return this.canastasService.findOne(id, id_empresa);
     }
-    update(id, updateCanastaDto) {
-        return this.canastasService.update(id, updateCanastaDto);
+    update(id, id_empresa, updateCanastaDto) {
+        return this.canastasService.update(id, id_empresa, updateCanastaDto);
     }
-    remove(id) {
-        return this.canastasService.remove(id);
+    remove(id, id_empresa) {
+        return this.canastasService.remove(id, id_empresa);
     }
 };
 exports.CanastasController = CanastasController;
@@ -51,36 +51,41 @@ __decorate([
 ], CanastasController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
+    __param(0, (0, common_1.Query)('id_empresa', common_1.ParseIntPipe)),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
 ], CanastasController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Get)('all'),
+    __param(0, (0, common_1.Query)('id_empresa', common_1.ParseIntPipe)),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
 ], CanastasController.prototype, "findAllIncludingInactive", null);
 __decorate([
     (0, common_1.Get)(':id'),
     __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
+    __param(1, (0, common_1.Query)('id_empresa', common_1.ParseIntPipe)),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, Number]),
     __metadata("design:returntype", void 0)
 ], CanastasController.prototype, "findOne", null);
 __decorate([
     (0, common_1.Patch)(':id'),
     __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
-    __param(1, (0, common_1.Body)()),
+    __param(1, (0, common_1.Query)('id_empresa', common_1.ParseIntPipe)),
+    __param(2, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, update_canasta_dto_1.UpdateCanastaDto]),
+    __metadata("design:paramtypes", [String, Number, update_canasta_dto_1.UpdateCanastaDto]),
     __metadata("design:returntype", void 0)
 ], CanastasController.prototype, "update", null);
 __decorate([
     (0, common_1.Delete)(':id'),
     __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
+    __param(1, (0, common_1.Query)('id_empresa', common_1.ParseIntPipe)),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, Number]),
     __metadata("design:returntype", void 0)
 ], CanastasController.prototype, "remove", null);
 exports.CanastasController = CanastasController = __decorate([

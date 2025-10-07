@@ -45,6 +45,10 @@ __decorate([
     __metadata("design:type", String)
 ], Canasta.prototype, "tipoHuevoId", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ type: 'int' }),
+    __metadata("design:type", Number)
+], Canasta.prototype, "id_empresa", void 0);
+__decorate([
     (0, typeorm_1.Column)({ default: true }),
     __metadata("design:type", Boolean)
 ], Canasta.prototype, "activo", void 0);

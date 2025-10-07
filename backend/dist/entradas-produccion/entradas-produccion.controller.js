@@ -28,8 +28,8 @@ let EntradasProduccionController = class EntradasProduccionController {
     createMasivas(createEntradasMasivasDto) {
         return this.entradasProduccionService.createMasivas(createEntradasMasivasDto);
     }
-    findAll() {
-        return this.entradasProduccionService.findAll();
+    findAll(id_empresa) {
+        return this.entradasProduccionService.findAll(id_empresa);
     }
     findOne(id) {
         return this.entradasProduccionService.findOne(id);
@@ -60,8 +60,9 @@ __decorate([
 ], EntradasProduccionController.prototype, "createMasivas", null);
 __decorate([
     (0, common_1.Get)(),
+    __param(0, Query('id_empresa', ParseIntPipe)),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
 ], EntradasProduccionController.prototype, "findAll", null);
 __decorate([

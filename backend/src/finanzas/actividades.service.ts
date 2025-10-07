@@ -21,12 +21,12 @@ export class ActividadesService {
     private readonly entradasProduccionService: EntradasProduccionService,
   ) {}
 
-  async getActividadesRecientes(limit: number = 10): Promise<ActividadReciente[]> {
+  async getActividades(id_empresa: number): Promise<ActividadReciente[]> {
     const actividades: ActividadReciente[] = [];
-
+    
     try {
       // Obtener entradas recientes
-      const entradas = await this.entradasProduccionService.findAll();
+      const entradas = await this.entradasProduccionService.findAll(id_empresa);
       const entradasRecientes = entradas.slice(0, 20); // Obtener las 20 más recientes
       
       entradasRecientes.forEach(entrada => {
@@ -41,7 +41,7 @@ export class ActividadesService {
       });
 
       // Obtener salidas recientes
-      const salidas = await this.salidasService.findAll();
+      const salidas = await this.salidasService.findAll(id_empresa);
       const salidasRecientes = salidas.slice(0, 20); // Obtener las 20 más recientes
       
       salidasRecientes.forEach(salida => {
@@ -58,7 +58,7 @@ export class ActividadesService {
       });
 
       // Obtener gastos recientes
-      const gastos = await this.gastosService.findAll();
+      const gastos = await this.gastosService.findAll(id_empresa);
       const gastosRecientes = gastos.slice(0, 20); // Obtener los 20 más recientes
       
       gastosRecientes.forEach(gasto => {
@@ -76,7 +76,7 @@ export class ActividadesService {
       // Ordenar por fecha (más recientes primero) y limitar
       return actividades
         .sort((a, b) => b.fecha.getTime() - a.fecha.getTime())
-        .slice(0, limit);
+        .slice(0, 10);
         
     } catch (error) {
       console.error('Error obteniendo actividades recientes:', error);

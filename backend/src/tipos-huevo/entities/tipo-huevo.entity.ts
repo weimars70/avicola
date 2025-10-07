@@ -6,6 +6,9 @@ export class TipoHuevo {
   id: string;
 
   @Column()
+  id_empresa: number;
+
+  @Column()
   nombre: string;
 
   @Column({ nullable: true })

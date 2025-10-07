@@ -11,6 +11,7 @@ import {
   Query,
   ValidationPipe,
   UsePipes,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { IngresosService } from './ingresos.service';
 import { CreateIngresoDto } from './dto/create-ingreso.dto';
@@ -52,8 +53,9 @@ export class IngresosController {
   }
 
   @Get('total')
-  getTotalIngresos() {
-    return this.ingresosService.getTotalIngresos();
+  getTotalIngresos(@Query('id_empresa') id_empresa: number) {
+    // Usar el id_empresa de la petición
+    return this.ingresosService.getTotalIngresos(id_empresa || 1);
   }
 
   @Get('total-by-date-range')
@@ -70,8 +72,8 @@ export class IngresosController {
   }
 
   @Post('sync-from-salidas')
-  syncIngresosFromSalidas() {
-    return this.ingresosService.syncIngresosFromSalidas();
+  syncIngresosFromSalidas(@Query('id_empresa', ParseIntPipe) id_empresa: number) {
+    return this.ingresosService.syncIngresosFromSalidas(id_empresa);
   }
 
   @Get(':id')

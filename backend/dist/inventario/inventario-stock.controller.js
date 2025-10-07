@@ -25,11 +25,8 @@ let InventarioStockController = class InventarioStockController {
     create(createInventarioDto) {
         return this.inventarioStockService.create(createInventarioDto);
     }
-    findAll(tipoHuevoId) {
-        if (tipoHuevoId) {
-            return this.inventarioStockService.findByTipoHuevo(tipoHuevoId);
-        }
-        return this.inventarioStockService.findAll();
+    findAll(id_empresa) {
+        return this.inventarioStockService.findAll(id_empresa);
     }
     getVistaInventario() {
         return this.inventarioStockService.getVistaInventario();
@@ -57,9 +54,9 @@ __decorate([
 ], InventarioStockController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
-    __param(0, (0, common_1.Query)('tipoHuevoId')),
+    __param(0, (0, common_1.Query)('id_empresa', common_1.ParseIntPipe)),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
 ], InventarioStockController.prototype, "findAll", null);
 __decorate([

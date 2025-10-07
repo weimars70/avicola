@@ -35,6 +35,10 @@ __decorate([
     __metadata("design:type", Boolean)
 ], Galpon.prototype, "activo", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ nullable: false }),
+    __metadata("design:type", Number)
+], Galpon.prototype, "id_empresa", void 0);
+__decorate([
     (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Date)
 ], Galpon.prototype, "createdAt", void 0);
