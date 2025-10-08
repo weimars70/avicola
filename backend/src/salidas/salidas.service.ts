@@ -39,7 +39,8 @@ export class SalidasService {
     // Reducir del inventario antes de crear la salida
     await this.inventarioStockService.reducirInventario(
       createSalidaDto.tipoHuevoId,
-      unidadesTotales
+      unidadesTotales,
+      id_empresa
     );
     
     // Asegurar que siempre haya una fecha definida
@@ -71,6 +72,8 @@ export class SalidasService {
         observaciones: `Generado automáticamente desde salida ${savedSalida.id}`,
         tipo: 'venta',
         salidaId: savedSalida.id,
+        id_empresa: id_empresa, // Asegurar que se pase el id_empresa
+        id_usuario_inserta: createSalidaDto.id_usuario_inserta, // Pasar el id_usuario_inserta
       });
     } catch (error) {
       // Log del error pero no fallar la creación de la salida

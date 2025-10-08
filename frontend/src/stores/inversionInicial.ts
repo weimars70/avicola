@@ -202,8 +202,26 @@ export const useInversionInicialStore = defineStore('inversionInicial', () => {
     error.value = null;
     
     try {
-      // Llamada a la API para guardar los datos
-      await api.post('/finanzas/inversion-inicial', datos);
+      // Obtener id_empresa e id_usuario_inserta del localStorage
+      const id_empresa = localStorage.getItem('id_empresa');
+      const id_usuario_inserta = localStorage.getItem('id_usuario');
+      
+      if (!id_empresa || !id_usuario_inserta) {
+        throw new Error('No se encontraron datos de empresa o usuario en localStorage');
+      }
+      
+      // Crear el gasto con categoría de Inversión Inicial
+      const gastoData = {
+        descripcion: `Inversión Inicial del Proyecto${datos.metaRecuperacion ? ` (Meta: ${datos.metaRecuperacion} meses)` : ''}`,
+        monto: datos.montoTotal,
+        fecha: datos.fechaInicio,
+        observaciones: datos.metaRecuperacion ? `Meta de recuperación: ${datos.metaRecuperacion} meses` : '',
+        categoriaId: null // Se asignará en el backend
+      };
+      
+      // Usar la ruta de gastos con los parámetros necesarios
+      const url = `/gastos?id_empresa=${id_empresa}&id_usuario_inserta=${id_usuario_inserta}&esInversionInicial=true`;
+      await api.post(url, gastoData);
       
       // Calcular valores derivados
       const montoRecuperado = inversionInicial.value.montoRecuperado || 0;

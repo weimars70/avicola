@@ -43,6 +43,7 @@ export interface UpdateSalidaDto {
   valor?: number;
   fecha?: string;
   nombreComprador?: string;
+  id_usuario_actualiza?: string; // Añadido para la actualización
 }
 
 export const useSalidasStore = defineStore('salidas', () => {
@@ -108,28 +109,26 @@ export const useSalidasStore = defineStore('salidas', () => {
     loading.value = true;
     error.value = null;
     try {
-      // Obtener id_empresa del localStorage para incluirlo en el cuerpo
-      const id_empresa = localStorage.getItem('id_empresa');
-      const id_usuario_inserta = localStorage.getItem('id_usuario');
+      // Obtener id_empresa y id_usuario_inserta
+      const id_empresa = Number(localStorage.getItem('id_empresa'));
+      const id_usuario_inserta = localStorage.getItem('id_usuario') || '';
       
-      // Crear objeto con todos los datos necesarios
-      const dataToSend = {
-        ...salidaData,
-        id_empresa: parseInt(id_empresa || '1', 10),
-        id_usuario_inserta: id_usuario_inserta || ''
+      // Verificar que id_usuario_inserta sea un UUID válido
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(id_usuario_inserta)) {
+        throw new Error('ID de usuario no válido. Por favor, inicie sesión nuevamente.');
+      }
+      
+      // NO incluir id_empresa e id_usuario_inserta en el BODY
+      const dataToSend = { 
+        ...salidaData
       };
       
-      // Asegurarse de que todos los campos requeridos estén presentes
-      if (!dataToSend.tipoHuevoId) {
-        throw new Error('El tipo de huevo es requerido');
-      }
+      console.log("Enviando datos a /salidas:", JSON.stringify(dataToSend, null, 2));
       
-      if (!dataToSend.unidades || dataToSend.unidades <= 0) {
-        throw new Error('Las unidades deben ser un número positivo');
-      }
+      // Enviar CON query params
+      const response = await api.post(`/salidas?id_empresa=${id_empresa}&id_usuario_inserta=${id_usuario_inserta}`, dataToSend);
       
-      console.log('Enviando datos a /salidas:', dataToSend);
-      const response = await api.post('/salidas', dataToSend);
       salidas.value.unshift(response.data);
       return response.data;
     } catch (err) {
@@ -144,6 +143,15 @@ export const useSalidasStore = defineStore('salidas', () => {
     loading.value = true;
     error.value = null;
     try {
+      // Obtener id_usuario del localStorage para actualización
+      const id_usuario_actualiza = localStorage.getItem('id_usuario');
+      if (!id_usuario_actualiza) {
+        throw new Error('No se encontró id_usuario en localStorage');
+      }
+      
+      // Incluir id_usuario_actualiza en el cuerpo de la petición en lugar de como query param
+      salidaData.id_usuario_actualiza = id_usuario_actualiza;
+      
       const response = await api.patch(`/salidas/${id}`, salidaData);
       const index = salidas.value.findIndex(s => s.id === id);
       if (index !== -1) {

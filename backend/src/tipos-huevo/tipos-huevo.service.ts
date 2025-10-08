@@ -24,13 +24,20 @@ export class TiposHuevoService {
     });
   }
 
-  async findOne(id: string): Promise<TipoHuevo> {
+  async findOne(id: string, id_empresa?: number): Promise<TipoHuevo> {
+    const whereCondition: any = { id, activo: true };
+    
+    // Si se proporciona id_empresa, añadirlo a la condición de búsqueda
+    if (id_empresa !== undefined) {
+      whereCondition.id_empresa = id_empresa;
+    }
+    
     const tipoHuevo = await this.tiposHuevoRepository.findOne({
-      where: { id, activo: true },
+      where: whereCondition,
     });
 
     if (!tipoHuevo) {
-      throw new NotFoundException(`Tipo de huevo con ID ${id} no encontrado`);
+      throw new NotFoundException(`Tipo de huevo con ID ${id} no encontrado${id_empresa ? ' para la empresa indicada' : ''}`);
     }
 
     return tipoHuevo;

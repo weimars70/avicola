@@ -106,7 +106,7 @@ export const useEntradasProduccionStore = defineStore('entradas-produccion', () 
       // Crear objeto con todos los datos necesarios
       const dataToSend = {
         ...entradaData,
-        id_empresa: parseInt(id_empresa || '1', 10),
+        id_empresa: Number(id_empresa),
         id_usuario_inserta: id_usuario_inserta || ''
       };
       
@@ -160,12 +160,25 @@ export const useEntradasProduccionStore = defineStore('entradas-produccion', () 
     loading.value = true;
     error.value = null;
     try {
-      const response = await api.post('/entradas-produccion/masivas', entradaData);
+      // Obtener id_empresa y id_usuario_inserta del localStorage
+      const id_empresa = localStorage.getItem('id_empresa');
+      const id_usuario_inserta = localStorage.getItem('id_usuario');
+      
+      // Usar el objeto params para evitar duplicación de parámetros
+      const params = {
+        id_empresa: id_empresa as string,
+        id_usuario_inserta: id_usuario_inserta || ''
+      };
+      
+      // Enviar los datos en el cuerpo y los parámetros por separado
+      const response = await api.post('/entradas-produccion/masivas', entradaData, { params });
+      
       // Agregar las nuevas entradas al inicio del array
       entradasProduccion.value.unshift(...response.data);
       return response.data;
     } catch (err) {
       error.value = 'Error al crear las entradas de producción';
+      console.error('Error en createEntradasMasivas:', err);
       throw err;
     } finally {
       loading.value = false;

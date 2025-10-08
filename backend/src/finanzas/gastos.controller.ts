@@ -12,6 +12,7 @@ import {
   Query,
   ValidationPipe,
   UsePipes,
+  BadRequestException,
 } from '@nestjs/common';
 import { GastosService } from './gastos.service';
 import { CreateGastoDto } from './dto/create-gasto.dto';
@@ -26,13 +27,55 @@ export class GastosController {
 
   @Post()
   @UsePipes(new ValidationPipe({ transform: true }))
-  create(@Body() createGastoDto: CreateGastoDto) {
+  create(
+    @Body() createGastoDto: CreateGastoDto,
+    @Query('id_empresa', new ParseIntPipe()) id_empresa: number,
+    @Query('id_usuario_inserta') id_usuario_inserta: string | string[],
+    @Query('esInversionInicial') esInversionInicial?: string
+  ) {
+    // Validar que existan los parámetros obligatorios
+    if (!id_empresa || !id_usuario_inserta) {
+      throw new BadRequestException('id_empresa e id_usuario_inserta son obligatorios');
+    }
+    
+    // Asignar al DTO
+    createGastoDto.id_empresa = id_empresa;
+    createGastoDto.id_usuario_inserta = Array.isArray(id_usuario_inserta)
+      ? id_usuario_inserta[0]
+      : id_usuario_inserta;
+    
+    // Si es inversión inicial, usar el servicio especializado
+    if (esInversionInicial === 'true') {
+      return this.gastosService.createOrUpdateInversionInicial(
+        createGastoDto.monto,
+        createGastoDto.fecha,
+        undefined, // metaRecuperacion no está en el DTO estándar
+        id_empresa,
+        createGastoDto.id_usuario_inserta
+      );
+    }
+      
     return this.gastosService.create(createGastoDto);
   }
 
   @Post('consumo-propio')
   @UsePipes(new ValidationPipe({ transform: true }))
-  createConsumoPropio(@Body() createConsumoPropioDto: CreateConsumoPropioDto) {
+  createConsumoPropio(
+    @Body() createConsumoPropioDto: CreateConsumoPropioDto,
+    @Query('id_empresa', new ParseIntPipe()) id_empresa: number,
+    @Query('id_usuario_inserta') id_usuario_inserta: string | string[]
+  ) {
+    // Validar que existan
+    if (!id_empresa || !id_usuario_inserta) {
+      throw new BadRequestException('id_empresa e id_usuario_inserta son obligatorios');
+    }
+    
+    // Asignar al DTO (manejar duplicación)
+    createConsumoPropioDto.id_empresa = id_empresa;
+    createConsumoPropioDto.id_usuario_inserta = Array.isArray(id_usuario_inserta)
+      ? id_usuario_inserta[0]
+      : id_usuario_inserta;
+      
     return this.gastosService.createConsumoPropio(createConsumoPropioDto);
   }
 

@@ -1,4 +1,4 @@
-import { Controller, Get, Query, Post, Body } from '@nestjs/common';
+import { Controller, Get, Query, Post, Body, ParseIntPipe, BadRequestException } from '@nestjs/common';
 import { GastosService } from './gastos.service';
 import { IngresosService } from './ingresos.service';
 import { ResumenService } from './resumen.service';
@@ -236,14 +236,23 @@ export class FinanzasController {
 
   @Post('inversion-inicial')
   async setInversionInicial(
-    @Body() inversionData: { montoTotal: number; fechaInicio: string; metaRecuperacion?: number }
+    @Body() inversionData: { montoTotal: number; fechaInicio: string; metaRecuperacion?: number },
+    @Query('id_empresa', new ParseIntPipe()) id_empresa: number,
+    @Query('id_usuario_inserta') id_usuario_inserta: string
   ) {
     try {
+      // Validar que existan los parámetros obligatorios
+      if (!id_empresa || !id_usuario_inserta) {
+        throw new BadRequestException('id_empresa e id_usuario_inserta son obligatorios');
+      }
+      
       // Crear o actualizar el gasto de inversión inicial
       const resultado = await this.gastosService.createOrUpdateInversionInicial(
         inversionData.montoTotal,
         inversionData.fechaInicio,
-        inversionData.metaRecuperacion
+        inversionData.metaRecuperacion,
+        id_empresa,
+        id_usuario_inserta
       );
       
       return {

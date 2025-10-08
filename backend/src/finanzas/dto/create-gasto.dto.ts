@@ -1,4 +1,4 @@
-import { IsString, IsNumber, IsDateString, IsOptional, IsBoolean } from 'class-validator';
+import { IsString, IsNumber, IsDateString, IsOptional, IsBoolean, IsNotEmpty } from 'class-validator';
 import { Transform } from 'class-transformer';
 
 export class CreateGastoDto {
@@ -27,6 +27,15 @@ export class CreateGastoDto {
   @IsNumber()
   @Transform(({ value }) => parseInt(value))
   categoriaId: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Transform(({ value }) => parseInt(value))
+  id_empresa?: number;
+  
+  @IsOptional()
+  @IsString()
+  id_usuario_inserta?: string;
 
   @IsOptional()
   @IsBoolean()

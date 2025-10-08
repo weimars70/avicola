@@ -615,7 +615,12 @@ const saveCanasta = async () => {
         message: 'Canasta actualizada correctamente'
       });
     } else {
-      await canastasStore.createCanasta(form.value);
+      // Añadir id_empresa al crear una nueva canasta
+      const canastaData = {
+        ...form.value,
+        id_empresa: 2 // Usando el id_empresa que aparece en la URL del error
+      };
+      await canastasStore.createCanasta(canastaData);
       $q.notify({
         type: 'positive',
         message: 'Canasta creada correctamente'
@@ -623,7 +628,8 @@ const saveCanasta = async () => {
     }
     closeDialog();
     await fetchCanastas(); // Refrescar la tabla después de guardar
-  } catch {
+  } catch (error) {
+    console.error('Error al guardar canasta:', error);
     $q.notify({
       type: 'negative',
       message: 'Error al guardar la canasta'

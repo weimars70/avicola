@@ -44,11 +44,14 @@ export class GastosService {
     let descripcionDetallada = createConsumoPropioDto.descripcion + ' - ';
     
     for (const huevoConsumido of createConsumoPropioDto.huevosConsumidos) {
-      // Verificar que el tipo de huevo existe
-      const tipoHuevo = await this.tiposHuevoService.findOne(huevoConsumido.tipoHuevoId);
+      // Verificar que el tipo de huevo existe para la empresa indicada
+      const tipoHuevo = await this.tiposHuevoService.findOne(
+        huevoConsumido.tipoHuevoId, 
+        createConsumoPropioDto.id_empresa
+      );
       
       // Reducir del inventario
-      await this.inventarioStockService.reducirStock(huevoConsumido.tipoHuevoId, huevoConsumido.unidades);
+      await this.inventarioStockService.reducirStock(huevoConsumido.tipoHuevoId, huevoConsumido.unidades, createConsumoPropioDto.id_empresa);
       
       // Calcular el valor (precio por unidad * cantidad)
       const valorHuevos = tipoHuevo.valorUnidad * huevoConsumido.unidades;
@@ -69,6 +72,8 @@ export class GastosService {
       observaciones: createConsumoPropioDto.observaciones,
       categoriaId: categoriaConsumoPropio.id,
       activo: createConsumoPropioDto.activo ?? true,
+      id_empresa: createConsumoPropioDto.id_empresa,
+      id_usuario_inserta: createConsumoPropioDto.id_usuario_inserta
     });
     
     return await this.gastosRepository.save(gasto);
@@ -268,7 +273,9 @@ export class GastosService {
   async createOrUpdateInversionInicial(
     montoTotal: number,
     fechaInicio: string,
-    metaRecuperacion?: number
+    metaRecuperacion?: number,
+    id_empresa?: number,
+    id_usuario_inserta?: string
   ): Promise<Gasto> {
     // Buscar o crear la categoría 'Inversión Inicial'
     let categoria;
@@ -287,13 +294,14 @@ export class GastosService {
       throw new Error('Error al obtener o crear la categoría de Inversión Inicial');
     }
 
-    // Buscar si ya existe un gasto de inversión inicial
+    // Buscar si ya existe un gasto de inversión inicial para esta empresa específica
     const inversionExistente = await this.gastosRepository
       .createQueryBuilder('gasto')
       .leftJoin('gasto.categoria', 'categoria')
       .where('categoria.nombre = :nombre', { nombre: 'Inversión Inicial' })
       .andWhere('gasto.activo = :activo', { activo: true })
       .andWhere('gasto.categoriaId = :categoriaId', { categoriaId: categoria.id })
+      .andWhere('gasto.id_empresa = :id_empresa', { id_empresa })
       .getOne();
 
     if (inversionExistente) {
@@ -312,7 +320,9 @@ export class GastosService {
         fecha: new Date(fechaInicio),
         categoriaId: categoria.id,
         observaciones: metaRecuperacion ? `Meta de recuperación: ${metaRecuperacion} meses` : undefined,
-        activo: true
+        activo: true,
+        id_empresa,
+        id_usuario_inserta
       });
       
       return await this.gastosRepository.save(nuevaInversion);

@@ -621,14 +621,20 @@ const saveTipoHuevo = async () => {
         message: 'Tipo de huevo actualizado correctamente'
       });
     } else {
-      await tiposHuevoStore.createTipoHuevo(form.value);
+      // Añadir id_empresa al crear un nuevo tipo de huevo
+      const tipoHuevoData = {
+        ...form.value,
+        id_empresa: 2 // Usando el id_empresa que aparece en la URL del error
+      };
+      await tiposHuevoStore.createTipoHuevo(tipoHuevoData);
       $q.notify({
         type: 'positive',
         message: 'Tipo de huevo creado correctamente'
       });
     }
     closeDialog();
-  } catch {
+  } catch (error) {
+    console.error('Error al guardar tipo de huevo:', error);
     $q.notify({
       type: 'negative',
       message: 'Error al guardar el tipo de huevo'

@@ -1,4 +1,4 @@
-import { IsString, IsNumber, IsDateString, IsOptional, IsBoolean, IsArray, ValidateNested } from 'class-validator';
+import { IsString, IsNumber, IsDateString, IsOptional, IsBoolean, IsArray, ValidateNested, IsInt, IsUUID } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
 
 export class ConsumoHuevoDto {
@@ -29,4 +29,15 @@ export class CreateConsumoPropioDto {
   @IsOptional()
   @IsBoolean()
   activo?: boolean;
+  
+  // ⬅️ OPCIONAL en DTO porque viene por query param
+  @IsOptional()
+  @IsInt()
+  @Transform(({ value }) => parseInt(value))
+  id_empresa?: number;
+  
+  // ⬅️ OPCIONAL en DTO, cambiado a UUID
+  @IsOptional()
+  @IsUUID()
+  id_usuario_inserta?: string; // ⬅️ STRING (UUID)
 }

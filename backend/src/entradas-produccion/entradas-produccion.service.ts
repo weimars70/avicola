@@ -45,7 +45,8 @@ export class EntradasProduccionService {
     // Actualizar inventario automáticamente
     await this.inventarioStockService.actualizarInventario(
       createEntradaProduccionDto.tipoHuevoId,
-      createEntradaProduccionDto.unidades
+      createEntradaProduccionDto.unidades,
+      createEntradaProduccionDto.id_empresa
     );
     
     return savedEntrada;
@@ -96,7 +97,8 @@ export class EntradasProduccionService {
     for (const entrada of savedEntradas) {
       await this.inventarioStockService.actualizarInventario(
         entrada.tipoHuevoId,
-        entrada.unidades
+        entrada.unidades,
+        entrada.id_empresa
       );
     }
     

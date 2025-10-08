@@ -263,7 +263,22 @@ export function useFinanzas() {
   const createGasto = async (gastoData: Partial<Gasto>) => {
     try {
       loading.value = true;
-      const response = await api.post('/gastos', gastoData);
+      
+      // Obtener id_empresa y id_usuario_inserta del localStorage
+      const id_empresa = localStorage.getItem('id_empresa');
+      const id_usuario_inserta = localStorage.getItem('id_usuario');
+      
+      if (!id_empresa) {
+        throw new Error('No se encontró id_empresa en localStorage');
+      }
+      
+      if (!id_usuario_inserta) {
+        throw new Error('No se encontró id_usuario en localStorage');
+      }
+      
+      // Enviar los datos del gasto en el body y los parámetros id_empresa e id_usuario_inserta como query params
+      const url = `/gastos?id_empresa=${id_empresa}&id_usuario_inserta=${id_usuario_inserta}`;
+      const response = await api.post(url, gastoData);
       gastos.value.unshift(response.data);
       showSuccess('Gasto registrado exitosamente');
       return response.data;
@@ -322,13 +337,19 @@ export function useFinanzas() {
     try {
       loading.value = true;
       
-      // Obtener id_empresa del localStorage
+      // Obtener id_empresa y id_usuario_inserta del localStorage
       const id_empresa = localStorage.getItem('id_empresa');
+      const id_usuario_inserta = localStorage.getItem('id_usuario');
+      
       if (!id_empresa) {
         throw new Error('No se encontró id_empresa en localStorage');
       }
       
-      // Enviar los datos que espera el backend según el DTO, incluyendo id_empresa
+      if (!id_usuario_inserta) {
+        throw new Error('No se encontró id_usuario en localStorage');
+      }
+      
+      // Enviar los datos que espera el backend según el DTO, sin incluir id_usuario_inserta en el body
       const dataToSend = {
         descripcion: consumoPropioData.descripcion,
         fecha: consumoPropioData.fecha,
@@ -339,8 +360,9 @@ export function useFinanzas() {
       
       console.log('Enviando datos de consumo propio:', dataToSend);
       
-      // Usar Axios con configuración correcta
-      await api.post('/gastos/consumo-propio', dataToSend);
+      // Usar Axios con configuración correcta - enviando id_usuario_inserta e id_empresa como query params
+      const url = `/gastos/consumo-propio?id_empresa=${id_empresa}&id_usuario_inserta=${id_usuario_inserta}`;
+      await api.post(url, dataToSend);
       await fetchGastos();
       showSuccess('Consumo propio registrado correctamente');
     } catch (error) {

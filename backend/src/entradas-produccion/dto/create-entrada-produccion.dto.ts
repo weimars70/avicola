@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, IsInt, IsDateString, Min } from 'class-validator';
+import { IsNotEmpty, IsString, IsInt, IsDateString, Min, IsOptional } from 'class-validator';
 
 export class CreateEntradaProduccionDto {
   @IsNotEmpty()
@@ -21,4 +21,8 @@ export class CreateEntradaProduccionDto {
   @IsNotEmpty()
   @IsInt()
   id_empresa: number;
+  
+  @IsOptional()
+  @IsString()
+  id_usuario_inserta?: string;
 }

@@ -22,13 +22,29 @@ export class EntradasProduccionController {
 
   @Post()
   @UsePipes(new ValidationPipe({ transform: true }))
-  create(@Body() createEntradaProduccionDto: CreateEntradaProduccionDto) {
+  create(
+    @Body() createEntradaProduccionDto: CreateEntradaProduccionDto,
+    @Query('id_empresa', new ParseIntPipe({ errorHttpStatusCode: 400 })) id_empresa: number,
+    @Query('id_usuario_inserta') id_usuario_inserta: string
+  ) {
+    // Aseguramos que id_empresa del DTO coincida con el query param
+    createEntradaProduccionDto.id_empresa = id_empresa;
+    // Asignamos el id_usuario_inserta
+    createEntradaProduccionDto.id_usuario_inserta = id_usuario_inserta;
     return this.entradasProduccionService.create(createEntradaProduccionDto);
   }
 
   @Post('masivas')
   @UsePipes(new ValidationPipe({ transform: true }))
-  createMasivas(@Body() createEntradasMasivasDto: CreateEntradasMasivasDto) {
+  createMasivas(
+    @Body() createEntradasMasivasDto: CreateEntradasMasivasDto,
+    @Query('id_empresa', new ParseIntPipe({ errorHttpStatusCode: 400 })) id_empresa: number,
+    @Query('id_usuario_inserta') id_usuario_inserta: string
+  ) {
+    // Aseguramos que id_empresa del DTO coincida con el query param
+    createEntradasMasivasDto.id_empresa = id_empresa;
+    // Asignamos el id_usuario_inserta
+    createEntradasMasivasDto.id_usuario_inserta = id_usuario_inserta;
     return this.entradasProduccionService.createMasivas(createEntradasMasivasDto);
   }
 

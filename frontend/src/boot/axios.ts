@@ -66,8 +66,22 @@ api.interceptors.request.use(
     // Excluir rutas de autenticación para no añadir campos adicionales
     const isAuthRoute = config.url?.includes('/auth/');
     
-    if (config.method?.toLowerCase() === 'post' && id_usuario && !isAuthRoute) {
-      // Añadir id_usuario_inserta como parámetro de consulta
+    // Verificar si la URL ya contiene id_usuario_inserta como parámetro
+    const urlHasIdUsuarioInserta = config.url?.includes('id_usuario_inserta=');
+    const paramsHasIdUsuarioInserta = config.params && 'id_usuario_inserta' in config.params;
+    
+    // Excluir rutas específicas que ya manejan id_usuario_inserta
+    const skipIdUsuarioInsertaRoutes = [
+      '/gastos',
+      '/gastos/consumo-propio'
+    ];
+    
+    const shouldSkipIdUsuarioInserta = skipIdUsuarioInsertaRoutes.some(endpoint => 
+      config.url && config.url.includes(endpoint)
+    );
+    
+    if (config.method?.toLowerCase() === 'post' && id_usuario && !isAuthRoute && !urlHasIdUsuarioInserta && !paramsHasIdUsuarioInserta && !shouldSkipIdUsuarioInserta) {
+      // Añadir id_usuario_inserta como parámetro de consulta solo si no existe ya y no es una ruta excluida
       config.params = { ...config.params, id_usuario_inserta: id_usuario };
     }
     

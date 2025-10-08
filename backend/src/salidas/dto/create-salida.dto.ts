@@ -28,10 +28,10 @@ export class CreateSalidaDto {
   @IsDateString()
   fecha?: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsInt()
   @Type(() => Number)
-  id_empresa: number;
+  id_empresa?: number;
   
   @IsOptional()
   @IsUUID()

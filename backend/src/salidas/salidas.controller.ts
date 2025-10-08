@@ -24,12 +24,14 @@ export class SalidasController {
   create(
     @Body() createSalidaDto: CreateSalidaDto,
     @Query('id_empresa', new ParseIntPipe({ errorHttpStatusCode: 400 })) id_empresa: number,
-    @Query('id_usuario_inserta') id_usuario_inserta: string
+    @Query('id_usuario_inserta') id_usuario_inserta: string | string[]
   ) {
     // Aseguramos que id_empresa del DTO coincida con el query param
     createSalidaDto.id_empresa = id_empresa;
-    // Asignamos el id_usuario_inserta
-    createSalidaDto.id_usuario_inserta = id_usuario_inserta;
+    // Asignamos el id_usuario_inserta, tomando solo el primer valor si es un array
+    createSalidaDto.id_usuario_inserta = Array.isArray(id_usuario_inserta) 
+      ? id_usuario_inserta[0] 
+      : id_usuario_inserta;
     return this.salidasService.create(createSalidaDto, id_empresa);
   }
 

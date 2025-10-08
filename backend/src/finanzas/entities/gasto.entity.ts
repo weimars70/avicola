@@ -34,8 +34,11 @@ export class Gasto {
   @Column()
   categoriaId: number;
 
-  @Column({ nullable: true })
+  @Column()
   id_empresa: number;
+  
+  @Column({ nullable: true })
+  id_usuario_inserta: string;
 
   @CreateDateColumn()
   createdAt: Date;
