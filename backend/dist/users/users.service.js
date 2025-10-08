@@ -74,7 +74,7 @@ let UsersService = class UsersService {
     async findOne(id) {
         const user = await this.userRepository.findOne({
             where: { id },
-            select: ['id', 'email', 'nombre', 'apellido', 'rol', 'activo', 'createdAt', 'updatedAt'],
+            select: ['id', 'email', 'nombre', 'apellido', 'rol', 'activo', 'createdAt', 'updatedAt', 'id_empresa'],
         });
         if (!user) {
             throw new common_1.NotFoundException('Usuario no encontrado');

@@ -29,9 +29,25 @@ __decorate([
     __metadata("design:type", String)
 ], AjusteLote.prototype, "usuarioId", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ type: 'integer', default: 1 }),
+    __metadata("design:type", Number)
+], AjusteLote.prototype, "id_empresa", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'uuid', nullable: true }),
+    __metadata("design:type", String)
+], AjusteLote.prototype, "id_usuario_inserta", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'uuid', nullable: true }),
+    __metadata("design:type", String)
+], AjusteLote.prototype, "id_usuario_actualiza", void 0);
+__decorate([
     (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Date)
 ], AjusteLote.prototype, "createdAt", void 0);
+__decorate([
+    (0, typeorm_1.UpdateDateColumn)(),
+    __metadata("design:type", Date)
+], AjusteLote.prototype, "updatedAt", void 0);
 __decorate([
     (0, typeorm_1.ManyToOne)(() => user_entity_1.User),
     (0, typeorm_1.JoinColumn)({ name: 'usuarioId' }),
@@ -41,6 +57,16 @@ __decorate([
     (0, typeorm_1.OneToMany)(() => ajuste_inventario_entity_1.AjusteInventario, ajuste => ajuste.ajusteLote),
     __metadata("design:type", Array)
 ], AjusteLote.prototype, "ajustes", void 0);
+__decorate([
+    (0, typeorm_1.ManyToOne)(() => user_entity_1.User),
+    (0, typeorm_1.JoinColumn)({ name: 'id_usuario_inserta' }),
+    __metadata("design:type", user_entity_1.User)
+], AjusteLote.prototype, "usuarioInserta", void 0);
+__decorate([
+    (0, typeorm_1.ManyToOne)(() => user_entity_1.User),
+    (0, typeorm_1.JoinColumn)({ name: 'id_usuario_actualiza' }),
+    __metadata("design:type", user_entity_1.User)
+], AjusteLote.prototype, "usuarioActualiza", void 0);
 exports.AjusteLote = AjusteLote = __decorate([
     (0, typeorm_1.Entity)('ajustes_lote')
 ], AjusteLote);

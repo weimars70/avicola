@@ -9,8 +9,8 @@ export declare class RendimientoController {
     getMetricasRendimiento(): Promise<any>;
     findByDateRange(fechaInicio: string, fechaFin: string): Promise<import("./entities/rendimiento.entity").Rendimiento[]>;
     findByPeriodo(periodo: string): Promise<import("./entities/rendimiento.entity").Rendimiento[]>;
-    calcularRendimientoDiario(fecha: string): Promise<import("./entities/rendimiento.entity").Rendimiento>;
-    calcularRendimientoMensual(año: number, mes: number): Promise<import("./entities/rendimiento.entity").Rendimiento>;
+    calcularRendimientoDiario(fecha: string, id_empresa: number): Promise<import("./entities/rendimiento.entity").Rendimiento>;
+    calcularRendimientoMensual(año: number, mes: number, id_empresa: number): Promise<import("./entities/rendimiento.entity").Rendimiento>;
     findOne(id: string): Promise<import("./entities/rendimiento.entity").Rendimiento>;
     update(id: string, updateRendimientoDto: UpdateRendimientoDto): Promise<import("./entities/rendimiento.entity").Rendimiento>;
     remove(id: string): Promise<void>;

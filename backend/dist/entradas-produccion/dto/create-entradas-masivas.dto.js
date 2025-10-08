@@ -41,4 +41,14 @@ __decorate([
     (0, class_transformer_1.Type)(() => EntradaProduccionItem),
     __metadata("design:type", Array)
 ], CreateEntradasMasivasDto.prototype, "entradas", void 0);
+__decorate([
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", Number)
+], CreateEntradasMasivasDto.prototype, "id_empresa", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], CreateEntradasMasivasDto.prototype, "id_usuario_inserta", void 0);
 //# sourceMappingURL=create-entradas-masivas.dto.js.map

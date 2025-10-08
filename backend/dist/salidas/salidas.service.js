@@ -22,12 +22,13 @@ const canastas_service_1 = require("../canastas/canastas.service");
 const inventario_stock_service_1 = require("../inventario/inventario-stock.service");
 const ingresos_service_1 = require("../finanzas/ingresos.service");
 let SalidasService = class SalidasService {
-    constructor(salidasRepository, tiposHuevoService, canastasService, inventarioStockService, ingresosService) {
+    constructor(salidasRepository, tiposHuevoService, canastasService, inventarioStockService, ingresosService, dataSource) {
         this.salidasRepository = salidasRepository;
         this.tiposHuevoService = tiposHuevoService;
         this.canastasService = canastasService;
         this.inventarioStockService = inventarioStockService;
         this.ingresosService = ingresosService;
+        this.dataSource = dataSource;
     }
     async create(createSalidaDto, id_empresa) {
         const tipoHuevo = await this.tiposHuevoService.findOne(createSalidaDto.tipoHuevoId);
@@ -83,6 +84,7 @@ let SalidasService = class SalidasService {
         return salida;
     }
     async update(id, updateSalidaDto, id_empresa) {
+        var _a;
         const salida = await this.findOne(id, id_empresa);
         const unidadesOriginales = salida.unidades;
         const tipoHuevoOriginal = salida.tipoHuevoId;
@@ -98,14 +100,44 @@ let SalidasService = class SalidasService {
             await this.inventarioStockService.aumentarStock(tipoHuevoOriginal, unidadesOriginales);
             await this.inventarioStockService.reducirStock(nuevoTipoHuevo, nuevasUnidades);
         }
+        if (updateSalidaDto.unidades !== undefined && !updateSalidaDto.valor) {
+            let valorCanasta = 0;
+            if (updateSalidaDto.canastaId) {
+                const canasta = await this.canastasService.findOne(updateSalidaDto.canastaId, id_empresa);
+                valorCanasta = canasta.valorCanasta;
+            }
+            else if (salida.canastaId) {
+                const canasta = await this.canastasService.findOne(salida.canastaId, id_empresa);
+                valorCanasta = canasta.valorCanasta;
+            }
+            if (valorCanasta > 0) {
+                updateSalidaDto.valor = updateSalidaDto.unidades * valorCanasta;
+            }
+        }
         Object.assign(salida, updateSalidaDto);
-        return this.salidasRepository.save(salida);
+        const salidaActualizada = await this.salidasRepository.save(salida);
+        try {
+            const ingresos = await this.dataSource.getRepository('ingresos').find({
+                where: { salidaId: id }
+            });
+            if (ingresos && ingresos.length > 0) {
+                const ingreso = ingresos[0];
+                await this.dataSource.getRepository('ingresos').update({ id: ingreso.id }, {
+                    monto: salidaActualizada.valor,
+                    descripcion: `Venta de ${salidaActualizada.unidades} unidades de ${((_a = salidaActualizada.tipoHuevo) === null || _a === void 0 ? void 0 : _a.nombre) || 'huevos'}`
+                });
+            }
+        }
+        catch (error) {
+            console.error('Error al actualizar el ingreso relacionado:', error);
+        }
+        return salidaActualizada;
     }
     async remove(id, id_empresa) {
         const salida = await this.findOne(id, id_empresa);
         await this.salidasRepository.remove(salida);
     }
-    async getSalidasDiarias(fechaInicio, fechaFin) {
+    async getSalidasDiarias(fechaInicio, fechaFin, id_empresa) {
         const query = `
       SELECT 
         salida.fecha as fecha,
@@ -118,22 +150,24 @@ let SalidasService = class SalidasService {
       FROM salidas salida
       LEFT JOIN canastas canasta ON salida."canastaId" = canasta.id
       WHERE salida.fecha BETWEEN $1 AND $2
+      ${id_empresa ? 'AND salida.id_empresa = $3' : ''}
       GROUP BY salida.fecha
       ORDER BY fecha ASC
     `;
-        return this.salidasRepository.query(query, [fechaInicio, fechaFin]);
+        return this.salidasRepository.query(query, id_empresa ? [fechaInicio, fechaFin, id_empresa] : [fechaInicio, fechaFin]);
     }
-    async getCanastasDiarias(fechaInicio, fechaFin) {
+    async getCanastasDiarias(fechaInicio, fechaFin, id_empresa) {
         const query = `
       SELECT 
         salida.fecha as fecha,
         SUM(salida.unidades) as canastas
       FROM salidas salida
       WHERE salida.fecha BETWEEN $1 AND $2
+      ${id_empresa ? 'AND salida.id_empresa = $3' : ''}
       GROUP BY salida.fecha
       ORDER BY fecha ASC
     `;
-        return this.salidasRepository.query(query, [fechaInicio, fechaFin]);
+        return this.salidasRepository.query(query, id_empresa ? [fechaInicio, fechaFin, id_empresa] : [fechaInicio, fechaFin]);
     }
 };
 exports.SalidasService = SalidasService;
@@ -145,6 +179,7 @@ exports.SalidasService = SalidasService = __decorate([
         tipos_huevo_service_1.TiposHuevoService,
         canastas_service_1.CanastasService,
         inventario_stock_service_1.InventarioStockService,
-        ingresos_service_1.IngresosService])
+        ingresos_service_1.IngresosService,
+        typeorm_2.DataSource])
 ], SalidasService);
 //# sourceMappingURL=salidas.service.js.map

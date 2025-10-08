@@ -24,18 +24,20 @@ let IngresosService = class IngresosService {
         this.salidasService = salidasService;
     }
     async create(createIngresoDto) {
-        const ingreso = this.ingresosRepository.create(createIngresoDto);
+        const ingresoData = Object.assign(Object.assign({}, createIngresoDto), { id_empresa: createIngresoDto.id_empresa || 1 });
+        const ingreso = this.ingresosRepository.create(ingresoData);
         return await this.ingresosRepository.save(ingreso);
     }
-    async findAll() {
+    async findAll(id_empresa) {
         return await this.ingresosRepository.find({
-            where: { activo: true },
+            where: { activo: true, id_empresa },
             relations: ['salida'],
             order: { fecha: 'DESC' },
         });
     }
-    async findAllIncludingInactive() {
+    async findAllIncludingInactive(id_empresa) {
         return await this.ingresosRepository.find({
+            where: { id_empresa },
             relations: ['salida'],
             order: { fecha: 'DESC' },
         });
@@ -50,26 +52,28 @@ let IngresosService = class IngresosService {
         }
         return ingreso;
     }
-    async findByDateRange(fechaInicio, fechaFin) {
+    async findByDateRange(fechaInicio, fechaFin, id_empresa) {
         return await this.ingresosRepository.find({
             where: {
                 fecha: (0, typeorm_2.Between)(fechaInicio, fechaFin),
                 activo: true,
+                id_empresa,
             },
             relations: ['salida'],
             order: { fecha: 'DESC' },
         });
     }
-    async findByTipo(tipo) {
+    async findByTipo(tipo, id_empresa) {
         return await this.ingresosRepository.find({
-            where: { tipo, activo: true },
+            where: { tipo, activo: true, id_empresa },
             relations: ['salida'],
             order: { fecha: 'DESC' },
         });
     }
     async update(id, updateIngresoDto) {
         const ingreso = await this.findOne(id);
-        Object.assign(ingreso, updateIngresoDto);
+        const updatedData = Object.assign(Object.assign({}, updateIngresoDto), { id_empresa: updateIngresoDto.id_empresa || ingreso.id_empresa || 1, id_usuario_inserta: updateIngresoDto.id_usuario_inserta || ingreso.id_usuario_inserta });
+        Object.assign(ingreso, updatedData);
         return await this.ingresosRepository.save(ingreso);
     }
     async remove(id) {
@@ -88,11 +92,14 @@ let IngresosService = class IngresosService {
             .getRawOne();
         return parseFloat(result.total) || 0;
     }
-    async getTotalIngresosByDateRange(fechaInicio, fechaFin) {
+    async getTotalIngresosByDateRange(fechaInicio, fechaFin, id_empresa) {
         const result = await this.ingresosRepository
             .createQueryBuilder('ingreso')
             .select('SUM(ingreso.monto)', 'total')
-            .where('ingreso.activo = :activo', { activo: true })
+            .where('ingreso.activo = :activo AND ingreso.id_empresa = :id_empresa', {
+            activo: true,
+            id_empresa
+        })
             .andWhere('ingreso.fecha BETWEEN :fechaInicio AND :fechaFin', {
             fechaInicio,
             fechaFin,
@@ -100,13 +107,16 @@ let IngresosService = class IngresosService {
             .getRawOne();
         return parseFloat(result.total) || 0;
     }
-    async getTotalIngresosByTipo() {
+    async getTotalIngresosByTipo(id_empresa) {
         const result = await this.ingresosRepository
             .createQueryBuilder('ingreso')
             .select('ingreso.tipo', 'tipo')
             .addSelect('SUM(ingreso.monto)', 'total')
             .addSelect('COUNT(ingreso.id)', 'cantidad')
-            .where('ingreso.activo = :activo', { activo: true })
+            .where('ingreso.activo = :activo AND ingreso.id_empresa = :id_empresa', {
+            activo: true,
+            id_empresa
+        })
             .groupBy('ingreso.tipo')
             .getRawMany();
         return result.map(item => ({
@@ -138,13 +148,17 @@ let IngresosService = class IngresosService {
         }
         return ingresosCreados;
     }
-    async getIngresosDiarios(fechaInicio, fechaFin) {
-        const result = await this.ingresosRepository
+    async getIngresosDiarios(fechaInicio, fechaFin, id_empresa) {
+        const queryBuilder = this.ingresosRepository
             .createQueryBuilder('ingreso')
             .select('DATE(ingreso.fecha)', 'fecha')
             .addSelect('SUM(ingreso.monto)', 'total')
             .where('ingreso.fecha BETWEEN :fechaInicio AND :fechaFin', { fechaInicio, fechaFin })
-            .andWhere('ingreso.activo = :activo', { activo: true })
+            .andWhere('ingreso.activo = :activo', { activo: true });
+        if (id_empresa) {
+            queryBuilder.andWhere('ingreso.id_empresa = :id_empresa', { id_empresa });
+        }
+        const result = await queryBuilder
             .groupBy('DATE(ingreso.fecha)')
             .orderBy('fecha', 'ASC')
             .getRawMany();

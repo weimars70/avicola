@@ -29,7 +29,7 @@ let AjustesInventarioService = class AjustesInventarioService {
         this.tiposHuevoService = tiposHuevoService;
         this.usersService = usersService;
     }
-    async create(createAjusteDto) {
+    async create(createAjusteDto, id_empresa = 1) {
         const tipoHuevo = await this.tiposHuevoService.findOne(createAjusteDto.tipoHuevoId);
         if (!tipoHuevo) {
             throw new common_1.NotFoundException(`Tipo de huevo con ID ${createAjusteDto.tipoHuevoId} no encontrado`);
@@ -38,7 +38,7 @@ let AjustesInventarioService = class AjustesInventarioService {
         if (!usuario) {
             throw new common_1.NotFoundException(`Usuario con ID ${createAjusteDto.usuarioId} no encontrado`);
         }
-        const inventarioActual = await this.inventarioStockService.findByTipoHuevo(createAjusteDto.tipoHuevoId);
+        const inventarioActual = await this.inventarioStockService.findByTipoHuevo(createAjusteDto.tipoHuevoId, id_empresa);
         const cantidadAnterior = inventarioActual ? inventarioActual.unidades : 0;
         if (createAjusteDto.tipoAjuste === 'resta' && cantidadAnterior < createAjusteDto.cantidadAjuste) {
             throw new common_1.BadRequestException(`No se puede restar ${createAjusteDto.cantidadAjuste} unidades. Stock actual: ${cantidadAnterior}`);
@@ -61,15 +61,16 @@ let AjustesInventarioService = class AjustesInventarioService {
         }
         return savedAjuste;
     }
-    async findAll() {
+    async findAll(id_empresa) {
         return await this.ajustesRepository.find({
             relations: ['tipoHuevo', 'usuario'],
+            where: { tipoHuevo: { id_empresa } },
             order: { createdAt: 'DESC' },
         });
     }
-    async findByTipoHuevo(tipoHuevoId) {
+    async findByTipoHuevo(tipoHuevoId, id_empresa) {
         return await this.ajustesRepository.find({
-            where: { tipoHuevoId },
+            where: { tipoHuevoId, tipoHuevo: { id_empresa } },
             relations: ['tipoHuevo', 'usuario'],
             order: { createdAt: 'DESC' },
         });
@@ -84,7 +85,7 @@ let AjustesInventarioService = class AjustesInventarioService {
         }
         return ajuste;
     }
-    async createLote(createAjusteLoteDto) {
+    async createLote(createAjusteLoteDto, id_empresa) {
         const usuario = await this.usersService.findOne(createAjusteLoteDto.usuarioId);
         if (!usuario) {
             throw new common_1.NotFoundException(`Usuario con ID ${createAjusteLoteDto.usuarioId} no encontrado`);
@@ -92,6 +93,8 @@ let AjustesInventarioService = class AjustesInventarioService {
         const ajusteLote = this.ajustesLoteRepository.create({
             descripcionGeneral: createAjusteLoteDto.descripcionGeneral,
             usuarioId: createAjusteLoteDto.usuarioId,
+            id_empresa: createAjusteLoteDto.id_empresa || id_empresa,
+            id_usuario_inserta: createAjusteLoteDto.id_usuario_inserta || createAjusteLoteDto.usuarioId,
         });
         const savedLote = await this.ajustesLoteRepository.save(ajusteLote);
         const ajustesCreados = [];
@@ -100,7 +103,7 @@ let AjustesInventarioService = class AjustesInventarioService {
             if (!tipoHuevo) {
                 throw new common_1.NotFoundException(`Tipo de huevo con ID ${ajusteItem.tipoHuevoId} no encontrado`);
             }
-            const inventarioActual = await this.inventarioStockService.findByTipoHuevo(ajusteItem.tipoHuevoId);
+            const inventarioActual = await this.inventarioStockService.findByTipoHuevo(ajusteItem.tipoHuevoId, id_empresa);
             const cantidadAnterior = inventarioActual ? inventarioActual.unidades : 0;
             if (ajusteItem.tipoAjuste === 'resta' && cantidadAnterior < ajusteItem.cantidadAjuste) {
                 throw new common_1.BadRequestException(`No se puede restar ${ajusteItem.cantidadAjuste} unidades de ${tipoHuevo.nombre}. Stock actual: ${cantidadAnterior}`);
@@ -121,14 +124,16 @@ let AjustesInventarioService = class AjustesInventarioService {
                 ajusteLoteId: savedLote.id,
                 cantidadAnterior,
                 cantidadNueva,
+                id_empresa: createAjusteLoteDto.id_empresa || id_empresa,
+                id_usuario_inserta: createAjusteLoteDto.id_usuario_inserta || createAjusteLoteDto.usuarioId,
             });
             const savedAjuste = await this.ajustesRepository.save(ajuste);
             ajustesCreados.push(savedAjuste);
             if (ajusteItem.tipoAjuste === 'suma') {
-                await this.inventarioStockService.aumentarStock(ajusteItem.tipoHuevoId, ajusteItem.cantidadAjuste);
+                await this.inventarioStockService.aumentarStock(ajusteItem.tipoHuevoId, ajusteItem.cantidadAjuste, id_empresa);
             }
             else {
-                await this.inventarioStockService.reducirStock(ajusteItem.tipoHuevoId, ajusteItem.cantidadAjuste);
+                await this.inventarioStockService.reducirStock(ajusteItem.tipoHuevoId, ajusteItem.cantidadAjuste, id_empresa);
             }
         }
         return await this.ajustesLoteRepository.findOne({
@@ -136,9 +141,10 @@ let AjustesInventarioService = class AjustesInventarioService {
             relations: ['usuario', 'ajustes', 'ajustes.tipoHuevo'],
         });
     }
-    async findAllLotes() {
+    async findAllLotes(id_empresa) {
         return await this.ajustesLoteRepository.find({
             relations: ['usuario', 'ajustes', 'ajustes.tipoHuevo'],
+            where: { ajustes: { tipoHuevo: { id_empresa } } },
             order: { createdAt: 'DESC' },
         });
     }
@@ -183,7 +189,7 @@ let AjustesInventarioService = class AjustesInventarioService {
         else {
             await this.inventarioStockService.aumentarStock(ajuste.tipoHuevoId, ajuste.cantidadAjuste);
         }
-        const inventarioActual = await this.inventarioStockService.findByTipoHuevo(updateAjusteDto.tipoHuevoId);
+        const inventarioActual = await this.inventarioStockService.findByTipoHuevo(updateAjusteDto.tipoHuevoId, 1);
         const cantidadAnterior = inventarioActual ? inventarioActual.unidades : 0;
         let cantidadNueva;
         if (updateAjusteDto.tipoAjuste === 'suma') {

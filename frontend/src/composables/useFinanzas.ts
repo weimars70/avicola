@@ -115,7 +115,7 @@ interface ResumenFinanciero {
 export function useFinanzas() {
   const { showSuccess, showError } = useNotifications();
   
-  // Estados reactivos
+  // Estados reactivos para manejar datos financieros
   const categorias = ref<CategoriaGasto[]>([]);
   const gastos = ref<Gasto[]>([]);
   const ingresos = ref<Ingreso[]>([]);
@@ -174,7 +174,7 @@ export function useFinanzas() {
     } finally {
       loading.value = false;
     }
-  };
+  }
 
   const createCategoria = async (categoriaData: Partial<CategoriaGasto>) => {
     try {
@@ -317,16 +317,36 @@ export function useFinanzas() {
       tipoHuevoId: string;
       unidades: number;
     }>;
+    observaciones?: string;
   }) => {
     try {
       loading.value = true;
-      await api.post('/gastos/consumo-propio', consumoPropioData);
+      
+      // Obtener id_empresa del localStorage
+      const id_empresa = localStorage.getItem('id_empresa');
+      if (!id_empresa) {
+        throw new Error('No se encontró id_empresa en localStorage');
+      }
+      
+      // Enviar los datos que espera el backend según el DTO, incluyendo id_empresa
+      const dataToSend = {
+        descripcion: consumoPropioData.descripcion,
+        fecha: consumoPropioData.fecha,
+        observaciones: consumoPropioData.observaciones || '',
+        huevosConsumidos: consumoPropioData.huevosConsumidos,
+        id_empresa: parseInt(id_empresa, 10)
+      };
+      
+      console.log('Enviando datos de consumo propio:', dataToSend);
+      
+      // Usar Axios con configuración correcta
+      await api.post('/gastos/consumo-propio', dataToSend);
       await fetchGastos();
       showSuccess('Consumo propio registrado correctamente');
-    } catch (err: unknown) {
-      error.value = getErrorMessage(err, 'Error al registrar el consumo propio');
-      showError('Error al registrar el consumo propio');
-      throw err;
+    } catch (error) {
+      console.error('Error guardando gasto:', error);
+      showError(`Error guardando gasto: ${getErrorMessage(error, 'Error desconocido')}`);
+      throw error;
     } finally {
       loading.value = false;
     }
@@ -583,6 +603,7 @@ export function useFinanzas() {
     return `${year}-${month}-${day}`;
   };
 
+  // Retorno del composable
   return {
     // Estados
     categorias,

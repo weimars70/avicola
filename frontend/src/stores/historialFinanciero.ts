@@ -229,6 +229,31 @@ export const useHistorialFinancieroStore = defineStore('historialFinanciero', ()
           observaciones: data.observaciones
         });
         
+        // Actualizar la transacción en la lista local para reflejar cambios inmediatamente
+        const index = transacciones.value.findIndex(t => t.id === id);
+        if (index !== -1 && transacciones.value[index]) {
+          const currentItem = transacciones.value[index];
+          // Asegurarse de que los valores opcionales no sean undefined
+          const transaccionActualizada = {
+            id: currentItem.id,
+            tipo: currentItem.tipo,
+            descripcion: data.descripcion !== undefined ? data.descripcion : currentItem.descripcion,
+            monto: data.monto !== undefined ? data.monto : currentItem.monto,
+            fecha: data.fecha !== undefined ? data.fecha : currentItem.fecha,
+            categoria: data.categoria || currentItem.categoria || '',
+            referencia: data.referencia || currentItem.referencia,
+            observaciones: data.observaciones || currentItem.observaciones,
+            usuario: currentItem.usuario,
+            detalles: currentItem.detalles,
+            createdAt: currentItem.createdAt,
+            updatedAt: currentItem.updatedAt,
+            esInversionInicial: currentItem.esInversionInicial,
+            salidaId: currentItem.salidaId,
+            nombreComprador: currentItem.nombreComprador
+          };
+          transacciones.value[index] = transaccionActualizada as TransaccionFinanciera;
+        }
+        
         // Si el ingreso proviene de una salida, actualizar también la salida
         if (transaccionActual?.salidaId && (data.monto !== undefined || data.nombreComprador !== undefined)) {
           try {
@@ -257,6 +282,78 @@ export const useHistorialFinancieroStore = defineStore('historialFinanciero', ()
             // No fallar la actualización del ingreso si falla la salida
           }
         }
+      } else if (id.startsWith('sal-')) {
+        // Actualizar salida
+        const realSalidaId = id.replace('sal-', '');
+        
+        // Preparar datos para actualizar
+        const salidaPayload: { unidades?: number; nombreComprador?: string } = {};
+        
+        // Usar una interfaz extendida para acceder a unidades
+        interface SalidaData extends Partial<TransaccionFinanciera> {
+          unidades?: number;
+        }
+        
+        const salidaData = data as SalidaData;
+        
+        if (typeof salidaData.unidades === 'number') {
+          salidaPayload.unidades = salidaData.unidades;
+        }
+        
+        if (typeof data.nombreComprador === 'string') {
+          salidaPayload.nombreComprador = data.nombreComprador;
+        }
+        
+        // Asegurarse de que no se envíen campos vacíos o undefined
+        Object.keys(salidaPayload).forEach(key => {
+          const k = key as keyof typeof salidaPayload;
+          if (salidaPayload[k] === undefined || salidaPayload[k] === '') {
+            delete salidaPayload[k];
+          }
+        });
+        
+        console.log('Enviando datos de salida:', salidaPayload);
+        console.log('URL:', `/salidas/${realSalidaId}`);
+        
+        // Si se actualiza el monto, necesitamos calcular las unidades
+        if (typeof data.monto === 'number') {
+          const salidaResponse = await api.get(`/salidas/${realSalidaId}`);
+          const salida = salidaResponse.data;
+          const valorCanasta = salida.canasta?.valorCanasta || 1;
+          salidaPayload.unidades = Math.round(data.monto / valorCanasta);
+        }
+        
+        console.log('Enviando datos de salida:', salidaPayload);
+        console.log('URL:', `/salidas/${realSalidaId}`);
+        
+        await api.patch(`/salidas/${realSalidaId}`, salidaPayload);
+        
+        // Actualizar la transacción en la lista local para reflejar cambios inmediatamente
+        const index = transacciones.value.findIndex(t => t.id === id);
+        if (index !== -1 && transacciones.value[index]) {
+          const currentItem = transacciones.value[index];
+          const transaccionActualizada = {
+            id: currentItem.id,
+            tipo: currentItem.tipo,
+            descripcion: data.descripcion || currentItem.descripcion,
+            monto: typeof data.monto === 'number' ? data.monto : currentItem.monto,
+            fecha: data.fecha || currentItem.fecha,
+            categoria: data.categoria || currentItem.categoria || '',
+            referencia: data.referencia || currentItem.referencia,
+            observaciones: data.observaciones || currentItem.observaciones,
+            usuario: currentItem.usuario,
+            detalles: currentItem.detalles,
+            createdAt: currentItem.createdAt,
+            updatedAt: currentItem.updatedAt,
+            esInversionInicial: currentItem.esInversionInicial,
+            salidaId: currentItem.salidaId,
+            nombreComprador: typeof data.nombreComprador === 'string' ? data.nombreComprador : currentItem.nombreComprador
+          };
+          transacciones.value[index] = transaccionActualizada as TransaccionFinanciera;
+        }
+        
+        // Recargar datos para asegurar sincronización
+        await loadHistorial(filtros.value);
       } else {
         // Actualizar gasto - necesitamos obtener el categoriaId de la transacción actual
         const transaccionActual = transacciones.value.find(t => t.id === id);
@@ -286,6 +383,30 @@ export const useHistorialFinancieroStore = defineStore('historialFinanciero', ()
         console.log('URL:', `/gastos/${realId}`);
         
         await api.patch(`/gastos/${realId}`, gastoPayload);
+        
+        // Actualizar la transacción en la lista local para reflejar cambios inmediatamente
+        const index = transacciones.value.findIndex(t => t.id === id);
+        if (index !== -1 && transacciones.value[index]) {
+          const currentItem = transacciones.value[index];
+          const transaccionActualizada = {
+            id: currentItem.id,
+            tipo: currentItem.tipo,
+            descripcion: data.descripcion !== undefined ? data.descripcion : currentItem.descripcion,
+            monto: data.monto !== undefined ? data.monto : currentItem.monto,
+            fecha: data.fecha !== undefined ? data.fecha : currentItem.fecha,
+            categoria: data.categoria !== undefined ? data.categoria : currentItem.categoria,
+            referencia: data.referencia !== undefined ? data.referencia : currentItem.referencia,
+            observaciones: data.observaciones !== undefined ? data.observaciones : currentItem.observaciones,
+            usuario: currentItem.usuario,
+            detalles: currentItem.detalles,
+            createdAt: currentItem.createdAt,
+            updatedAt: currentItem.updatedAt,
+            esInversionInicial: currentItem.esInversionInicial,
+            salidaId: currentItem.salidaId,
+            nombreComprador: currentItem.nombreComprador
+          };
+          transacciones.value[index] = transaccionActualizada as TransaccionFinanciera;
+        }
       }
       
       // Recargar datos

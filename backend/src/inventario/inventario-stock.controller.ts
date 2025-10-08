@@ -32,8 +32,8 @@ export class InventarioStockController {
   }
 
   @Get('vista/inventario')
-  getVistaInventario() {
-    return this.inventarioStockService.getVistaInventario();
+  getVistaInventario(@Query('id_empresa', new ParseIntPipe()) id_empresa: number) {
+    return this.inventarioStockService.getVistaInventario(id_empresa);
   }
 
   @Get('tipo-huevo/:tipoHuevoId')

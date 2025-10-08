@@ -21,12 +21,12 @@ export declare class GastosService {
     findOne(id: string): Promise<Gasto>;
     update(id: string, updateGastoDto: UpdateGastoDto): Promise<Gasto>;
     remove(id: string): Promise<void>;
-    getTotalGastosByCategoria(): Promise<any[]>;
+    getTotalGastosByCategoria(id_empresa: number): Promise<any[]>;
     getTotalGastos(id_empresa: number): Promise<number>;
     getTotalGastosExcluyendoInversion(id_empresa: number): Promise<number>;
     getTotalInversionInicial(id_empresa: number): Promise<number>;
-    getTotalGastosByDateRange(fechaInicio: string, fechaFin: string): Promise<number>;
-    getTotalGastosByDateRangeExcluyendoInversion(fechaInicio: string, fechaFin: string): Promise<number>;
-    getGastosDiarios(fechaInicio: string, fechaFin: string): Promise<any[]>;
+    getTotalGastosByDateRange(fechaInicio: string, fechaFin: string, id_empresa: number): Promise<number>;
+    getTotalGastosByDateRangeExcluyendoInversion(fechaInicio: string, fechaFin: string, id_empresa: number): Promise<number>;
+    getGastosDiarios(fechaInicio: string, fechaFin: string, id_empresa?: number): Promise<any[]>;
     createOrUpdateInversionInicial(montoTotal: number, fechaInicio: string, metaRecuperacion?: number): Promise<Gasto>;
 }

@@ -6,4 +6,6 @@ export declare class CreateSalidaDto {
     valor?: number;
     fecha?: string;
     id_empresa: number;
+    id_usuario_inserta?: string;
+    id_usuario_actualiza?: string;
 }

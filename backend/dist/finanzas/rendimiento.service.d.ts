@@ -16,7 +16,7 @@ export declare class RendimientoService {
     remove(id: string): Promise<void>;
     findByDateRange(fechaInicio: string, fechaFin: string): Promise<Rendimiento[]>;
     findByPeriodo(periodo: string): Promise<Rendimiento[]>;
-    calcularRendimientoDiario(fecha: string): Promise<Rendimiento>;
-    calcularRendimientoMensual(año: number, mes: number): Promise<Rendimiento>;
+    calcularRendimientoDiario(fecha: string, id_empresa?: number): Promise<Rendimiento>;
+    calcularRendimientoMensual(año: number, mes: number, id_empresa?: number): Promise<Rendimiento>;
     getMetricasRendimiento(): Promise<any>;
 }

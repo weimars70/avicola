@@ -31,7 +31,11 @@ let FinanzasController = class FinanzasController {
         this.salidasService = salidasService;
         this.inventarioResumenService = inventarioResumenService;
     }
-    async getResumenFinanciero(fechaInicio, fechaFin) {
+    async getResumenFinanciero(fechaInicio, fechaFin, id_empresa) {
+        if (!id_empresa) {
+            throw new Error('No hay empresa asociada al usuario logueado');
+        }
+        const id_empresa_num = parseInt(id_empresa);
         let totalIngresos;
         let totalGastos;
         let totalGastosOperativos;
@@ -39,18 +43,18 @@ let FinanzasController = class FinanzasController {
         let gastosPorCategoria;
         let ingresosPorTipo;
         if (fechaInicio && fechaFin) {
-            totalIngresos = await this.ingresosService.getTotalIngresosByDateRange(fechaInicio, fechaFin);
-            totalGastos = await this.gastosService.getTotalGastosByDateRange(fechaInicio, fechaFin);
-            totalGastosOperativos = await this.gastosService.getTotalGastosByDateRangeExcluyendoInversion(fechaInicio, fechaFin);
+            totalIngresos = await this.ingresosService.getTotalIngresosByDateRange(fechaInicio, fechaFin, id_empresa_num);
+            totalGastos = await this.gastosService.getTotalGastosByDateRange(fechaInicio, fechaFin, id_empresa_num);
+            totalGastosOperativos = await this.gastosService.getTotalGastosByDateRangeExcluyendoInversion(fechaInicio, fechaFin, id_empresa_num);
         }
         else {
-            totalIngresos = await this.ingresosService.getTotalIngresos();
-            totalGastos = await this.gastosService.getTotalGastos();
-            totalGastosOperativos = await this.gastosService.getTotalGastosExcluyendoInversion();
+            totalIngresos = await this.ingresosService.getTotalIngresos(id_empresa_num);
+            totalGastos = await this.gastosService.getTotalGastos(id_empresa_num);
+            totalGastosOperativos = await this.gastosService.getTotalGastosExcluyendoInversion(id_empresa_num);
         }
-        totalInversionInicial = await this.gastosService.getTotalInversionInicial();
-        gastosPorCategoria = await this.gastosService.getTotalGastosByCategoria();
-        ingresosPorTipo = await this.ingresosService.getTotalIngresosByTipo();
+        totalInversionInicial = await this.gastosService.getTotalInversionInicial(id_empresa_num);
+        gastosPorCategoria = await this.gastosService.getTotalGastosByCategoria(id_empresa_num);
+        ingresosPorTipo = await this.ingresosService.getTotalIngresosByTipo(id_empresa_num);
         const utilidadOperativa = totalIngresos - totalGastosOperativos;
         const utilidadNeta = totalIngresos - totalGastos;
         const margenUtilidad = totalIngresos > 0 ? (utilidadOperativa / totalIngresos) * 100 : 0;
@@ -72,39 +76,48 @@ let FinanzasController = class FinanzasController {
             } : null
         };
     }
-    async getComparativoMensual(año) {
-        const añoActual = año ? parseInt(año) : new Date().getFullYear();
-        const meses = [];
-        const totalInversionInicial = await this.gastosService.getTotalInversionInicial();
-        for (let mes = 1; mes <= 12; mes++) {
-            const fechaInicio = `${añoActual}-${mes.toString().padStart(2, '0')}-01`;
-            const ultimoDia = new Date(añoActual, mes, 0).getDate();
-            const fechaFin = `${añoActual}-${mes.toString().padStart(2, '0')}-${ultimoDia}`;
-            const ingresos = await this.ingresosService.getTotalIngresosByDateRange(fechaInicio, fechaFin);
-            const gastosTotal = await this.gastosService.getTotalGastosByDateRange(fechaInicio, fechaFin);
-            const gastosOperativos = await this.gastosService.getTotalGastosByDateRangeExcluyendoInversion(fechaInicio, fechaFin);
-            const utilidadOperativa = ingresos - gastosOperativos;
-            const utilidadNeta = ingresos - gastosTotal;
-            const margenUtilidad = ingresos > 0 ? (utilidadOperativa / ingresos) * 100 : 0;
-            meses.push({
-                mes,
-                nombreMes: new Date(añoActual, mes - 1).toLocaleString('es', { month: 'long' }),
-                ingresos,
-                gastosTotal,
-                gastosOperativos,
-                utilidadOperativa,
-                utilidadNeta,
-                margenUtilidad: parseFloat(margenUtilidad.toFixed(2))
-            });
+    async getComparativoMensual(anio, id_empresa) {
+        try {
+            const id_empresa_num = id_empresa ? parseInt(id_empresa) : 1;
+            const anioActual = anio ? parseInt(anio) : new Date().getFullYear();
+            const totalInversionInicial = await this.gastosService.getTotalInversionInicial(id_empresa_num);
+            const meses = [];
+            const ingresosMensuales = [];
+            const gastosMensuales = [];
+            const utilidadesMensuales = [];
+            for (let mes = 0; mes < 12; mes++) {
+                const fechaInicio = new Date(anioActual, mes, 1).toISOString().split('T')[0];
+                const fechaFin = new Date(anioActual, mes + 1, 0).toISOString().split('T')[0];
+                const ingresos = await this.ingresosService.getTotalIngresosByDateRange(fechaInicio, fechaFin, id_empresa_num);
+                const gastosTotal = await this.gastosService.getTotalGastosByDateRange(fechaInicio, fechaFin, id_empresa_num);
+                const gastosOperativos = await this.gastosService.getTotalGastosByDateRangeExcluyendoInversion(fechaInicio, fechaFin, id_empresa_num);
+                const utilidadOperativa = ingresos - gastosOperativos;
+                const utilidadNeta = ingresos - gastosTotal;
+                const margenUtilidad = ingresos > 0 ? (utilidadOperativa / ingresos) * 100 : 0;
+                meses.push({
+                    mes,
+                    nombreMes: new Date(anioActual, mes).toLocaleString('es', { month: 'long' }),
+                    ingresos,
+                    gastosTotal,
+                    gastosOperativos,
+                    utilidadOperativa,
+                    utilidadNeta,
+                    margenUtilidad: parseFloat(margenUtilidad.toFixed(2))
+                });
+            }
+            return {
+                anio: anioActual,
+                totalInversionInicial,
+                meses
+            };
         }
-        return {
-            año: añoActual,
-            totalInversionInicial,
-            meses
-        };
+        catch (error) {
+            console.error('Error en comparativo mensual:', error);
+            throw error;
+        }
     }
-    async getKPIsFinancieros(fechaInicio, fechaFin) {
-        const resumen = await this.getResumenFinanciero(fechaInicio, fechaFin);
+    async getKPIsFinancieros(fechaInicio, fechaFin, id_empresa) {
+        const resumen = await this.getResumenFinanciero(fechaInicio, fechaFin, id_empresa);
         const promedioGastoDiario = fechaInicio && fechaFin ?
             this.calcularPromedioGastoDiario(resumen.totalGastos, fechaInicio, fechaFin) : 0;
         const promedioIngresoDiario = fechaInicio && fechaFin ?
@@ -112,21 +125,29 @@ let FinanzasController = class FinanzasController {
         return Object.assign(Object.assign({}, resumen), { promedioGastoDiario: parseFloat(promedioGastoDiario.toFixed(2)), promedioIngresoDiario: parseFloat(promedioIngresoDiario.toFixed(2)), ratioIngresoGasto: resumen.totalGastos > 0 ?
                 parseFloat((resumen.totalIngresos / resumen.totalGastos).toFixed(2)) : 0 });
     }
-    async getDashboardKpis() {
+    async getDashboardKpis(id_empresa) {
         try {
+            if (!id_empresa) {
+                throw new Error('No hay empresa asociada al usuario logueado');
+            }
+            const id_empresa_num = parseInt(id_empresa);
             const now = new Date();
             const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
             const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
             const fechaInicio = startOfMonth.toISOString().split('T')[0];
             const fechaFin = endOfMonth.toISOString().split('T')[0];
-            const entradasDelMes = await this.entradasProduccionService.findByDateRange(fechaInicio, fechaFin);
+            const entradasDelMes = await this.entradasProduccionService.findByDateRange(fechaInicio, fechaFin, id_empresa_num);
             const produccionTotal = entradasDelMes.reduce((total, entrada) => total + entrada.unidades, 0);
-            const ingresosDelMes = await this.ingresosService.getTotalIngresosByDateRange(fechaInicio, fechaFin);
-            const resumenInventario = await this.inventarioResumenService.getInventarioResumen();
-            const inventarioActual = Object.values(resumenInventario).reduce((total, item) => {
+            const ingresosDelMes = await this.ingresosService.getTotalIngresosByDateRange(fechaInicio, fechaFin, id_empresa_num);
+            const resumenInventario = await this.inventarioResumenService.getInventarioResumen(null, null, id_empresa_num);
+            console.log('Estructura de resumenInventario:', JSON.stringify(resumenInventario, null, 2));
+            const inventarioActual = Object.values(resumenInventario)
+                .filter((item) => item.tipoHuevo && item.tipoHuevo.id_empresa === id_empresa_num)
+                .reduce((total, item) => {
+                console.log('Item de inventario filtrado:', item);
                 return total + (item.stockActual || 0);
             }, 0);
-            const galpones = await this.galponesService.findAll();
+            const galpones = await this.galponesService.findAll(id_empresa_num);
             const galponesActivos = galpones.filter(g => g.activo).length;
             const totalGalpones = galpones.length;
             const gallinasTotal = galpones.reduce((total, galpon) => total + (galpon.capacidad || 0), 0);
@@ -174,7 +195,7 @@ let FinanzasController = class FinanzasController {
             throw error;
         }
     }
-    async getDatosDiarios(fechaInicio, fechaFin) {
+    async getDatosDiarios(fechaInicio, fechaFin, id_empresa) {
         try {
             let inicio = fechaInicio;
             let fin = fechaFin;
@@ -185,11 +206,12 @@ let FinanzasController = class FinanzasController {
                 inicio = hace7Dias.toISOString().split('T')[0];
                 fin = ahora.toISOString().split('T')[0];
             }
-            const ingresosDiarios = await this.ingresosService.getIngresosDiarios(inicio, fin);
-            const produccionDiaria = await this.entradasProduccionService.getProduccionDiaria(inicio, fin);
-            const salidasDiarias = await this.salidasService.getSalidasDiarias(inicio, fin);
-            const canastasDiarias = await this.salidasService.getCanastasDiarias(inicio, fin);
-            const gastosDiarios = await this.gastosService.getGastosDiarios(inicio, fin);
+            const id_empresa_num = id_empresa ? parseInt(id_empresa) : 1;
+            const ingresosDiarios = await this.ingresosService.getIngresosDiarios(inicio, fin, id_empresa_num);
+            const produccionDiaria = await this.entradasProduccionService.getProduccionDiaria(inicio, fin, id_empresa_num);
+            const salidasDiarias = await this.salidasService.getSalidasDiarias(inicio, fin, id_empresa_num);
+            const canastasDiarias = await this.salidasService.getCanastasDiarias(inicio, fin, id_empresa_num);
+            const gastosDiarios = await this.gastosService.getGastosDiarios(inicio, fin, id_empresa_num);
             const datosCombinados = {};
             ingresosDiarios.forEach((ingreso) => {
                 const fecha = new Date(ingreso.fecha).toISOString().split('T')[0];
@@ -229,7 +251,7 @@ let FinanzasController = class FinanzasController {
             return datosCombinados;
         }
         catch (error) {
-            console.error('Error getting daily data:', error);
+            console.error('Error getting datos diarios:', error);
             throw error;
         }
     }
@@ -239,29 +261,33 @@ __decorate([
     (0, common_1.Get)('resumen'),
     __param(0, (0, common_1.Query)('fechaInicio')),
     __param(1, (0, common_1.Query)('fechaFin')),
+    __param(2, (0, common_1.Query)('id_empresa')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:paramtypes", [String, String, String]),
     __metadata("design:returntype", Promise)
 ], FinanzasController.prototype, "getResumenFinanciero", null);
 __decorate([
     (0, common_1.Get)('comparativo-mensual'),
-    __param(0, (0, common_1.Query)('año')),
+    __param(0, (0, common_1.Query)('anio')),
+    __param(1, (0, common_1.Query)('id_empresa')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", Promise)
 ], FinanzasController.prototype, "getComparativoMensual", null);
 __decorate([
     (0, common_1.Get)('kpis'),
     __param(0, (0, common_1.Query)('fechaInicio')),
     __param(1, (0, common_1.Query)('fechaFin')),
+    __param(2, (0, common_1.Query)('id_empresa')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:paramtypes", [String, String, String]),
     __metadata("design:returntype", Promise)
 ], FinanzasController.prototype, "getKPIsFinancieros", null);
 __decorate([
     (0, common_1.Get)('dashboard-kpis'),
+    __param(0, (0, common_1.Query)('id_empresa')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], FinanzasController.prototype, "getDashboardKpis", null);
 __decorate([
@@ -275,8 +301,9 @@ __decorate([
     (0, common_1.Get)('datos-diarios'),
     __param(0, (0, common_1.Query)('fechaInicio')),
     __param(1, (0, common_1.Query)('fechaFin')),
+    __param(2, (0, common_1.Query)('id_empresa')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:paramtypes", [String, String, String]),
     __metadata("design:returntype", Promise)
 ], FinanzasController.prototype, "getDatosDiarios", null);
 exports.FinanzasController = FinanzasController = __decorate([

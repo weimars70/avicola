@@ -32,4 +32,12 @@ export class CreateAjusteLoteDto {
   @ValidateNested({ each: true })
   @Type(() => AjusteItemDto)
   ajustes: AjusteItemDto[];
+  
+  @IsString()
+  @IsOptional()
+  id_usuario_inserta?: string;
+  
+  @IsNumber()
+  @IsOptional()
+  id_empresa?: number;
 }

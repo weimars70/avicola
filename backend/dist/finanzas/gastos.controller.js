@@ -29,8 +29,8 @@ let GastosController = class GastosController {
     createConsumoPropio(createConsumoPropioDto) {
         return this.gastosService.createConsumoPropio(createConsumoPropioDto);
     }
-    findAll() {
-        return this.gastosService.findAll();
+    findAll(id_empresa) {
+        return this.gastosService.findAll(id_empresa);
     }
     findAllIncludingInactive() {
         return this.gastosService.findAllIncludingInactive();
@@ -41,14 +41,14 @@ let GastosController = class GastosController {
     findByCategoria(categoriaId) {
         return this.gastosService.findByCategoria(parseInt(categoriaId));
     }
-    getTotalGastos() {
-        return this.gastosService.getTotalGastos();
+    getTotalGastos(id_empresa) {
+        return this.gastosService.getTotalGastos(id_empresa);
     }
-    getTotalGastosByDateRange(fechaInicio, fechaFin) {
-        return this.gastosService.getTotalGastosByDateRange(fechaInicio, fechaFin);
+    getTotalGastosByDateRange(fechaInicio, fechaFin, id_empresa) {
+        return this.gastosService.getTotalGastosByDateRange(fechaInicio, fechaFin, id_empresa);
     }
-    getTotalGastosByCategoria() {
-        return this.gastosService.getTotalGastosByCategoria();
+    getTotalGastosByCategoria(id_empresa) {
+        return this.gastosService.getTotalGastosByCategoria(id_empresa);
     }
     findOne(id) {
         return this.gastosService.findOne(id);
@@ -99,8 +99,9 @@ __decorate([
 ], GastosController.prototype, "createConsumoPropio", null);
 __decorate([
     (0, common_1.Get)(),
+    __param(0, (0, common_1.Query)('id_empresa', new common_1.ParseIntPipe())),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
 ], GastosController.prototype, "findAll", null);
 __decorate([
@@ -126,22 +127,25 @@ __decorate([
 ], GastosController.prototype, "findByCategoria", null);
 __decorate([
     (0, common_1.Get)('total'),
+    __param(0, (0, common_1.Query)('id_empresa', new common_1.ParseIntPipe())),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
 ], GastosController.prototype, "getTotalGastos", null);
 __decorate([
     (0, common_1.Get)('total-by-date-range'),
     __param(0, (0, common_1.Query)('fechaInicio')),
     __param(1, (0, common_1.Query)('fechaFin')),
+    __param(2, (0, common_1.Query)('id_empresa', new common_1.ParseIntPipe())),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:paramtypes", [String, String, Number]),
     __metadata("design:returntype", void 0)
 ], GastosController.prototype, "getTotalGastosByDateRange", null);
 __decorate([
     (0, common_1.Get)('total-by-categoria'),
+    __param(0, (0, common_1.Query)('id_empresa', new common_1.ParseIntPipe())),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
 ], GastosController.prototype, "getTotalGastosByCategoria", null);
 __decorate([

@@ -8,6 +8,7 @@ import {
   Delete,
   UseGuards,
   ParseUUIDPipe,
+  ParseIntPipe,
   Query,
   ValidationPipe,
   UsePipes,
@@ -36,9 +37,8 @@ export class GastosController {
   }
 
   @Get()
-  findAll(@Query('id_empresa') id_empresa: number) {
-    // Usar el id_empresa de la petición
-    return this.gastosService.findAll(id_empresa || 1);
+  findAll(@Query('id_empresa', new ParseIntPipe()) id_empresa: number) {
+    return this.gastosService.findAll(id_empresa);
   }
 
   @Get('all-including-inactive')
@@ -60,23 +60,22 @@ export class GastosController {
   }
 
   @Get('total')
-  getTotalGastos(@Query('id_empresa') id_empresa: number) {
-    // Usar el id_empresa de la petición
-    return this.gastosService.getTotalGastos(id_empresa || 1);
+  getTotalGastos(@Query('id_empresa', new ParseIntPipe()) id_empresa: number) {
+    return this.gastosService.getTotalGastos(id_empresa);
   }
 
   @Get('total-by-date-range')
   getTotalGastosByDateRange(
     @Query('fechaInicio') fechaInicio: string,
     @Query('fechaFin') fechaFin: string,
-    @Query('id_empresa') id_empresa: number,
+    @Query('id_empresa', new ParseIntPipe()) id_empresa: number,
   ) {
-    return this.gastosService.getTotalGastosByDateRange(fechaInicio, fechaFin, id_empresa || 1);
+    return this.gastosService.getTotalGastosByDateRange(fechaInicio, fechaFin, id_empresa);
   }
 
   @Get('total-by-categoria')
-  getTotalGastosByCategoria(@Query('id_empresa') id_empresa: number) {
-    return this.gastosService.getTotalGastosByCategoria(id_empresa || 1);
+  getTotalGastosByCategoria(@Query('id_empresa', new ParseIntPipe()) id_empresa: number) {
+    return this.gastosService.getTotalGastosByCategoria(id_empresa);
   }
 
   @Get(':id')

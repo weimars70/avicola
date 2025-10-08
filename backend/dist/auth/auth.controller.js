@@ -29,7 +29,13 @@ let AuthController = class AuthController {
         return this.authService.register(createUserDto);
     }
     async getProfile(req) {
-        return this.authService.getProfile(req.user.sub);
+        var _a, _b;
+        console.log('Request headers:', req.headers);
+        console.log('Request user object:', req.user);
+        console.log('User sub value:', (_a = req.user) === null || _a === void 0 ? void 0 : _a.sub);
+        const userId = req.query.userId || ((_b = req.user) === null || _b === void 0 ? void 0 : _b.sub);
+        console.log('Using userId:', userId);
+        return this.authService.getProfile(userId);
     }
 };
 exports.AuthController = AuthController;

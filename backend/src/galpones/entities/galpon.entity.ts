@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { User } from '../../users/entities/user.entity';
 
 @Entity('galpones')
 export class Galpon {
@@ -31,4 +32,13 @@ export class Galpon {
 
   @UpdateDateColumn()
   updatedAt: Date;
+  
+  // Relaciones
+  @ManyToOne(() => User)
+  @JoinColumn({ name: 'id_usuario_inserta' })
+  usuarioInserta: User;
+
+  @ManyToOne(() => User)
+  @JoinColumn({ name: 'id_usuario_actualiza' })
+  usuarioActualiza: User;
 }

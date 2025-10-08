@@ -6,4 +6,6 @@ export declare class CreateIngresoDto {
     referencia?: string;
     tipo?: string;
     salidaId?: string;
+    id_empresa?: number;
+    id_usuario_inserta?: string;
 }

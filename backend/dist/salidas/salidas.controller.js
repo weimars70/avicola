@@ -21,7 +21,9 @@ let SalidasController = class SalidasController {
     constructor(salidasService) {
         this.salidasService = salidasService;
     }
-    create(createSalidaDto, id_empresa) {
+    create(createSalidaDto, id_empresa, id_usuario_inserta) {
+        createSalidaDto.id_empresa = id_empresa;
+        createSalidaDto.id_usuario_inserta = id_usuario_inserta;
         return this.salidasService.create(createSalidaDto, id_empresa);
     }
     findAll(id_empresa) {
@@ -30,7 +32,8 @@ let SalidasController = class SalidasController {
     findOne(id, id_empresa) {
         return this.salidasService.findOne(id, id_empresa);
     }
-    update(id, updateSalidaDto, id_empresa) {
+    update(id, updateSalidaDto, id_empresa, id_usuario_actualiza) {
+        updateSalidaDto.id_usuario_actualiza = id_usuario_actualiza;
         return this.salidasService.update(id, updateSalidaDto, id_empresa);
     }
     remove(id, id_empresa) {
@@ -42,14 +45,15 @@ __decorate([
     (0, common_1.Post)(),
     (0, common_1.UsePipes)(new common_1.ValidationPipe({ transform: true })),
     __param(0, (0, common_1.Body)()),
-    __param(1, (0, common_1.Query)('id_empresa', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Query)('id_empresa', new common_1.ParseIntPipe({ errorHttpStatusCode: 400 }))),
+    __param(2, (0, common_1.Query)('id_usuario_inserta')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [create_salida_dto_1.CreateSalidaDto, Number]),
+    __metadata("design:paramtypes", [create_salida_dto_1.CreateSalidaDto, Number, String]),
     __metadata("design:returntype", void 0)
 ], SalidasController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
-    __param(0, (0, common_1.Query)('id_empresa', common_1.ParseIntPipe)),
+    __param(0, (0, common_1.Query)('id_empresa', new common_1.ParseIntPipe({ errorHttpStatusCode: 400 }))),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
@@ -68,8 +72,9 @@ __decorate([
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __param(2, (0, common_1.Query)('id_empresa', common_1.ParseIntPipe)),
+    __param(3, (0, common_1.Query)('id_usuario_actualiza')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, update_salida_dto_1.UpdateSalidaDto, Number]),
+    __metadata("design:paramtypes", [String, update_salida_dto_1.UpdateSalidaDto, Number, String]),
     __metadata("design:returntype", void 0)
 ], SalidasController.prototype, "update", null);
 __decorate([

@@ -22,10 +22,15 @@ export class EntradasProduccionService {
   ) {}
 
   async create(createEntradaProduccionDto: CreateEntradaProduccionDto): Promise<EntradaProduccion> {
-    // Validar que el galpón existe
+    // Validar que el galpón existe y está activo
     const galpon = await this.galponesRepository.findOne({ where: { id: createEntradaProduccionDto.galponId } });
     if (!galpon) {
       throw new NotFoundException(`Galpón con ID ${createEntradaProduccionDto.galponId} no encontrado`);
+    }
+    
+    // Verificar que el galpón esté activo
+    if (!galpon.activo) {
+      throw new BadRequestException(`No se pueden registrar entradas en el galpón "${galpon.nombre}" porque está inactivo`);
     }
     
     // Validar que el tipo de huevo existe
@@ -47,10 +52,15 @@ export class EntradasProduccionService {
   }
 
   async createMasivas(createEntradasMasivasDto: CreateEntradasMasivasDto): Promise<EntradaProduccion[]> {
-    // Validar que el galpón existe
+    // Validar que el galpón existe y está activo
     const galpon = await this.galponesRepository.findOne({ where: { id: createEntradasMasivasDto.galponId } });
     if (!galpon) {
       throw new NotFoundException(`Galpón con ID ${createEntradasMasivasDto.galponId} no encontrado`);
+    }
+    
+    // Verificar que el galpón esté activo
+    if (!galpon.activo) {
+      throw new BadRequestException(`No se pueden registrar entradas en el galpón "${galpon.nombre}" porque está inactivo`);
     }
 
     // Validar que todos los tipos de huevo existen
@@ -74,7 +84,9 @@ export class EntradasProduccionService {
         galponId: createEntradasMasivasDto.galponId,
         fecha: createEntradasMasivasDto.fecha,
         tipoHuevoId: entrada.tipoHuevoId,
-        unidades: entrada.unidades
+        unidades: entrada.unidades,
+        id_empresa: createEntradasMasivasDto.id_empresa || 1,
+        id_usuario_inserta: createEntradasMasivasDto.id_usuario_inserta
       })
     );
 

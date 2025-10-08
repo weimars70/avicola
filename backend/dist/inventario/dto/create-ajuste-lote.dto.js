@@ -53,4 +53,14 @@ __decorate([
     (0, class_transformer_1.Type)(() => AjusteItemDto),
     __metadata("design:type", Array)
 ], CreateAjusteLoteDto.prototype, "ajustes", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], CreateAjusteLoteDto.prototype, "id_usuario_inserta", void 0);
+__decorate([
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", Number)
+], CreateAjusteLoteDto.prototype, "id_empresa", void 0);
 //# sourceMappingURL=create-ajuste-lote.dto.js.map

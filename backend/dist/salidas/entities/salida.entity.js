@@ -13,6 +13,7 @@ exports.Salida = void 0;
 const typeorm_1 = require("typeorm");
 const tipo_huevo_entity_1 = require("../../tipos-huevo/entities/tipo-huevo.entity");
 const canasta_entity_1 = require("../../canastas/entities/canasta.entity");
+const user_entity_1 = require("../../users/entities/user.entity");
 let Salida = class Salida {
 };
 exports.Salida = Salida;
@@ -53,6 +54,14 @@ __decorate([
     __metadata("design:type", Number)
 ], Salida.prototype, "id_empresa", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ type: 'uuid', nullable: true }),
+    __metadata("design:type", String)
+], Salida.prototype, "id_usuario_inserta", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'uuid', nullable: true }),
+    __metadata("design:type", String)
+], Salida.prototype, "id_usuario_actualiza", void 0);
+__decorate([
     (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Date)
 ], Salida.prototype, "createdAt", void 0);
@@ -70,6 +79,16 @@ __decorate([
     (0, typeorm_1.JoinColumn)({ name: 'canastaId' }),
     __metadata("design:type", canasta_entity_1.Canasta)
 ], Salida.prototype, "canasta", void 0);
+__decorate([
+    (0, typeorm_1.ManyToOne)(() => user_entity_1.User),
+    (0, typeorm_1.JoinColumn)({ name: 'id_usuario_inserta' }),
+    __metadata("design:type", user_entity_1.User)
+], Salida.prototype, "usuarioInserta", void 0);
+__decorate([
+    (0, typeorm_1.ManyToOne)(() => user_entity_1.User),
+    (0, typeorm_1.JoinColumn)({ name: 'id_usuario_actualiza' }),
+    __metadata("design:type", user_entity_1.User)
+], Salida.prototype, "usuarioActualiza", void 0);
 exports.Salida = Salida = __decorate([
     (0, typeorm_1.Entity)('salidas')
 ], Salida);

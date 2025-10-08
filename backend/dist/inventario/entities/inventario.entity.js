@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Inventario = void 0;
 const typeorm_1 = require("typeorm");
 const tipo_huevo_entity_1 = require("../../tipos-huevo/entities/tipo-huevo.entity");
+const user_entity_1 = require("../../users/entities/user.entity");
 let Inventario = class Inventario {
 };
 exports.Inventario = Inventario;
@@ -32,6 +33,14 @@ __decorate([
     __metadata("design:type", Number)
 ], Inventario.prototype, "unidades", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ type: 'uuid', nullable: true }),
+    __metadata("design:type", String)
+], Inventario.prototype, "id_usuario_inserta", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'uuid', nullable: true }),
+    __metadata("design:type", String)
+], Inventario.prototype, "id_usuario_actualiza", void 0);
+__decorate([
     (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Date)
 ], Inventario.prototype, "createdAt", void 0);
@@ -44,6 +53,16 @@ __decorate([
     (0, typeorm_1.JoinColumn)({ name: 'tipoHuevoId' }),
     __metadata("design:type", tipo_huevo_entity_1.TipoHuevo)
 ], Inventario.prototype, "tipoHuevo", void 0);
+__decorate([
+    (0, typeorm_1.ManyToOne)(() => user_entity_1.User),
+    (0, typeorm_1.JoinColumn)({ name: 'id_usuario_inserta' }),
+    __metadata("design:type", user_entity_1.User)
+], Inventario.prototype, "usuarioInserta", void 0);
+__decorate([
+    (0, typeorm_1.ManyToOne)(() => user_entity_1.User),
+    (0, typeorm_1.JoinColumn)({ name: 'id_usuario_actualiza' }),
+    __metadata("design:type", user_entity_1.User)
+], Inventario.prototype, "usuarioActualiza", void 0);
 exports.Inventario = Inventario = __decorate([
     (0, typeorm_1.Entity)('inventario'),
     (0, typeorm_1.Unique)(['tipoHuevoId', 'id_empresa'])

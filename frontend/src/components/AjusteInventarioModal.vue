@@ -384,12 +384,6 @@ const onSubmit = async () => {
       };
     });
 
-    console.log('Datos completos a enviar:', {
-      descripcionGeneral: form.value.descripcionGeneral,
-      usuarioId: authStore.user.id,
-      ajustes: ajustesData
-    });
-
     if (props.editMode && props.loteData) {
       // Modo edición - actualizar descripción y ajustes
       await ajustesStore.updateLote(props.loteData.id, {
@@ -404,10 +398,19 @@ const onSubmit = async () => {
       });
     } else {
       // Modo creación
+      console.log("Datos enviados:", JSON.stringify({
+  descripcionGeneral: form.value.descripcionGeneral,
+  usuarioId: authStore.user.id,
+  ajustes: ajustesData,
+  id_usuario_inserta: authStore.user.id,
+  id_empresa: Number(localStorage.getItem('id_empresa'))
+}, null, 2));
       await ajustesStore.createLote({
         descripcionGeneral: form.value.descripcionGeneral,
         usuarioId: authStore.user.id,
-        ajustes: ajustesData
+        ajustes: ajustesData,
+        id_usuario_inserta: authStore.user.id,
+        id_empresa: Number(localStorage.getItem('id_empresa'))
       });
 
       $q.notify({
@@ -420,6 +423,7 @@ const onSubmit = async () => {
     emit('ajuste-realizado');
     closeModal();
   } catch (error) {
+   
     console.error('Error al realizar ajustes:', error);
     $q.notify({
       type: 'negative',
@@ -458,7 +462,9 @@ const realizarAjusteInverso = () => {
         await ajustesStore.createLote({
           descripcionGeneral: `Ajuste inverso de: ${props.loteData!.descripcionGeneral}`,
           usuarioId: authStore.user!.id,
-          ajustes: ajustesInversos
+          ajustes: ajustesInversos,
+          id_usuario_inserta: authStore.user!.id,
+          id_empresa: Number(localStorage.getItem('id_empresa'))
         });
 
         $q.notify({

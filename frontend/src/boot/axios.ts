@@ -32,9 +32,24 @@ api.interceptors.request.use(
     const id_empresa = localStorage.getItem('id_empresa');
     const id_usuario = localStorage.getItem('id_usuario');
     
+    // No añadir id_empresa como query parameter para endpoints específicos
+    // que ya lo incluyen en el cuerpo de la solicitud
+    const skipQueryParams = [
+      '/gastos/consumo-propio',
+      '/entradas-produccion',
+      '/salidas'
+    ];
+    
+    const shouldSkipQueryParams = skipQueryParams.some(endpoint => 
+      config.url && config.url.includes(endpoint)
+    );
+    
+    // Si es una ruta que debería omitir el parámetro, no mostrar el error
+    const isSkippedRoute = shouldSkipQueryParams;
+    
     // Añadir id_empresa a todas las peticiones como query parameter
-    // Solo si no existe ya en los parámetros de la URL
-    if (id_empresa) {
+    // Solo si no existe ya en los parámetros de la URL y no es un endpoint que lo incluye en el cuerpo
+    if (id_empresa && !shouldSkipQueryParams) {
       // Verificar si la URL ya contiene id_empresa como parámetro
       const urlHasIdEmpresa = config.url?.includes('id_empresa=');
       const paramsHasIdEmpresa = config.params && 'id_empresa' in config.params;
@@ -43,7 +58,7 @@ api.interceptors.request.use(
         config.params = { ...config.params, id_empresa };
         //console.log(`Interceptor añadiendo id_empresa: ${id_empresa} a ${config.url}`);
       }
-    } else {
+    } else if (!isSkippedRoute) {
       console.error('Interceptor: No se encontró id_empresa en localStorage');
     }
     
@@ -51,12 +66,14 @@ api.interceptors.request.use(
     // Excluir rutas de autenticación para no añadir campos adicionales
     const isAuthRoute = config.url?.includes('/auth/');
     
-    if (config.method?.toLowerCase() === 'post' && id_usuario && config.data && !isAuthRoute) {
-      config.data = { ...config.data, id_usuario_inserta: id_usuario };
+    if (config.method?.toLowerCase() === 'post' && id_usuario && !isAuthRoute) {
+      // Añadir id_usuario_inserta como parámetro de consulta
+      config.params = { ...config.params, id_usuario_inserta: id_usuario };
     }
     
-    if ((config.method?.toLowerCase() === 'put' || config.method?.toLowerCase() === 'patch') && id_usuario && config.data && !isAuthRoute) {
-      config.data = { ...config.data, id_usuario_actualiza: id_usuario };
+    if ((config.method?.toLowerCase() === 'put' || config.method?.toLowerCase() === 'patch') && id_usuario && !isAuthRoute) {
+      // Añadir id_usuario_actualiza como parámetro de consulta
+      config.params = { ...config.params, id_usuario_actualiza: id_usuario };
     }
     
     return config;

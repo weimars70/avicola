@@ -115,14 +115,17 @@ let GastosService = class GastosService {
         await this.findOne(id);
         await this.gastosRepository.update(id, { activo: false });
     }
-    async getTotalGastosByCategoria() {
+    async getTotalGastosByCategoria(id_empresa) {
         return await this.gastosRepository
             .createQueryBuilder('gasto')
             .leftJoin('gasto.categoria', 'categoria')
             .select('categoria.nombre', 'categoria')
             .addSelect('categoria.color', 'color')
             .addSelect('SUM(gasto.monto)', 'total')
-            .where('gasto.activo = :activo', { activo: true })
+            .where('gasto.activo = :activo AND gasto.id_empresa = :id_empresa', {
+            activo: true,
+            id_empresa
+        })
             .groupBy('categoria.id')
             .getRawMany();
     }
@@ -163,11 +166,14 @@ let GastosService = class GastosService {
             .getRawOne();
         return parseFloat(result.total) || 0;
     }
-    async getTotalGastosByDateRange(fechaInicio, fechaFin) {
+    async getTotalGastosByDateRange(fechaInicio, fechaFin, id_empresa) {
         const result = await this.gastosRepository
             .createQueryBuilder('gasto')
             .select('SUM(gasto.monto)', 'total')
-            .where('gasto.activo = :activo', { activo: true })
+            .where('gasto.activo = :activo AND gasto.id_empresa = :id_empresa', {
+            activo: true,
+            id_empresa
+        })
             .andWhere('gasto.fecha BETWEEN :fechaInicio AND :fechaFin', {
             fechaInicio: new Date(fechaInicio),
             fechaFin: new Date(fechaFin)
@@ -175,12 +181,15 @@ let GastosService = class GastosService {
             .getRawOne();
         return parseFloat(result.total) || 0;
     }
-    async getTotalGastosByDateRangeExcluyendoInversion(fechaInicio, fechaFin) {
+    async getTotalGastosByDateRangeExcluyendoInversion(fechaInicio, fechaFin, id_empresa) {
         const result = await this.gastosRepository
             .createQueryBuilder('gasto')
             .leftJoin('gasto.categoria', 'categoria')
             .select('SUM(gasto.monto)', 'total')
-            .where('gasto.activo = :activo', { activo: true })
+            .where('gasto.activo = :activo AND gasto.id_empresa = :id_empresa', {
+            activo: true,
+            id_empresa
+        })
             .andWhere('categoria.nombre != :inversionInicial', { inversionInicial: 'Inversión Inicial' })
             .andWhere('gasto.fecha BETWEEN :fechaInicio AND :fechaFin', {
             fechaInicio: new Date(fechaInicio),
@@ -189,13 +198,17 @@ let GastosService = class GastosService {
             .getRawOne();
         return parseFloat(result.total) || 0;
     }
-    async getGastosDiarios(fechaInicio, fechaFin) {
-        const result = await this.gastosRepository
+    async getGastosDiarios(fechaInicio, fechaFin, id_empresa) {
+        const queryBuilder = this.gastosRepository
             .createQueryBuilder('gasto')
             .select('DATE(gasto.fecha)', 'fecha')
             .addSelect('SUM(gasto.monto)', 'total')
             .where('gasto.fecha BETWEEN :fechaInicio AND :fechaFin', { fechaInicio, fechaFin })
-            .andWhere('gasto.activo = :activo', { activo: true })
+            .andWhere('gasto.activo = :activo', { activo: true });
+        if (id_empresa) {
+            queryBuilder.andWhere('gasto.id_empresa = :id_empresa', { id_empresa });
+        }
+        const result = await queryBuilder
             .groupBy('DATE(gasto.fecha)')
             .orderBy('fecha', 'ASC')
             .getRawMany();

@@ -37,11 +37,11 @@ let RendimientoController = class RendimientoController {
     findByPeriodo(periodo) {
         return this.rendimientoService.findByPeriodo(periodo);
     }
-    calcularRendimientoDiario(fecha) {
-        return this.rendimientoService.calcularRendimientoDiario(fecha);
+    calcularRendimientoDiario(fecha, id_empresa) {
+        return this.rendimientoService.calcularRendimientoDiario(fecha, id_empresa);
     }
-    calcularRendimientoMensual(año, mes) {
-        return this.rendimientoService.calcularRendimientoMensual(año, mes);
+    calcularRendimientoMensual(año, mes, id_empresa) {
+        return this.rendimientoService.calcularRendimientoMensual(año, mes, id_empresa);
     }
     findOne(id) {
         return this.rendimientoService.findOne(id);
@@ -92,16 +92,18 @@ __decorate([
 __decorate([
     (0, common_1.Post)('calcular-diario'),
     __param(0, (0, common_1.Body)('fecha')),
+    __param(1, (0, common_1.Query)('id_empresa', new common_1.ParseIntPipe())),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, Number]),
     __metadata("design:returntype", void 0)
 ], RendimientoController.prototype, "calcularRendimientoDiario", null);
 __decorate([
     (0, common_1.Post)('calcular-mensual'),
     __param(0, (0, common_1.Body)('año', common_1.ParseIntPipe)),
     __param(1, (0, common_1.Body)('mes', common_1.ParseIntPipe)),
+    __param(2, (0, common_1.Query)('id_empresa', new common_1.ParseIntPipe())),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, Number]),
+    __metadata("design:paramtypes", [Number, Number, Number]),
     __metadata("design:returntype", void 0)
 ], RendimientoController.prototype, "calcularRendimientoMensual", null);
 __decorate([

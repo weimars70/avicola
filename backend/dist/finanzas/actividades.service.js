@@ -23,7 +23,7 @@ let ActividadesService = class ActividadesService {
     async getActividades(id_empresa) {
         const actividades = [];
         try {
-            const entradas = await this.entradasProduccionService.findAll();
+            const entradas = await this.entradasProduccionService.findAll(id_empresa);
             const entradasRecientes = entradas.slice(0, 20);
             entradasRecientes.forEach(entrada => {
                 var _a, _b;
@@ -51,7 +51,7 @@ let ActividadesService = class ActividadesService {
                     monto: valorTotal
                 });
             });
-            const gastos = await this.gastosService.findAll();
+            const gastos = await this.gastosService.findAll(id_empresa);
             const gastosRecientes = gastos.slice(0, 20);
             gastosRecientes.forEach(gasto => {
                 var _a;

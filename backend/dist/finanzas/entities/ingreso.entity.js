@@ -48,6 +48,14 @@ __decorate([
     __metadata("design:type", Boolean)
 ], Ingreso.prototype, "activo", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ type: 'int', nullable: false }),
+    __metadata("design:type", Number)
+], Ingreso.prototype, "id_empresa", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'varchar', length: 255, nullable: true }),
+    __metadata("design:type", String)
+], Ingreso.prototype, "id_usuario_inserta", void 0);
+__decorate([
     (0, typeorm_1.Column)({ type: 'uuid', nullable: true }),
     __metadata("design:type", String)
 ], Ingreso.prototype, "salidaId", void 0);

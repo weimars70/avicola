@@ -22,7 +22,7 @@ export class AjustesInventarioService {
     private usersService: UsersService,
   ) {}
 
-  async create(createAjusteDto: CreateAjusteInventarioDto): Promise<AjusteInventario> {
+  async create(createAjusteDto: CreateAjusteInventarioDto, id_empresa: number = 1): Promise<AjusteInventario> {
     // Validar que el tipo de huevo existe
     const tipoHuevo = await this.tiposHuevoService.findOne(createAjusteDto.tipoHuevoId);
     if (!tipoHuevo) {
@@ -36,7 +36,7 @@ export class AjustesInventarioService {
     }
 
     // Obtener inventario actual
-    const inventarioActual = await this.inventarioStockService.findByTipoHuevo(createAjusteDto.tipoHuevoId, 1);
+    const inventarioActual = await this.inventarioStockService.findByTipoHuevo(createAjusteDto.tipoHuevoId, id_empresa);
     const cantidadAnterior = inventarioActual ? inventarioActual.unidades : 0;
 
     // Validar que no se puede restar más de lo que hay en stock
@@ -79,16 +79,17 @@ export class AjustesInventarioService {
     return savedAjuste;
   }
 
-  async findAll(): Promise<AjusteInventario[]> {
+  async findAll(id_empresa: number): Promise<AjusteInventario[]> {
     return await this.ajustesRepository.find({
       relations: ['tipoHuevo', 'usuario'],
+      where: { tipoHuevo: { id_empresa } },
       order: { createdAt: 'DESC' },
     });
   }
 
-  async findByTipoHuevo(tipoHuevoId: string): Promise<AjusteInventario[]> {
+  async findByTipoHuevo(tipoHuevoId: string, id_empresa: number): Promise<AjusteInventario[]> {
     return await this.ajustesRepository.find({
-      where: { tipoHuevoId },
+      where: { tipoHuevoId, tipoHuevo: { id_empresa } },
       relations: ['tipoHuevo', 'usuario'],
       order: { createdAt: 'DESC' },
     });
@@ -107,7 +108,7 @@ export class AjustesInventarioService {
     return ajuste;
   }
 
-  async createLote(createAjusteLoteDto: CreateAjusteLoteDto): Promise<AjusteLote> {
+  async createLote(createAjusteLoteDto: CreateAjusteLoteDto, id_empresa: number): Promise<AjusteLote> {
     // Validar que el usuario existe
     const usuario = await this.usersService.findOne(createAjusteLoteDto.usuarioId);
     if (!usuario) {
@@ -118,6 +119,8 @@ export class AjustesInventarioService {
     const ajusteLote = this.ajustesLoteRepository.create({
       descripcionGeneral: createAjusteLoteDto.descripcionGeneral,
       usuarioId: createAjusteLoteDto.usuarioId,
+      id_empresa: createAjusteLoteDto.id_empresa || id_empresa,
+      id_usuario_inserta: createAjusteLoteDto.id_usuario_inserta || createAjusteLoteDto.usuarioId,
     });
 
     const savedLote = await this.ajustesLoteRepository.save(ajusteLote);
@@ -132,7 +135,7 @@ export class AjustesInventarioService {
       }
 
       // Obtener inventario actual
-      const inventarioActual = await this.inventarioStockService.findByTipoHuevo(ajusteItem.tipoHuevoId, 1);
+      const inventarioActual = await this.inventarioStockService.findByTipoHuevo(ajusteItem.tipoHuevoId, id_empresa);
       const cantidadAnterior = inventarioActual ? inventarioActual.unidades : 0;
 
       // Validar que no se puede restar más de lo que hay en stock
@@ -160,6 +163,8 @@ export class AjustesInventarioService {
         ajusteLoteId: savedLote.id,
         cantidadAnterior,
         cantidadNueva,
+        id_empresa: createAjusteLoteDto.id_empresa || id_empresa,
+        id_usuario_inserta: createAjusteLoteDto.id_usuario_inserta || createAjusteLoteDto.usuarioId,
       });
 
       const savedAjuste = await this.ajustesRepository.save(ajuste);
@@ -169,12 +174,14 @@ export class AjustesInventarioService {
       if (ajusteItem.tipoAjuste === 'suma') {
         await this.inventarioStockService.aumentarStock(
           ajusteItem.tipoHuevoId,
-          ajusteItem.cantidadAjuste
+          ajusteItem.cantidadAjuste,
+          id_empresa
         );
       } else {
         await this.inventarioStockService.reducirStock(
           ajusteItem.tipoHuevoId,
-          ajusteItem.cantidadAjuste
+          ajusteItem.cantidadAjuste,
+          id_empresa
         );
       }
     }
@@ -186,9 +193,10 @@ export class AjustesInventarioService {
     });
   }
 
-  async findAllLotes(): Promise<AjusteLote[]> {
+  async findAllLotes(id_empresa: number): Promise<AjusteLote[]> {
     return await this.ajustesLoteRepository.find({
       relations: ['usuario', 'ajustes', 'ajustes.tipoHuevo'],
+      where: { ajustes: { tipoHuevo: { id_empresa } } },
       order: { createdAt: 'DESC' },
     });
   }

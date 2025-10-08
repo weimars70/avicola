@@ -197,7 +197,10 @@ export class FinanzasController {
       const totalGalpones = galpones.length;
       
       // Calcular gallinas totales y activas (basado en capacidad de galpones)
-      const gallinasTotal = galpones.reduce((total, galpon) => total + (galpon.capacidad || 0), 0);
+      // Para gallinas totales, contamos las de todos los galpones (activos e inactivos)
+      const gallinasTotal = galpones
+        .reduce((total, galpon) => total + (galpon.capacidad || 0), 0);
+      // Para gallinas activas, solo contamos las de galpones activos
       const gallinasActivas = galpones
         .filter(g => g.activo)
         .reduce((total, galpon) => total + (galpon.capacidad || 0), 0);

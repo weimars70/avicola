@@ -7,5 +7,5 @@ export declare class ResumenService {
     private salidasRepository;
     private inventarioRepository;
     constructor(entradasRepository: Repository<EntradaProduccion>, salidasRepository: Repository<Salida>, inventarioRepository: Repository<Inventario>);
-    getInventarioResumen(galponId?: string, tipoHuevoId?: string): Promise<any[]>;
+    getInventarioResumen(galponId?: string, tipoHuevoId?: string, id_empresa?: number): Promise<any[]>;
 }

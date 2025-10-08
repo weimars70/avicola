@@ -59,7 +59,9 @@ let EntradasProduccionService = class EntradasProduccionService {
             galponId: createEntradasMasivasDto.galponId,
             fecha: createEntradasMasivasDto.fecha,
             tipoHuevoId: entrada.tipoHuevoId,
-            unidades: entrada.unidades
+            unidades: entrada.unidades,
+            id_empresa: createEntradasMasivasDto.id_empresa || 1,
+            id_usuario_inserta: createEntradasMasivasDto.id_usuario_inserta
         }));
         const savedEntradas = await this.entradasProduccionRepository.save(entradasProduccion);
         for (const entrada of savedEntradas) {
@@ -74,11 +76,9 @@ let EntradasProduccionService = class EntradasProduccionService {
             order: { fecha: 'DESC' },
         });
     }
-    async findByDateRange(fechaInicio, fechaFin) {
+    async findByDateRange(fechaInicio, fechaFin, id_empresa) {
         return this.entradasProduccionRepository.find({
-            where: {
-                fecha: (0, typeorm_2.Between)(new Date(fechaInicio), new Date(fechaFin))
-            },
+            where: Object.assign({ fecha: (0, typeorm_2.Between)(new Date(fechaInicio), new Date(fechaFin)) }, (id_empresa ? { id_empresa } : {})),
             relations: ['galpon', 'tipoHuevo'],
             order: { fecha: 'DESC' }
         });
@@ -114,12 +114,16 @@ let EntradasProduccionService = class EntradasProduccionService {
         const entradaProduccion = await this.findOne(id);
         await this.entradasProduccionRepository.remove(entradaProduccion);
     }
-    async getProduccionDiaria(fechaInicio, fechaFin) {
-        const result = await this.entradasProduccionRepository
+    async getProduccionDiaria(fechaInicio, fechaFin, id_empresa) {
+        const queryBuilder = this.entradasProduccionRepository
             .createQueryBuilder('entrada')
             .select('DATE(entrada.fecha)', 'fecha')
             .addSelect('SUM(entrada.unidades)', 'total')
-            .where('entrada.fecha BETWEEN :fechaInicio AND :fechaFin', { fechaInicio, fechaFin })
+            .where('entrada.fecha BETWEEN :fechaInicio AND :fechaFin', { fechaInicio, fechaFin });
+        if (id_empresa) {
+            queryBuilder.andWhere('entrada.id_empresa = :id_empresa', { id_empresa });
+        }
+        const result = await queryBuilder
             .groupBy('DATE(entrada.fecha)')
             .orderBy('fecha', 'ASC')
             .getRawMany();

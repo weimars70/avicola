@@ -57,8 +57,8 @@ let InventarioStockService = class InventarioStockService {
         const inventario = await this.findOne(id);
         await this.inventarioRepository.remove(inventario);
     }
-    async actualizarInventario(tipoHuevoId, unidadesAgregar) {
-        const inventarioExistente = await this.findByTipoHuevo(tipoHuevoId);
+    async actualizarInventario(tipoHuevoId, unidadesAgregar, id_empresa = 1) {
+        const inventarioExistente = await this.findByTipoHuevo(tipoHuevoId, id_empresa);
         if (inventarioExistente) {
             inventarioExistente.unidades += unidadesAgregar;
             return await this.inventarioRepository.save(inventarioExistente);
@@ -67,12 +67,13 @@ let InventarioStockService = class InventarioStockService {
             const nuevoInventario = this.inventarioRepository.create({
                 tipoHuevoId,
                 unidades: unidadesAgregar,
+                id_empresa,
             });
             return await this.inventarioRepository.save(nuevoInventario);
         }
     }
-    async reducirInventario(tipoHuevoId, unidadesReducir) {
-        const inventarioExistente = await this.findByTipoHuevo(tipoHuevoId);
+    async reducirInventario(tipoHuevoId, unidadesReducir, id_empresa = 1) {
+        const inventarioExistente = await this.findByTipoHuevo(tipoHuevoId, id_empresa);
         if (!inventarioExistente) {
             throw new common_1.NotFoundException(`No hay inventario para el tipo de huevo ${tipoHuevoId}`);
         }
@@ -82,15 +83,16 @@ let InventarioStockService = class InventarioStockService {
         inventarioExistente.unidades -= unidadesReducir;
         return await this.inventarioRepository.save(inventarioExistente);
     }
-    async aumentarStock(tipoHuevoId, unidadesAumentar) {
-        return this.actualizarInventario(tipoHuevoId, unidadesAumentar);
+    async aumentarStock(tipoHuevoId, unidadesAumentar, id_empresa = 1) {
+        return this.actualizarInventario(tipoHuevoId, unidadesAumentar, id_empresa);
     }
-    async reducirStock(tipoHuevoId, unidadesReducir) {
-        return this.reducirInventario(tipoHuevoId, unidadesReducir);
+    async reducirStock(tipoHuevoId, unidadesReducir, id_empresa = 1) {
+        return this.reducirInventario(tipoHuevoId, unidadesReducir, id_empresa);
     }
-    async getVistaInventario() {
+    async getVistaInventario(id_empresa) {
         const inventarios = await this.inventarioRepository.find({
             relations: ['tipoHuevo'],
+            where: { id_empresa },
             order: { unidades: 'DESC' }
         });
         return inventarios.map(item => ({

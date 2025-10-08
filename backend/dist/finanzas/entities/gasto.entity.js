@@ -57,6 +57,10 @@ __decorate([
     __metadata("design:type", Number)
 ], Gasto.prototype, "categoriaId", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", Number)
+], Gasto.prototype, "id_empresa", void 0);
+__decorate([
     (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Date)
 ], Gasto.prototype, "createdAt", void 0);

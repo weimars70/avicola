@@ -53,4 +53,14 @@ __decorate([
     (0, class_transformer_1.Type)(() => Number),
     __metadata("design:type", Number)
 ], CreateSalidaDto.prototype, "id_empresa", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsUUID)(),
+    __metadata("design:type", String)
+], CreateSalidaDto.prototype, "id_usuario_inserta", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsUUID)(),
+    __metadata("design:type", String)
+], CreateSalidaDto.prototype, "id_usuario_actualiza", void 0);
 //# sourceMappingURL=create-salida.dto.js.map

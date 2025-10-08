@@ -54,6 +54,8 @@ interface CreateAjusteLoteDto {
   descripcionGeneral: string;
   usuarioId: string;
   ajustes: AjusteItem[];
+  id_empresa: number;
+  id_usuario_inserta: string;
 }
 
 export interface AjusteLote {
@@ -151,7 +153,21 @@ export const useAjustesInventarioStore = defineStore('ajustesInventario', () => 
     loading.value = true;
     error.value = null;
     try {
-      const response = await api.post('/ajustes-inventario/lotes', loteData);
+      // Obtener id_empresa del localStorage
+      const id_empresa = localStorage.getItem('id_empresa');
+      
+      // Extraer solo las propiedades que acepta el backend
+      const datosParaEnviar = {
+        descripcionGeneral: loteData.descripcionGeneral,
+        usuarioId: loteData.usuarioId,
+        ajustes: loteData.ajustes,
+        id_empresa: loteData.id_empresa,
+        id_usuario_inserta: loteData.id_usuario_inserta
+      };
+      
+      console.log('Datos enviados al backend:', datosParaEnviar);
+      
+      const response = await api.post(`/ajustes-inventario/lotes?id_empresa=${id_empresa}`, datosParaEnviar);
       const nuevoLote = response.data;
       lotes.value.unshift(nuevoLote);
       

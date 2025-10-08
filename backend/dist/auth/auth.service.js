@@ -95,9 +95,21 @@ let AuthService = class AuthService {
         return result;
     }
     async getProfile(userId) {
-        const user = await this.usersService.findOne(userId);
-        const { password } = user, result = __rest(user, ["password"]);
-        return Object.assign(Object.assign({}, result), { id_empresa: user.id_empresa });
+        if (!userId) {
+            throw new common_1.UnauthorizedException('Usuario no autenticado correctamente');
+        }
+        try {
+            const user = await this.usersService.findOne(userId);
+            if (!user) {
+                throw new common_1.UnauthorizedException('Usuario no encontrado');
+            }
+            const { password } = user, result = __rest(user, ["password"]);
+            return Object.assign(Object.assign({}, result), { id_empresa: user.id_empresa });
+        }
+        catch (error) {
+            console.error('Error en getProfile:', error);
+            throw new common_1.UnauthorizedException('Error al obtener el perfil del usuario');
+        }
     }
 };
 exports.AuthService = AuthService;

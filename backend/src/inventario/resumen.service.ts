@@ -38,7 +38,8 @@ export class ResumenService {
     // Construir query para salidas
     const salidasQuery = this.salidasRepository
       .createQueryBuilder('salida')
-      .leftJoinAndSelect('salida.tipoHuevo', 'tipoHuevo');
+      .leftJoinAndSelect('salida.tipoHuevo', 'tipoHuevo')
+      .where('salida.id_empresa = :id_empresa', { id_empresa });
 
     if (tipoHuevoId) {
       salidasQuery.andWhere('salida.tipoHuevoId = :tipoHuevoId', { tipoHuevoId });
@@ -47,7 +48,8 @@ export class ResumenService {
     // Construir query para inventario actual
     const inventarioQuery = this.inventarioRepository
       .createQueryBuilder('inventario')
-      .leftJoinAndSelect('inventario.tipoHuevo', 'tipoHuevo');
+      .leftJoinAndSelect('inventario.tipoHuevo', 'tipoHuevo')
+      .where('inventario.id_empresa = :id_empresa', { id_empresa });
 
     if (tipoHuevoId) {
       inventarioQuery.andWhere('inventario.tipoHuevoId = :tipoHuevoId', { tipoHuevoId });

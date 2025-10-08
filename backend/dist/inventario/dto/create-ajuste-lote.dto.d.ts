@@ -8,4 +8,6 @@ export declare class CreateAjusteLoteDto {
     descripcionGeneral: string;
     usuarioId: string;
     ajustes: AjusteItemDto[];
+    id_usuario_inserta?: string;
+    id_empresa?: number;
 }

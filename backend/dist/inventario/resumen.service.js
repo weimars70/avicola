@@ -25,11 +25,15 @@ let ResumenService = class ResumenService {
         this.salidasRepository = salidasRepository;
         this.inventarioRepository = inventarioRepository;
     }
-    async getInventarioResumen(galponId, tipoHuevoId) {
+    async getInventarioResumen(galponId, tipoHuevoId, id_empresa) {
+        if (!id_empresa) {
+            throw new Error('No hay empresa asociada al usuario logueado');
+        }
         const entradasQuery = this.entradasRepository
             .createQueryBuilder('entrada')
             .leftJoinAndSelect('entrada.galpon', 'galpon')
-            .leftJoinAndSelect('entrada.tipoHuevo', 'tipoHuevo');
+            .leftJoinAndSelect('entrada.tipoHuevo', 'tipoHuevo')
+            .where('entrada.id_empresa = :id_empresa', { id_empresa });
         if (galponId) {
             entradasQuery.andWhere('entrada.galponId = :galponId', { galponId });
         }
@@ -38,13 +42,15 @@ let ResumenService = class ResumenService {
         }
         const salidasQuery = this.salidasRepository
             .createQueryBuilder('salida')
-            .leftJoinAndSelect('salida.tipoHuevo', 'tipoHuevo');
+            .leftJoinAndSelect('salida.tipoHuevo', 'tipoHuevo')
+            .where('salida.id_empresa = :id_empresa', { id_empresa });
         if (tipoHuevoId) {
             salidasQuery.andWhere('salida.tipoHuevoId = :tipoHuevoId', { tipoHuevoId });
         }
         const inventarioQuery = this.inventarioRepository
             .createQueryBuilder('inventario')
-            .leftJoinAndSelect('inventario.tipoHuevo', 'tipoHuevo');
+            .leftJoinAndSelect('inventario.tipoHuevo', 'tipoHuevo')
+            .where('inventario.id_empresa = :id_empresa', { id_empresa });
         if (tipoHuevoId) {
             inventarioQuery.andWhere('inventario.tipoHuevoId = :tipoHuevoId', { tipoHuevoId });
         }

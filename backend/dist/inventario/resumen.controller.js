@@ -20,8 +20,12 @@ let ResumenController = class ResumenController {
     constructor(resumenService) {
         this.resumenService = resumenService;
     }
-    getResumen(galponId, tipoHuevoId) {
-        return this.resumenService.getInventarioResumen(galponId, tipoHuevoId);
+    getResumen(galponId, tipoHuevoId, id_empresa) {
+        if (!id_empresa) {
+            throw new Error('No hay empresa asociada al usuario logueado');
+        }
+        const id_empresa_num = parseInt(id_empresa);
+        return this.resumenService.getInventarioResumen(galponId, tipoHuevoId, id_empresa_num);
     }
 };
 exports.ResumenController = ResumenController;
@@ -29,8 +33,9 @@ __decorate([
     (0, common_1.Get)('resumen'),
     __param(0, (0, common_1.Query)('galponId')),
     __param(1, (0, common_1.Query)('tipoHuevoId')),
+    __param(2, (0, common_1.Query)('id_empresa')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:paramtypes", [String, String, String]),
     __metadata("design:returntype", void 0)
 ], ResumenController.prototype, "getResumen", null);
 exports.ResumenController = ResumenController = __decorate([

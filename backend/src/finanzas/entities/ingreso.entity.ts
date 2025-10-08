@@ -37,6 +37,9 @@ export class Ingreso {
 
   @Column({ type: 'int', nullable: false })
   id_empresa: number;
+  
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  id_usuario_inserta: string;
 
   // Relación con Salida (para ingresos por ventas)
   @Column({ type: 'uuid', nullable: true })

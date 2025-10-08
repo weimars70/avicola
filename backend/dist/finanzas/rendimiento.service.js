@@ -69,11 +69,11 @@ let RendimientoService = class RendimientoService {
             order: { fecha: 'DESC' },
         });
     }
-    async calcularRendimientoDiario(fecha) {
+    async calcularRendimientoDiario(fecha, id_empresa = 1) {
         const fechaInicio = fecha;
         const fechaFin = fecha;
-        const totalIngresos = await this.ingresosService.getTotalIngresosByDateRange(fechaInicio, fechaFin);
-        const totalGastos = await this.gastosService.getTotalGastosByDateRange(fechaInicio, fechaFin);
+        const totalIngresos = await this.ingresosService.getTotalIngresosByDateRange(fechaInicio, fechaFin, id_empresa);
+        const totalGastos = await this.gastosService.getTotalGastosByDateRange(fechaInicio, fechaFin, id_empresa);
         const utilidadNeta = totalIngresos - totalGastos;
         const margenUtilidad = totalIngresos > 0 ? (utilidadNeta / totalIngresos) * 100 : 0;
         const roi = totalGastos > 0 ? (utilidadNeta / totalGastos) * 100 : 0;
@@ -89,11 +89,11 @@ let RendimientoService = class RendimientoService {
         };
         return await this.create(rendimientoData);
     }
-    async calcularRendimientoMensual(año, mes) {
+    async calcularRendimientoMensual(año, mes, id_empresa = 1) {
         const fechaInicio = new Date(año, mes - 1, 1).toISOString().split('T')[0];
         const fechaFin = new Date(año, mes, 0).toISOString().split('T')[0];
-        const totalIngresos = await this.ingresosService.getTotalIngresosByDateRange(fechaInicio, fechaFin);
-        const totalGastos = await this.gastosService.getTotalGastosByDateRange(fechaInicio, fechaFin);
+        const totalIngresos = await this.ingresosService.getTotalIngresosByDateRange(fechaInicio, fechaFin, id_empresa);
+        const totalGastos = await this.gastosService.getTotalGastosByDateRange(fechaInicio, fechaFin, id_empresa);
         const utilidadNeta = totalIngresos - totalGastos;
         const margenUtilidad = totalIngresos > 0 ? (utilidadNeta / totalIngresos) * 100 : 0;
         const roi = totalGastos > 0 ? (utilidadNeta / totalGastos) * 100 : 0;

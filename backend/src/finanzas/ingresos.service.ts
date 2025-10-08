@@ -16,20 +16,27 @@ export class IngresosService {
   ) {}
 
   async create(createIngresoDto: CreateIngresoDto): Promise<Ingreso> {
-    const ingreso = this.ingresosRepository.create(createIngresoDto);
+    // Asegurarse de que id_empresa tenga un valor por defecto si no viene en el DTO
+    const ingresoData = {
+      ...createIngresoDto,
+      id_empresa: createIngresoDto.id_empresa || 1
+    };
+    
+    const ingreso = this.ingresosRepository.create(ingresoData);
     return await this.ingresosRepository.save(ingreso);
   }
 
-  async findAll(): Promise<Ingreso[]> {
+  async findAll(id_empresa: number): Promise<Ingreso[]> {
     return await this.ingresosRepository.find({
-      where: { activo: true },
+      where: { activo: true, id_empresa },
       relations: ['salida'],
       order: { fecha: 'DESC' },
     });
   }
 
-  async findAllIncludingInactive(): Promise<Ingreso[]> {
+  async findAllIncludingInactive(id_empresa: number): Promise<Ingreso[]> {
     return await this.ingresosRepository.find({
+      where: { id_empresa },
       relations: ['salida'],
       order: { fecha: 'DESC' },
     });
@@ -48,20 +55,21 @@ export class IngresosService {
     return ingreso;
   }
 
-  async findByDateRange(fechaInicio: string, fechaFin: string): Promise<Ingreso[]> {
+  async findByDateRange(fechaInicio: string, fechaFin: string, id_empresa: number): Promise<Ingreso[]> {
     return await this.ingresosRepository.find({
       where: {
         fecha: Between(fechaInicio, fechaFin),
         activo: true,
+        id_empresa,
       },
       relations: ['salida'],
       order: { fecha: 'DESC' },
     });
   }
 
-  async findByTipo(tipo: string): Promise<Ingreso[]> {
+  async findByTipo(tipo: string, id_empresa: number): Promise<Ingreso[]> {
     return await this.ingresosRepository.find({
-      where: { tipo, activo: true },
+      where: { tipo, activo: true, id_empresa },
       relations: ['salida'],
       order: { fecha: 'DESC' },
     });
@@ -69,7 +77,15 @@ export class IngresosService {
 
   async update(id: string, updateIngresoDto: UpdateIngresoDto): Promise<Ingreso> {
     const ingreso = await this.findOne(id);
-    Object.assign(ingreso, updateIngresoDto);
+    
+    // Asegurarse de que id_empresa e id_usuario_inserta se mantengan si no vienen en el DTO
+    const updatedData = {
+      ...updateIngresoDto,
+      id_empresa: updateIngresoDto.id_empresa || ingreso.id_empresa || 1,
+      id_usuario_inserta: updateIngresoDto.id_usuario_inserta || ingreso.id_usuario_inserta
+    };
+    
+    Object.assign(ingreso, updatedData);
     return await this.ingresosRepository.save(ingreso);
   }
 

@@ -1,6 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { TipoHuevo } from '../../tipos-huevo/entities/tipo-huevo.entity';
 import { Canasta } from '../../canastas/entities/canasta.entity';
+import { User } from '../../users/entities/user.entity';
 
 @Entity('salidas')
 export class Salida {
@@ -51,4 +52,12 @@ export class Salida {
   @ManyToOne(() => Canasta, { nullable: true })
   @JoinColumn({ name: 'canastaId' })
   canasta: Canasta;
+  
+  @ManyToOne(() => User)
+  @JoinColumn({ name: 'id_usuario_inserta' })
+  usuarioInserta: User;
+
+  @ManyToOne(() => User)
+  @JoinColumn({ name: 'id_usuario_actualiza' })
+  usuarioActualiza: User;
 }

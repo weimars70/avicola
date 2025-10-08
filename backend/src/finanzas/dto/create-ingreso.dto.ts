@@ -31,4 +31,12 @@ export class CreateIngresoDto {
   @IsOptional()
   @IsString()
   salidaId?: string;
+
+  @IsOptional()
+  @IsNumber()
+  id_empresa?: number;
+
+  @IsOptional()
+  @IsString()
+  id_usuario_inserta?: string;
 }

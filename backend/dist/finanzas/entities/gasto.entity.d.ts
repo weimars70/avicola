@@ -10,6 +10,7 @@ export declare class Gasto {
     activo: boolean;
     categoria: CategoriaGasto;
     categoriaId: number;
+    id_empresa: number;
     createdAt: Date;
     updatedAt: Date;
 }

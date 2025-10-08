@@ -11,8 +11,14 @@ export declare class AjusteInventario {
     descripcion: string;
     usuarioId: string;
     ajusteLoteId: string;
+    id_empresa: number;
+    id_usuario_inserta: string;
+    id_usuario_actualiza: string;
     createdAt: Date;
+    updatedAt: Date;
     tipoHuevo: TipoHuevo;
     usuario: User;
     ajusteLote: AjusteLote;
+    usuarioInserta: User;
+    usuarioActualiza: User;
 }

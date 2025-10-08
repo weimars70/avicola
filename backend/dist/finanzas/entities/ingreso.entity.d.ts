@@ -8,6 +8,8 @@ export declare class Ingreso {
     tipo: string;
     referencia?: string;
     activo: boolean;
+    id_empresa: number;
+    id_usuario_inserta: string;
     salidaId?: string;
     salida?: Salida;
     createdAt: Date;

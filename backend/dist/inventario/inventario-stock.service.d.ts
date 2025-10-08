@@ -11,9 +11,9 @@ export declare class InventarioStockService {
     findOne(id: number): Promise<Inventario>;
     update(id: number, updateInventarioDto: UpdateInventarioDto): Promise<Inventario>;
     remove(id: number): Promise<void>;
-    actualizarInventario(tipoHuevoId: string, unidadesAgregar: number): Promise<Inventario>;
-    reducirInventario(tipoHuevoId: string, unidadesReducir: number): Promise<Inventario>;
-    aumentarStock(tipoHuevoId: string, unidadesAumentar: number): Promise<Inventario>;
-    reducirStock(tipoHuevoId: string, unidadesReducir: number): Promise<Inventario>;
-    getVistaInventario(): Promise<any[]>;
+    actualizarInventario(tipoHuevoId: string, unidadesAgregar: number, id_empresa?: number): Promise<Inventario>;
+    reducirInventario(tipoHuevoId: string, unidadesReducir: number, id_empresa?: number): Promise<Inventario>;
+    aumentarStock(tipoHuevoId: string, unidadesAumentar: number, id_empresa?: number): Promise<Inventario>;
+    reducirStock(tipoHuevoId: string, unidadesReducir: number, id_empresa?: number): Promise<Inventario>;
+    getVistaInventario(id_empresa: number): Promise<any[]>;
 }

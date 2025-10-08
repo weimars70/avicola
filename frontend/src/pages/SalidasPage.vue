@@ -771,12 +771,15 @@ const saveSalida = async () => {
       // Para creación, usar CreateSalidaDto
       const createData: CreateSalidaDto = {
         tipoHuevoId: form.value.tipoHuevoId,
-        canastaId: form.value.canastaId || null,
         unidades: parseInt(String(form.value.unidades), 10),
         fecha: form.value.fecha,
       };
 
       // Solo incluir campos opcionales si tienen valores válidos
+      if (form.value.canastaId) {
+        createData.canastaId = form.value.canastaId;
+      }
+      
       if (form.value.valor && form.value.valor > 0) {
         createData.valor = parseFloat(String(form.value.valor));
       }
@@ -784,6 +787,8 @@ const saveSalida = async () => {
       if (form.value.nombreComprador && form.value.nombreComprador.trim()) {
         createData.nombreComprador = form.value.nombreComprador.trim();
       }
+      
+      console.log('Datos a enviar:', createData);
 
       await salidasStore.createSalida(createData);
       $q.notify({

@@ -14,12 +14,12 @@ export declare class AjustesInventarioService {
     private tiposHuevoService;
     private usersService;
     constructor(ajustesRepository: Repository<AjusteInventario>, ajustesLoteRepository: Repository<AjusteLote>, inventarioStockService: InventarioStockService, tiposHuevoService: TiposHuevoService, usersService: UsersService);
-    create(createAjusteDto: CreateAjusteInventarioDto): Promise<AjusteInventario>;
-    findAll(): Promise<AjusteInventario[]>;
-    findByTipoHuevo(tipoHuevoId: string): Promise<AjusteInventario[]>;
+    create(createAjusteDto: CreateAjusteInventarioDto, id_empresa?: number): Promise<AjusteInventario>;
+    findAll(id_empresa: number): Promise<AjusteInventario[]>;
+    findByTipoHuevo(tipoHuevoId: string, id_empresa: number): Promise<AjusteInventario[]>;
     findOne(id: string): Promise<AjusteInventario>;
-    createLote(createAjusteLoteDto: CreateAjusteLoteDto): Promise<AjusteLote>;
-    findAllLotes(): Promise<AjusteLote[]>;
+    createLote(createAjusteLoteDto: CreateAjusteLoteDto, id_empresa: number): Promise<AjusteLote>;
+    findAllLotes(id_empresa: number): Promise<AjusteLote[]>;
     findOneLote(id: string): Promise<AjusteLote>;
     updateLote(id: string, updateAjusteLoteDto: UpdateAjusteLoteDto): Promise<AjusteLote>;
     removeLote(id: string): Promise<void>;

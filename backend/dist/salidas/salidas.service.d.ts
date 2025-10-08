@@ -1,4 +1,4 @@
-import { Repository } from 'typeorm';
+import { Repository, DataSource } from 'typeorm';
 import { CreateSalidaDto } from './dto/create-salida.dto';
 import { UpdateSalidaDto } from './dto/update-salida.dto';
 import { Salida } from './entities/salida.entity';
@@ -12,12 +12,13 @@ export declare class SalidasService {
     private canastasService;
     private inventarioStockService;
     private ingresosService;
-    constructor(salidasRepository: Repository<Salida>, tiposHuevoService: TiposHuevoService, canastasService: CanastasService, inventarioStockService: InventarioStockService, ingresosService: IngresosService);
+    private dataSource;
+    constructor(salidasRepository: Repository<Salida>, tiposHuevoService: TiposHuevoService, canastasService: CanastasService, inventarioStockService: InventarioStockService, ingresosService: IngresosService, dataSource: DataSource);
     create(createSalidaDto: CreateSalidaDto, id_empresa: number): Promise<Salida>;
     findAll(id_empresa: number): Promise<Salida[]>;
     findOne(id: string, id_empresa: number): Promise<Salida>;
     update(id: string, updateSalidaDto: UpdateSalidaDto, id_empresa: number): Promise<Salida>;
     remove(id: string, id_empresa: number): Promise<void>;
-    getSalidasDiarias(fechaInicio: string, fechaFin: string): Promise<any[]>;
-    getCanastasDiarias(fechaInicio: string, fechaFin: string): Promise<any[]>;
+    getSalidasDiarias(fechaInicio: string, fechaFin: string, id_empresa?: number): Promise<any[]>;
+    getCanastasDiarias(fechaInicio: string, fechaFin: string, id_empresa?: number): Promise<any[]>;
 }

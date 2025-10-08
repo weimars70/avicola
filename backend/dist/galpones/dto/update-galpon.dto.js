@@ -37,4 +37,9 @@ __decorate([
     (0, class_validator_1.IsBoolean)(),
     __metadata("design:type", Boolean)
 ], UpdateGalponDto.prototype, "activo", void 0);
+__decorate([
+    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsUUID)(),
+    __metadata("design:type", String)
+], UpdateGalponDto.prototype, "id_usuario_actualiza", void 0);
 //# sourceMappingURL=update-galpon.dto.js.map

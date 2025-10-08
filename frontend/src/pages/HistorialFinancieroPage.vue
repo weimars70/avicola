@@ -480,6 +480,7 @@ import { useInversionInicialStore } from 'src/stores/inversionInicial';
 import { useFinanzas } from 'src/composables/useFinanzas';
 import CalendarioFinanciero from 'src/components/CalendarioFinanciero.vue';
 import { api } from 'src/boot/axios';
+import { useAuthStore } from "src/stores/auth";
 
 interface TransactionForm {
   tipo: 'ingreso' | 'gasto' | 'venta' | 'compra' | '';
@@ -495,6 +496,7 @@ interface TransactionForm {
 const $q = useQuasar();
 const historialStore = useHistorialFinancieroStore();
 const inversionStore = useInversionInicialStore();
+const userStore = useAuthStore();
 const { syncIngresosFromSalidas, loading: finanzasLoading, ensureDateFormat } = useFinanzas();
 
 // Estado local
@@ -681,7 +683,8 @@ const cargarDatosCalendario = async (mes?: number, año?: number) => {
     const response = await api.get('/finanzas/datos-diarios', {
       params: {
         fechaInicio: fechaInicio.toISOString().split('T')[0],
-        fechaFin: fechaFin.toISOString().split('T')[0]
+        fechaFin: fechaFin.toISOString().split('T')[0],
+        id_empresa: userStore.user?.id_empresa
       }
     });
     

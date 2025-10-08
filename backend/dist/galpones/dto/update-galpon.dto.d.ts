@@ -3,4 +3,5 @@ export declare class UpdateGalponDto {
     descripcion?: string;
     capacidad?: number;
     activo?: boolean;
+    id_usuario_actualiza?: string;
 }

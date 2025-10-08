@@ -1,4 +1,4 @@
-import { IsString, IsDateString, IsArray, ValidateNested, IsNumber, Min } from 'class-validator';
+import { IsString, IsDateString, IsArray, ValidateNested, IsNumber, Min, IsOptional } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class EntradaProduccionItem {
@@ -21,4 +21,12 @@ export class CreateEntradasMasivasDto {
   @ValidateNested({ each: true })
   @Type(() => EntradaProduccionItem)
   entradas: EntradaProduccionItem[];
+  
+  @IsNumber()
+  @IsOptional()
+  id_empresa?: number;
+  
+  @IsString()
+  @IsOptional()
+  id_usuario_inserta?: string;
 }

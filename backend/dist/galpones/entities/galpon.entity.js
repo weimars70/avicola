@@ -11,6 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Galpon = void 0;
 const typeorm_1 = require("typeorm");
+const user_entity_1 = require("../../users/entities/user.entity");
 let Galpon = class Galpon {
 };
 exports.Galpon = Galpon;
@@ -39,6 +40,14 @@ __decorate([
     __metadata("design:type", Number)
 ], Galpon.prototype, "id_empresa", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ type: 'uuid', nullable: false }),
+    __metadata("design:type", String)
+], Galpon.prototype, "id_usuario_inserta", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'uuid', nullable: true }),
+    __metadata("design:type", String)
+], Galpon.prototype, "id_usuario_actualiza", void 0);
+__decorate([
     (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Date)
 ], Galpon.prototype, "createdAt", void 0);
@@ -46,6 +55,16 @@ __decorate([
     (0, typeorm_1.UpdateDateColumn)(),
     __metadata("design:type", Date)
 ], Galpon.prototype, "updatedAt", void 0);
+__decorate([
+    (0, typeorm_1.ManyToOne)(() => user_entity_1.User),
+    (0, typeorm_1.JoinColumn)({ name: 'id_usuario_inserta' }),
+    __metadata("design:type", user_entity_1.User)
+], Galpon.prototype, "usuarioInserta", void 0);
+__decorate([
+    (0, typeorm_1.ManyToOne)(() => user_entity_1.User),
+    (0, typeorm_1.JoinColumn)({ name: 'id_usuario_actualiza' }),
+    __metadata("design:type", user_entity_1.User)
+], Galpon.prototype, "usuarioActualiza", void 0);
 exports.Galpon = Galpon = __decorate([
     (0, typeorm_1.Entity)('galpones')
 ], Galpon);

@@ -59,6 +59,12 @@ export const useEntradasProduccionStore = defineStore('entradas-produccion', () 
       params.append('page', page.toString());
       params.append('limit', limit.toString());
       
+      // Obtener id_empresa del localStorage y añadirlo a los parámetros
+      const id_empresa = localStorage.getItem('id_empresa');
+      if (id_empresa) {
+        params.append('id_empresa', id_empresa);
+      }
+      
       if (filters) {
         if (filters.galponId) params.append('galponId', filters.galponId);
         if (filters.tipoHuevoId) params.append('tipoHuevoId', filters.tipoHuevoId);
@@ -93,7 +99,21 @@ export const useEntradasProduccionStore = defineStore('entradas-produccion', () 
     loading.value = true;
     error.value = null;
     try {
-      const response = await api.post('/entradas-produccion', entradaData);
+      // Obtener id_empresa y id_usuario_inserta del localStorage
+      const id_empresa = localStorage.getItem('id_empresa');
+      const id_usuario_inserta = localStorage.getItem('id_usuario');
+      
+      // Crear objeto con todos los datos necesarios
+      const dataToSend = {
+        ...entradaData,
+        id_empresa: parseInt(id_empresa || '1', 10),
+        id_usuario_inserta: id_usuario_inserta || ''
+      };
+      
+      // Enviar datos en el cuerpo y evitar que se añadan como query params
+      const response = await api.post('/entradas-produccion', dataToSend, {
+        params: {} // Parámetros vacíos para evitar que el interceptor añada id_empresa como query param
+      });
       entradasProduccion.value.unshift(response.data);
       return response.data;
     } catch (err) {

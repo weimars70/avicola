@@ -49,7 +49,7 @@ export class AuthService {
   }
 
   async getProfile(userId: string) {
-    console.log('userId::::', userId);
+    //console.log('userId::::', userId);
     
     // Validar que userId no sea undefined
     if (!userId) {
@@ -58,7 +58,7 @@ export class AuthService {
     
     try {
       const user = await this.usersService.findOne(userId);
-      console.log('user::::', user);
+      //console.log('user::::', user);
       
       if (!user) {
         throw new UnauthorizedException('Usuario no encontrado');

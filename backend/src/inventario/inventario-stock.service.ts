@@ -101,14 +101,15 @@ export class InventarioStockService {
   }
 
   // Método para reducir stock (para salidas)
-  async reducirStock(tipoHuevoId: string, unidadesReducir: number): Promise<Inventario> {
-    return this.reducirInventario(tipoHuevoId, unidadesReducir);
+  async reducirStock(tipoHuevoId: string, unidadesReducir: number, id_empresa: number = 1): Promise<Inventario> {
+    return this.reducirInventario(tipoHuevoId, unidadesReducir, id_empresa);
   }
 
   // Método para obtener vista de inventario con valores calculados
-  async getVistaInventario(): Promise<any[]> {
+  async getVistaInventario(id_empresa: number): Promise<any[]> {
     const inventarios = await this.inventarioRepository.find({
       relations: ['tipoHuevo'],
+      where: { id_empresa },
       order: { unidades: 'DESC' }
     });
 

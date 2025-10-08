@@ -4,4 +4,6 @@ export declare class CreateGalponDto {
     capacidad: number;
     activo?: boolean;
     id_empresa: number;
+    id_usuario_inserta: string;
+    id_usuario_actualiza?: string;
 }

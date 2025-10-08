@@ -37,7 +37,7 @@ let NotificationsController = class NotificationsController {
         res.setHeader('Connection', 'keep-alive');
         res.setHeader('Access-Control-Allow-Origin', '*');
         res.setHeader('Access-Control-Allow-Headers', 'Cache-Control');
-        res.write('data: {"type":"connected","message":"Conectado al sistema de notificaciones"}\n\n');
+        res.write('data: {"type":"connected","message":""}\n\n');
         const keepAlive = setInterval(() => {
             res.write('data: {"type":"heartbeat","timestamp":"' + new Date().toISOString() + '"}\n\n');
         }, 30000);

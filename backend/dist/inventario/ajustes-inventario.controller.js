@@ -22,23 +22,23 @@ let AjustesInventarioController = class AjustesInventarioController {
     constructor(ajustesInventarioService) {
         this.ajustesInventarioService = ajustesInventarioService;
     }
-    create(createAjusteDto) {
-        return this.ajustesInventarioService.create(createAjusteDto);
+    create(createAjusteDto, id_empresa) {
+        return this.ajustesInventarioService.create(createAjusteDto, id_empresa);
     }
-    findAll() {
-        return this.ajustesInventarioService.findAll();
+    findAll(id_empresa) {
+        return this.ajustesInventarioService.findAll(id_empresa);
     }
-    findByTipoHuevo(tipoHuevoId) {
-        return this.ajustesInventarioService.findByTipoHuevo(tipoHuevoId);
+    findByTipoHuevo(tipoHuevoId, id_empresa) {
+        return this.ajustesInventarioService.findByTipoHuevo(tipoHuevoId, id_empresa);
     }
     findOne(id) {
         return this.ajustesInventarioService.findOne(id);
     }
-    createLote(createAjusteLoteDto) {
-        return this.ajustesInventarioService.createLote(createAjusteLoteDto);
+    createLote(createAjusteLoteDto, id_empresa) {
+        return this.ajustesInventarioService.createLote(createAjusteLoteDto, id_empresa);
     }
-    findAllLotes() {
-        return this.ajustesInventarioService.findAllLotes();
+    findAllLotes(id_empresa) {
+        return this.ajustesInventarioService.findAllLotes(id_empresa);
     }
     findOneLote(id) {
         return this.ajustesInventarioService.findOneLote(id);
@@ -60,21 +60,24 @@ exports.AjustesInventarioController = AjustesInventarioController;
 __decorate([
     (0, common_1.Post)(),
     __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Query)('id_empresa', new common_1.ParseIntPipe())),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [create_ajuste_inventario_dto_1.CreateAjusteInventarioDto]),
+    __metadata("design:paramtypes", [create_ajuste_inventario_dto_1.CreateAjusteInventarioDto, Number]),
     __metadata("design:returntype", void 0)
 ], AjustesInventarioController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
+    __param(0, (0, common_1.Query)('id_empresa', new common_1.ParseIntPipe())),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
 ], AjustesInventarioController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Get)('tipo-huevo/:tipoHuevoId'),
     __param(0, (0, common_1.Param)('tipoHuevoId', common_1.ParseUUIDPipe)),
+    __param(1, (0, common_1.Query)('id_empresa', new common_1.ParseIntPipe({ optional: true }))),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, Number]),
     __metadata("design:returntype", void 0)
 ], AjustesInventarioController.prototype, "findByTipoHuevo", null);
 __decorate([
@@ -87,14 +90,16 @@ __decorate([
 __decorate([
     (0, common_1.Post)('lotes'),
     __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Query)('id_empresa', new common_1.ParseIntPipe({ optional: true }))),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [create_ajuste_lote_dto_1.CreateAjusteLoteDto]),
+    __metadata("design:paramtypes", [create_ajuste_lote_dto_1.CreateAjusteLoteDto, Number]),
     __metadata("design:returntype", void 0)
 ], AjustesInventarioController.prototype, "createLote", null);
 __decorate([
     (0, common_1.Get)('lotes/all'),
+    __param(0, (0, common_1.Query)('id_empresa', new common_1.ParseIntPipe({ optional: true }))),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
 ], AjustesInventarioController.prototype, "findAllLotes", null);
 __decorate([

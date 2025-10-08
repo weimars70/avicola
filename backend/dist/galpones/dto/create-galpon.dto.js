@@ -43,4 +43,14 @@ __decorate([
     (0, class_validator_1.IsInt)(),
     __metadata("design:type", Number)
 ], CreateGalponDto.prototype, "id_empresa", void 0);
+__decorate([
+    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsUUID)(),
+    __metadata("design:type", String)
+], CreateGalponDto.prototype, "id_usuario_inserta", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsUUID)(),
+    __metadata("design:type", String)
+], CreateGalponDto.prototype, "id_usuario_actualiza", void 0);
 //# sourceMappingURL=create-galpon.dto.js.map

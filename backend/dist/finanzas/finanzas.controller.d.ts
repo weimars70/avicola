@@ -14,7 +14,7 @@ export declare class FinanzasController {
     private readonly salidasService;
     private readonly inventarioResumenService;
     constructor(gastosService: GastosService, ingresosService: IngresosService, resumenService: ResumenService, galponesService: GalponesService, entradasProduccionService: EntradasProduccionService, salidasService: SalidasService, inventarioResumenService: InventarioResumenService);
-    getResumenFinanciero(fechaInicio?: string, fechaFin?: string): Promise<{
+    getResumenFinanciero(fechaInicio?: string, fechaFin?: string, id_empresa?: string): Promise<{
         totalIngresos: number;
         totalGastos: number;
         totalGastosOperativos: number;
@@ -30,12 +30,12 @@ export declare class FinanzasController {
             fechaFin: string;
         };
     }>;
-    getComparativoMensual(año?: string): Promise<{
-        año: number;
+    getComparativoMensual(anio?: string, id_empresa?: string): Promise<{
+        anio: number;
         totalInversionInicial: number;
         meses: any[];
     }>;
-    getKPIsFinancieros(fechaInicio?: string, fechaFin?: string): Promise<{
+    getKPIsFinancieros(fechaInicio?: string, fechaFin?: string, id_empresa?: string): Promise<{
         promedioGastoDiario: number;
         promedioIngresoDiario: number;
         ratioIngresoGasto: number;
@@ -54,7 +54,7 @@ export declare class FinanzasController {
             fechaFin: string;
         };
     }>;
-    getDashboardKpis(): Promise<{
+    getDashboardKpis(id_empresa?: string): Promise<{
         produccionTotal: number;
         ingresosDelMes: number;
         inventarioActual: any;
@@ -74,5 +74,5 @@ export declare class FinanzasController {
         message: string;
         data: import("./entities/gasto.entity").Gasto;
     }>;
-    getDatosDiarios(fechaInicio?: string, fechaFin?: string): Promise<Record<string, any>>;
+    getDatosDiarios(fechaInicio?: string, fechaFin?: string, id_empresa?: string): Promise<Record<string, any>>;
 }

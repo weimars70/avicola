@@ -8,6 +8,8 @@ import {
   Delete,
   UseGuards,
   ParseUUIDPipe,
+  Query,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { AjustesInventarioService } from './ajustes-inventario.service';
 import { CreateAjusteInventarioDto } from './dto/create-ajuste-inventario.dto';
@@ -21,20 +23,24 @@ export class AjustesInventarioController {
   constructor(private readonly ajustesInventarioService: AjustesInventarioService) {}
 
   @Post()
-  create(@Body() createAjusteDto: CreateAjusteInventarioDto) {
-    return this.ajustesInventarioService.create(createAjusteDto);
+  create(
+    @Body() createAjusteDto: CreateAjusteInventarioDto,
+    @Query('id_empresa', new ParseIntPipe()) id_empresa: number
+  ) {
+    return this.ajustesInventarioService.create(createAjusteDto, id_empresa);
   }
 
   @Get()
-  findAll() {
-    return this.ajustesInventarioService.findAll();
+  findAll(@Query('id_empresa', new ParseIntPipe()) id_empresa: number) {
+    return this.ajustesInventarioService.findAll(id_empresa);
   }
 
   @Get('tipo-huevo/:tipoHuevoId')
   findByTipoHuevo(
     @Param('tipoHuevoId', ParseUUIDPipe) tipoHuevoId: string,
+    @Query('id_empresa', new ParseIntPipe({ optional: true })) id_empresa: number,
   ) {
-    return this.ajustesInventarioService.findByTipoHuevo(tipoHuevoId);
+    return this.ajustesInventarioService.findByTipoHuevo(tipoHuevoId, id_empresa );
   }
 
   @Get(':id')
@@ -43,13 +49,16 @@ export class AjustesInventarioController {
   }
 
   @Post('lotes')
-  createLote(@Body() createAjusteLoteDto: CreateAjusteLoteDto) {
-    return this.ajustesInventarioService.createLote(createAjusteLoteDto);
+  createLote(
+    @Body() createAjusteLoteDto: CreateAjusteLoteDto,
+    @Query('id_empresa', new ParseIntPipe({ optional: true })) id_empresa: number
+  ) {
+    return this.ajustesInventarioService.createLote(createAjusteLoteDto, id_empresa );
   }
 
   @Get('lotes/all')
-  findAllLotes() {
-    return this.ajustesInventarioService.findAllLotes();
+  findAllLotes(@Query('id_empresa', new ParseIntPipe({ optional: true })) id_empresa: number) {
+    return this.ajustesInventarioService.findAllLotes(id_empresa );
   }
 
   @Get('lotes/:id')

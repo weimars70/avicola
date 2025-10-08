@@ -51,14 +51,14 @@ __decorate([
 ], CanastasController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
-    __param(0, (0, common_1.Query)('id_empresa', common_1.ParseIntPipe)),
+    __param(0, (0, common_1.Query)('id_empresa', new common_1.ParseIntPipe({ errorHttpStatusCode: 400 }))),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
 ], CanastasController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Get)('all'),
-    __param(0, (0, common_1.Query)('id_empresa', common_1.ParseIntPipe)),
+    __param(0, (0, common_1.Query)('id_empresa', new common_1.ParseIntPipe({ errorHttpStatusCode: 400 }))),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)

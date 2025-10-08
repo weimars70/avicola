@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, DataSource } from 'typeorm';
 import { CreateSalidaDto } from './dto/create-salida.dto';
 import { UpdateSalidaDto } from './dto/update-salida.dto';
 import { Salida } from './entities/salida.entity';
@@ -19,6 +19,7 @@ export class SalidasService {
     private inventarioStockService: InventarioStockService,
     @Inject(forwardRef(() => IngresosService))
     private ingresosService: IngresosService,
+    private dataSource: DataSource,
   ) {}
 
   async create(createSalidaDto: CreateSalidaDto, id_empresa: number): Promise<Salida> {
@@ -127,8 +128,49 @@ export class SalidasService {
       await this.inventarioStockService.reducirStock(nuevoTipoHuevo, nuevasUnidades);
     }
     
+    // Asegurarse de que el valor se actualice si se cambian las unidades
+    if (updateSalidaDto.unidades !== undefined && !updateSalidaDto.valor) {
+      // Obtener el valor de la canasta actual
+      let valorCanasta = 0;
+      if (updateSalidaDto.canastaId) {
+        const canasta = await this.canastasService.findOne(updateSalidaDto.canastaId, id_empresa);
+        valorCanasta = canasta.valorCanasta;
+      } else if (salida.canastaId) {
+        const canasta = await this.canastasService.findOne(salida.canastaId, id_empresa);
+        valorCanasta = canasta.valorCanasta;
+      }
+      
+      // Actualizar el valor basado en las nuevas unidades
+      if (valorCanasta > 0) {
+        updateSalidaDto.valor = updateSalidaDto.unidades * valorCanasta;
+      }
+    }
+    
     Object.assign(salida, updateSalidaDto);
-    return this.salidasRepository.save(salida);
+    const salidaActualizada = await this.salidasRepository.save(salida);
+    
+    // Actualizar el ingreso relacionado si existe
+    try {
+      const ingresos = await this.dataSource.getRepository('ingresos').find({
+        where: { salidaId: id }
+      });
+      
+      if (ingresos && ingresos.length > 0) {
+        const ingreso = ingresos[0];
+        // Actualizar el monto del ingreso para que coincida con el valor de la salida
+        await this.dataSource.getRepository('ingresos').update(
+          { id: ingreso.id },
+          { 
+            monto: salidaActualizada.valor,
+            descripcion: `Venta de ${salidaActualizada.unidades} unidades de ${salidaActualizada.tipoHuevo?.nombre || 'huevos'}`
+          }
+        );
+      }
+    } catch (error) {
+      console.error('Error al actualizar el ingreso relacionado:', error);
+    }
+    
+    return salidaActualizada;
   }
 
   async remove(id: string, id_empresa: number): Promise<void> {
