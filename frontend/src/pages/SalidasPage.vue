@@ -351,6 +351,9 @@
               prefix="$"
               placeholder="0.00"
             />
+            <div v-if="form.valor && form.unidades" class="text-caption text-right q-mb-sm">
+              Valor total: ${{ (form.valor * form.unidades).toFixed(2) }}
+            </div>
 
             <q-input
               v-model="form.fecha"

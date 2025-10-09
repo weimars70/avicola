@@ -276,7 +276,7 @@
 
     <!-- Dialog -->
     <q-dialog v-model="dialog" persistent>
-      <q-card style="min-width: 400px">
+      <q-card class="dialog-responsive">
         <q-card-section>
           <div class="text-h6">
             {{ editingEntrada ? 'Editar Entrada' : 'Nueva Entrada' }}

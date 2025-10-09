@@ -1,9 +1,9 @@
 <template>
   <q-page class="q-pa-lg" style="background-color: #F5F6FA; min-height: 100vh;">
-    <div class="row q-gutter-md">
+    <div class="row q-col-gutter-md items-stretch">
       <!-- Header Section -->
       <div class="col-12 fade-in">
-        <div class="dashboard-header q-pa-md q-pa-lg-xl" style="background: linear-gradient(135deg, #1B1F3B 0%, #2C3E50 100%, #34495E 100%); color: white; margin: -16px -16px 32px -16px; position: relative; overflow: hidden; border-radius: 0 0 24px 24px;">
+        <div class="dashboard-header q-pa-md q-pa-lg-xl" style="background: linear-gradient(135deg, #1B1F3B 0%, #2C3E50 100%, #34495E 100%); color: white; margin: -16px -16px 24px -16px; position: relative; overflow: hidden; border-radius: 0 0 24px 24px;">
           <div class="absolute-top-right q-pa-md header-bg-icon" style="opacity: 0.1;">
             <q-icon name="agriculture" class="header-icon-size" />
           </div>
@@ -31,213 +31,207 @@
         </div>
       </div>
       
-      <div class="col-12 col-sm-6 col-md-3 fade-in">
-        <q-card class="kpi-card responsive-kpi-card" style="background: linear-gradient(135deg, #2ECC71 0%, #27AE60 100%); border-radius: 16px; box-shadow: 0 8px 32px rgba(46, 204, 113, 0.3);">
-          <q-card-section class="text-white kpi-card-section">
-            <div class="kpi-content">
-              <div class="kpi-main-content">
-                <div class="kpi-label" style="font-family: 'Inter', sans-serif; font-weight: 500;">
-                  <q-icon name="trending_up" class="kpi-label-icon" />
-                  <span class="kpi-label-text">Producción Total</span>
+      <div class="col-12">
+        <div class="row q-col-gutter-md">
+          <!-- Primera fila de KPIs - 4 tarjetas uniformes -->
+          <div class="col-12 col-md-3">
+            <q-card class="kpi-card full-height" style="background: linear-gradient(135deg, #2ECC71 0%, #27AE60 100%); border-radius: 16px; box-shadow: 0 8px 32px rgba(46, 204, 113, 0.3);">
+              <q-card-section class="text-white q-pa-md">
+                <div class="row items-center no-wrap">
+                  <div class="col">
+                    <div class="text-subtitle2 opacity-80" style="font-family: 'Inter', sans-serif; font-weight: 500;">
+                      <q-icon name="trending_up" class="q-mr-xs" size="sm" />
+                      Producción Total
+                    </div>
+                    <div class="text-h3 text-weight-bold q-mt-sm" style="font-family: 'Poppins', sans-serif; letter-spacing: -1px;">{{ stats.produccionTotal }}</div>
+                  </div>
+                  <div class="col-auto">
+                    <div class="kpi-icon-container" style="background: rgba(255,255,255,0.15); border-radius: 16px; padding: 16px;">
+                      <q-icon name="egg_alt" size="40px" />
+                    </div>
+                  </div>
                 </div>
-                <div class="kpi-value text-weight-bold" style="font-family: 'Poppins', sans-serif; letter-spacing: -1px;">{{ stats.produccionTotal }}</div>
-                <div class="kpi-change" style="font-family: 'Inter', sans-serif;">
-                  <q-icon name="arrow_upward" class="kpi-change-icon" color="light-green-3" />
-                  <span class="kpi-change-text">+8.5% vs mes anterior</span>
+              </q-card-section>
+            </q-card>
+          </div>
+
+          <div class="col-12 col-md-3">
+            <q-card class="kpi-card full-height" style="background: linear-gradient(135deg, #6C63FF 0%, #5A52D5 100%); border-radius: 16px; box-shadow: 0 8px 32px rgba(108, 99, 255, 0.3);">
+              <q-card-section class="text-white q-pa-md">
+                <div class="row items-center no-wrap">
+                  <div class="col">
+                    <div class="text-subtitle2 opacity-80" style="font-family: 'Inter', sans-serif; font-weight: 500;">
+                      <q-icon name="payments" class="q-mr-xs" size="sm" />
+                      Ingresos del Mes
+                    </div>
+                    <div class="text-h3 text-weight-bold q-mt-sm" style="font-family: 'Poppins', sans-serif; letter-spacing: -1px;">${{ stats.ingresosDelMes }}K</div>
+                  </div>
+                  <div class="col-auto">
+                    <div class="kpi-icon-container" style="background: rgba(255,255,255,0.15); border-radius: 16px; padding: 16px;">
+                      <q-icon name="account_balance_wallet" size="40px" />
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <div class="kpi-icon-wrapper">
-                <div class="kpi-icon-container" style="background: rgba(255,255,255,0.15); border-radius: 16px; padding: 16px;">
-                  <q-icon name="egg_alt" class="kpi-main-icon" />
+              </q-card-section>
+            </q-card>
+          </div>
+
+          <div class="col-12 col-md-3">
+            <q-card class="kpi-card full-height" style="background: linear-gradient(135deg, #1B1F3B 0%, #2C3E50 100%); border-radius: 16px; box-shadow: 0 8px 32px rgba(27, 31, 59, 0.3);">
+              <q-card-section class="text-white q-pa-md">
+                <div class="row items-center no-wrap">
+                  <div class="col">
+                    <div class="text-subtitle2 opacity-80" style="font-family: 'Inter', sans-serif; font-weight: 500;">
+                      <q-icon name="inventory_2" class="q-mr-xs" size="sm" />
+                      Inventario Actual
+                    </div>
+                    <div class="text-h3 text-weight-bold q-mt-sm" style="font-family: 'Poppins', sans-serif; letter-spacing: -1px;">{{ stats.inventarioActual }}</div>
+                  </div>
+                  <div class="col-auto">
+                    <div class="kpi-icon-container" style="background: rgba(255,255,255,0.15); border-radius: 16px; padding: 16px;">
+                      <q-icon name="warehouse" size="40px" />
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-          </q-card-section>
-        </q-card>
+              </q-card-section>
+            </q-card>
+          </div>
+
+          <div class="col-12 col-md-3">
+            <q-card class="kpi-card full-height" style="background: linear-gradient(135deg, #E67E22 0%, #D35400 100%); border-radius: 16px; box-shadow: 0 8px 32px rgba(230, 126, 34, 0.3);">
+              <q-card-section class="text-white q-pa-md">
+                <div class="row items-center no-wrap">
+                  <div class="col">
+                    <div class="text-subtitle2 opacity-80" style="font-family: 'Inter', sans-serif; font-weight: 500;">
+                      <q-icon name="agriculture" class="q-mr-xs" size="sm" />
+                      Galpones Activos
+                    </div>
+                    <div class="text-h3 text-weight-bold q-mt-sm" style="font-family: 'Poppins', sans-serif; letter-spacing: -1px;">{{ stats.galponesActivos }}</div>
+                  </div>
+                  <div class="col-auto">
+                    <div class="kpi-icon-container" style="background: rgba(255,255,255,0.15); border-radius: 16px; padding: 16px;">
+                      <q-icon name="domain" size="40px" />
+                    </div>
+                  </div>
+                </div>
+              </q-card-section>
+            </q-card>
+          </div>
+        </div>
       </div>
 
-      <div class="col-12 col-sm-6 col-md-3 fade-in">
-        <q-card class="kpi-card responsive-kpi-card" style="background: linear-gradient(135deg, #6C63FF 0%, #5A52D5 100%); border-radius: 16px; box-shadow: 0 8px 32px rgba(108, 99, 255, 0.3);">
-          <q-card-section class="text-white kpi-card-section">
-            <div class="kpi-content">
-              <div class="kpi-main-content">
-                <div class="kpi-label" style="font-family: 'Inter', sans-serif; font-weight: 500;">
-                  <q-icon name="payments" class="kpi-label-icon" />
-                  <span class="kpi-label-text">Ingresos del Mes</span>
-                </div>
-                <div class="kpi-value text-weight-bold" style="font-family: 'Poppins', sans-serif; letter-spacing: -1px;">${{ stats.ingresosDelMes }}K</div>
-                <div class="kpi-change" style="font-family: 'Inter', sans-serif;">
-                  <q-icon name="arrow_upward" class="kpi-change-icon" color="light-green-3" />
-                  <span class="kpi-change-text">+12.3% vs mes anterior</span>
-                </div>
-              </div>
-              <div class="kpi-icon-wrapper">
-                <div class="kpi-icon-container" style="background: rgba(255,255,255,0.15); border-radius: 16px; padding: 16px;">
-                  <q-icon name="account_balance_wallet" class="kpi-main-icon" />
-                </div>
-              </div>
-            </div>
-          </q-card-section>
-        </q-card>
-      </div>
-
-      <div class="col-12 col-sm-6 col-md-3 fade-in">
-        <q-card class="kpi-card responsive-kpi-card" style="background: linear-gradient(135deg, #1B1F3B 0%, #2C3E50 100%); border-radius: 16px; box-shadow: 0 8px 32px rgba(27, 31, 59, 0.3);">
-          <q-card-section class="text-white kpi-card-section">
-            <div class="kpi-content">
-              <div class="kpi-main-content">
-                <div class="kpi-label" style="font-family: 'Inter', sans-serif; font-weight: 500;">
-                  <q-icon name="inventory_2" class="kpi-label-icon" />
-                  <span class="kpi-label-text">Inventario Actual</span>
-                </div>
-                <div class="kpi-value text-weight-bold" style="font-family: 'Poppins', sans-serif; letter-spacing: -1px;">{{ stats.inventarioActual }}</div>
-                <div class="kpi-change" style="font-family: 'Inter', sans-serif;">
-                  <q-icon name="check_circle" class="kpi-change-icon" color="light-green-3" />
-                  <span class="kpi-change-text">Stock óptimo</span>
-                </div>
-              </div>
-              <div class="kpi-icon-wrapper">
-                <div class="kpi-icon-container" style="background: rgba(255,255,255,0.15); border-radius: 16px; padding: 16px;">
-                  <q-icon name="warehouse" class="kpi-main-icon" />
-                </div>
-              </div>
-            </div>
-          </q-card-section>
-        </q-card>
-      </div>
-
-      <div class="col-12 col-sm-6 col-md-3 fade-in">
-        <q-card class="kpi-card responsive-kpi-card" style="background: linear-gradient(135deg, #E67E22 0%, #D35400 100%); border-radius: 16px; box-shadow: 0 8px 32px rgba(230, 126, 34, 0.3);">
-          <q-card-section class="text-white kpi-card-section">
-            <div class="kpi-content">
-              <div class="kpi-main-content">
-                <div class="kpi-label" style="font-family: 'Inter', sans-serif; font-weight: 500;">
-                  <q-icon name="agriculture" class="kpi-label-icon" />
-                  <span class="kpi-label-text">Galpones Activos</span>
-                </div>
-                <div class="kpi-value text-weight-bold" style="font-family: 'Poppins', sans-serif; letter-spacing: -1px;">{{ stats.galponesActivos }}</div>
-                <div class="kpi-change" style="font-family: 'Inter', sans-serif;">
-                  <q-icon name="check_circle" class="kpi-change-icon" color="light-green-3" />
-                  <span class="kpi-change-text">75% capacidad</span>
-                </div>
-              </div>
-              <div class="kpi-icon-wrapper">
-                <div class="kpi-icon-container" style="background: rgba(255,255,255,0.15); border-radius: 16px; padding: 16px;">
-                  <q-icon name="domain" class="kpi-main-icon" />
-                </div>
-              </div>
-            </div>
-          </q-card-section>
-        </q-card>
-      </div>
-
-      <!-- Additional KPIs Section -->
+      <!-- Estadísticas de Gallinas y Galpones Section -->
       <div class="col-12 fade-in">
-        <div class="text-h6 text-weight-bold q-mb-md" style="color: #2C3E50; font-family: 'Poppins', sans-serif;">
+        <div class="text-h6 text-weight-bold q-mb-md q-mt-md" style="color: #2C3E50; font-family: 'Poppins', sans-serif;">
           🐔 Estadísticas de Gallinas y Galpones
         </div>
       </div>
       
-      <div class="col-12 col-sm-6 col-md-3 fade-in">
-        <q-card class="kpi-card" style="background: linear-gradient(135deg, #FF6B6B 0%, #EE5A52 100%); border-radius: 16px; box-shadow: 0 8px 32px rgba(255, 107, 107, 0.3);">
-          <q-card-section class="text-white q-pa-lg">
-            <div class="row items-center no-wrap">
-              <div class="col">
-                <div class="text-subtitle2 opacity-80" style="font-family: 'Inter', sans-serif; font-weight: 500;">
-                  <q-icon name="pets" class="q-mr-xs" size="sm" />
-                  Gallinas Totales
+      <div class="col-12">
+        <div class="row q-col-gutter-md">
+          <!-- Segunda fila de KPIs - 4 tarjetas uniformes -->
+          <div class="col-12 col-md-3">
+            <q-card class="kpi-card full-height" style="background: linear-gradient(135deg, #FF6B6B 0%, #EE5A52 100%); border-radius: 16px; box-shadow: 0 8px 32px rgba(255, 107, 107, 0.3);">
+              <q-card-section class="text-white q-pa-md">
+                <div class="row items-center no-wrap">
+                  <div class="col">
+                    <div class="text-subtitle2 opacity-80" style="font-family: 'Inter', sans-serif; font-weight: 500;">
+                      <q-icon name="pets" class="q-mr-xs" size="sm" />
+                      Gallinas Totales
+                    </div>
+                    <div class="text-h3 text-weight-bold q-mt-sm" style="font-family: 'Poppins', sans-serif; letter-spacing: -1px;">{{ stats.gallinasTotal }}</div>
+                    <div class="text-body2 opacity-80 q-mt-xs" style="font-family: 'Inter', sans-serif;">
+                      <q-icon name="info" class="q-mr-xs" size="xs" color="light-blue-3" />
+                      Capacidad total
+                    </div>
+                  </div>
+                  <div class="col-auto">
+                    <div class="kpi-icon-container" style="background: rgba(255,255,255,0.15); border-radius: 16px; padding: 16px;">
+                      <q-icon name="pets" size="40px" />
+                    </div>
+                  </div>
                 </div>
-                <div class="text-h3 text-weight-bold q-mt-sm" style="font-family: 'Poppins', sans-serif; letter-spacing: -1px;">{{ stats.gallinasTotal }}</div>
-                <div class="text-body2 opacity-80 q-mt-xs" style="font-family: 'Inter', sans-serif;">
-                  <q-icon name="info" class="q-mr-xs" size="xs" color="light-blue-3" />
-                  Capacidad total
-                </div>
-              </div>
-              <div class="col-auto">
-                <div class="kpi-icon-container" style="background: rgba(255,255,255,0.15); border-radius: 16px; padding: 16px;">
-                  <q-icon name="pets" size="40px" />
-                </div>
-              </div>
-            </div>
-          </q-card-section>
-        </q-card>
-      </div>
+              </q-card-section>
+            </q-card>
+          </div>
 
-      <div class="col-12 col-sm-6 col-md-3 fade-in">
-        <q-card class="kpi-card" style="background: linear-gradient(135deg, #4ECDC4 0%, #44A08D 100%); border-radius: 16px; box-shadow: 0 8px 32px rgba(78, 205, 196, 0.3);">
-          <q-card-section class="text-white q-pa-lg">
-            <div class="row items-center no-wrap">
-              <div class="col">
-                <div class="text-subtitle2 opacity-80" style="font-family: 'Inter', sans-serif; font-weight: 500;">
-                  <q-icon name="favorite" class="q-mr-xs" size="sm" />
-                  Gallinas Activas
+          <div class="col-12 col-md-3">
+            <q-card class="kpi-card full-height" style="background: linear-gradient(135deg, #4ECDC4 0%, #44A08D 100%); border-radius: 16px; box-shadow: 0 8px 32px rgba(78, 205, 196, 0.3);">
+              <q-card-section class="text-white q-pa-md">
+                <div class="row items-center no-wrap">
+                  <div class="col">
+                    <div class="text-subtitle2 opacity-80" style="font-family: 'Inter', sans-serif; font-weight: 500;">
+                      <q-icon name="favorite" class="q-mr-xs" size="sm" />
+                      Gallinas Activas
+                    </div>
+                    <div class="text-h3 text-weight-bold q-mt-sm" style="font-family: 'Poppins', sans-serif; letter-spacing: -1px;">{{ stats.gallinasActivas }}</div>
+                    <div class="text-body2 opacity-80 q-mt-xs" style="font-family: 'Inter', sans-serif;">
+                      <q-icon name="check_circle" class="q-mr-xs" size="xs" color="light-green-3" />
+                      En producción
+                    </div>
+                  </div>
+                  <div class="col-auto">
+                    <div class="kpi-icon-container" style="background: rgba(255,255,255,0.15); border-radius: 16px; padding: 16px;">
+                      <q-icon name="favorite" size="40px" />
+                    </div>
+                  </div>
                 </div>
-                <div class="text-h3 text-weight-bold q-mt-sm" style="font-family: 'Poppins', sans-serif; letter-spacing: -1px;">{{ stats.gallinasActivas }}</div>
-                <div class="text-body2 opacity-80 q-mt-xs" style="font-family: 'Inter', sans-serif;">
-                  <q-icon name="check_circle" class="q-mr-xs" size="xs" color="light-green-3" />
-                  En producción
-                </div>
-              </div>
-              <div class="col-auto">
-                <div class="kpi-icon-container" style="background: rgba(255,255,255,0.15); border-radius: 16px; padding: 16px;">
-                  <q-icon name="favorite" size="40px" />
-                </div>
-              </div>
-            </div>
-          </q-card-section>
-        </q-card>
-      </div>
+              </q-card-section>
+            </q-card>
+          </div>
 
-      <div class="col-12 col-sm-6 col-md-3 fade-in">
-        <q-card class="kpi-card" style="background: linear-gradient(135deg, #A8E6CF 0%, #7FCDCD 100%); border-radius: 16px; box-shadow: 0 8px 32px rgba(168, 230, 207, 0.3);">
-          <q-card-section class="text-white q-pa-lg">
-            <div class="row items-center no-wrap">
-              <div class="col">
-                <div class="text-subtitle2 opacity-80" style="font-family: 'Inter', sans-serif; font-weight: 500;">
-                  <q-icon name="home_work" class="q-mr-xs" size="sm" />
-                  Total Galpones
+          <div class="col-12 col-md-3">
+            <q-card class="kpi-card full-height" style="background: linear-gradient(135deg, #A8E6CF 0%, #7FCDCD 100%); border-radius: 16px; box-shadow: 0 8px 32px rgba(168, 230, 207, 0.3);">
+              <q-card-section class="text-white q-pa-md">
+                <div class="row items-center no-wrap">
+                  <div class="col">
+                    <div class="text-subtitle2 opacity-80" style="font-family: 'Inter', sans-serif; font-weight: 500;">
+                      <q-icon name="home_work" class="q-mr-xs" size="sm" />
+                      Total Galpones
+                    </div>
+                    <div class="text-h3 text-weight-bold q-mt-sm" style="font-family: 'Poppins', sans-serif; letter-spacing: -1px;">{{ stats.totalGalpones }}</div>
+                    <div class="text-body2 opacity-80 q-mt-xs" style="font-family: 'Inter', sans-serif;">
+                      <q-icon name="info" class="q-mr-xs" size="xs" color="light-blue-3" />
+                      Instalaciones totales
+                    </div>
+                  </div>
+                  <div class="col-auto">
+                    <div class="kpi-icon-container" style="background: rgba(255,255,255,0.15); border-radius: 16px; padding: 16px;">
+                      <q-icon name="home_work" size="40px" />
+                    </div>
+                  </div>
                 </div>
-                <div class="text-h3 text-weight-bold q-mt-sm" style="font-family: 'Poppins', sans-serif; letter-spacing: -1px;">{{ stats.totalGalpones }}</div>
-                <div class="text-body2 opacity-80 q-mt-xs" style="font-family: 'Inter', sans-serif;">
-                  <q-icon name="info" class="q-mr-xs" size="xs" color="light-blue-3" />
-                  Instalaciones totales
-                </div>
-              </div>
-              <div class="col-auto">
-                <div class="kpi-icon-container" style="background: rgba(255,255,255,0.15); border-radius: 16px; padding: 16px;">
-                  <q-icon name="home_work" size="40px" />
-                </div>
-              </div>
-            </div>
-          </q-card-section>
-        </q-card>
-      </div>
+              </q-card-section>
+            </q-card>
+          </div>
 
-      <div class="col-12 col-sm-6 col-md-3 fade-in">
-        <q-card class="kpi-card" style="background: linear-gradient(135deg, #FFD93D 0%, #FF6B6B 100%); border-radius: 16px; box-shadow: 0 8px 32px rgba(255, 217, 61, 0.3);">
-          <q-card-section class="text-white q-pa-lg">
-            <div class="row items-center no-wrap">
-              <div class="col">
-                <div class="text-subtitle2 opacity-80" style="font-family: 'Inter', sans-serif; font-weight: 500;">
-                  <q-icon name="analytics" class="q-mr-xs" size="sm" />
-                  Eficiencia
+          <div class="col-12 col-md-3">
+            <q-card class="kpi-card full-height" style="background: linear-gradient(135deg, #FFD93D 0%, #FF6B6B 100%); border-radius: 16px; box-shadow: 0 8px 32px rgba(255, 217, 61, 0.3);">
+              <q-card-section class="text-white q-pa-md">
+                <div class="row items-center no-wrap">
+                  <div class="col">
+                    <div class="text-subtitle2 opacity-80" style="font-family: 'Inter', sans-serif; font-weight: 500;">
+                      <q-icon name="analytics" class="q-mr-xs" size="sm" />
+                      Eficiencia
+                    </div>
+                    <div class="text-h3 text-weight-bold q-mt-sm" style="font-family: 'Poppins', sans-serif; letter-spacing: -1px;">{{ Math.round((stats.galponesActivos / stats.totalGalpones) * 100) }}%</div>
+                    <div class="text-body2 opacity-80 q-mt-xs" style="font-family: 'Inter', sans-serif;">
+                      <q-icon name="trending_up" class="q-mr-xs" size="xs" color="light-green-3" />
+                      Galpones activos
+                    </div>
+                  </div>
+                  <div class="col-auto">
+                    <div class="kpi-icon-container" style="background: rgba(255,255,255,0.15); border-radius: 16px; padding: 16px;">
+                      <q-icon name="analytics" size="40px" />
+                    </div>
+                  </div>
                 </div>
-                <div class="text-h3 text-weight-bold q-mt-sm" style="font-family: 'Poppins', sans-serif; letter-spacing: -1px;">{{ Math.round((stats.galponesActivos / stats.totalGalpones) * 100) }}%</div>
-                <div class="text-body2 opacity-80 q-mt-xs" style="font-family: 'Inter', sans-serif;">
-                  <q-icon name="trending_up" class="q-mr-xs" size="xs" color="light-green-3" />
-                  Galpones activos
-                </div>
-              </div>
-              <div class="col-auto">
-                <div class="kpi-icon-container" style="background: rgba(255,255,255,0.15); border-radius: 16px; padding: 16px;">
-                  <q-icon name="analytics" size="40px" />
-                </div>
-              </div>
-            </div>
-          </q-card-section>
-        </q-card>
+              </q-card-section>
+            </q-card>
+          </div>
+        </div>
       </div>
-
+      
       <!-- Calendario Financiero -->
       <div class="col-12 fade-in">
         <div class="text-h6 text-weight-bold q-mb-md" style="color: #2C3E50; font-family: 'Poppins', sans-serif;">
@@ -592,6 +586,8 @@ const stats = ref({
   gallinasActivas: 0
 });
 
+// Espacio para estadísticas adicionales si se necesitan en el futuro
+
 // Usar el composable de actividades
 const { 
   actividades: recentActivity, 
@@ -730,6 +726,8 @@ const loadDashboardData = async () => {
 
     // Actualizar resumen de inventario - forzar reactividad
     inventorySummary.value = [...inventarioStore.resumenInventario.slice(0, 5)];
+    
+    // Actualizar resumen de inventario adicional si es necesario
   } catch (error) {
     console.error('Error loading dashboard data:', error);
     // Fallback a datos por defecto en caso de error
@@ -742,9 +740,8 @@ const loadDashboardData = async () => {
       gallinasTotal: 0,
       gallinasActivas: 0
     };
-  } finally {
-    loading.value = false;
   }
+  loading.value = false;
 };
 
 onMounted(async () => {

@@ -328,6 +328,14 @@ export const useHistorialFinancieroStore = defineStore('historialFinanciero', ()
         
         await api.patch(`/salidas/${realSalidaId}`, salidaPayload);
         
+        // Actualizar también el store de salidas para mantener sincronización
+        try {
+          const { useSalidasStore } = await import('./salidas');
+          const salidasStore = useSalidasStore();
+          await salidasStore.fetchSalidas();
+        } catch (salidasError) {
+          console.warn('Error al actualizar store de salidas:', salidasError);
+        }
         // Actualizar la transacción en la lista local para reflejar cambios inmediatamente
         const index = transacciones.value.findIndex(t => t.id === id);
         if (index !== -1 && transacciones.value[index]) {

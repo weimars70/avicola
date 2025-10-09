@@ -149,14 +149,26 @@ export const useSalidasStore = defineStore('salidas', () => {
         throw new Error('No se encontró id_usuario en localStorage');
       }
       
-      // Incluir id_usuario_actualiza en el cuerpo de la petición en lugar de como query param
-      salidaData.id_usuario_actualiza = id_usuario_actualiza;
+      // Crear una copia del objeto para no modificar el original
+      const salidaDataToSend = { 
+        ...salidaData,
+        id_usuario_actualiza
+      };
       
-      const response = await api.patch(`/salidas/${id}`, salidaData);
-      const index = salidas.value.findIndex(s => s.id === id);
-      if (index !== -1) {
-        salidas.value[index] = response.data;
+      const response = await api.patch(`/salidas/${id}`, salidaDataToSend);
+      
+      // Actualizar la lista completa de salidas para asegurar sincronización
+      await fetchSalidas();
+      
+      // Importar y actualizar el historial financiero para mantener sincronización
+      try {
+        const { useHistorialFinancieroStore } = await import('./historialFinanciero');
+        const historialStore = useHistorialFinancieroStore();
+        await historialStore.loadHistorial();
+      } catch (historialError) {
+        console.warn('Error al actualizar historial financiero:', historialError);
       }
+      
       return response.data;
     } catch (err) {
       error.value = 'Error al actualizar la salida';

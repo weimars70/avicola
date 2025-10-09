@@ -34,9 +34,9 @@
     </div>
 
     <!-- KPIs Section -->
-    <div class="row q-gutter-sm q-gutter-md-lg q-mb-lg q-mb-md-xl">
+    <div class="row q-col-gutter-md q-mb-lg q-mb-md-xl">
       <div class="col-6 col-sm-6 col-md-3">
-        <q-card class="kpi-card kpi-total">
+        <q-card class="kpi-card kpi-total full-height">
           <q-card-section class="text-center q-pa-sm q-pa-md-md">
             <div class="kpi-icon">
               <q-icon name="egg" :size="$q.screen.xs ? '1.5rem' : '2rem'" />
@@ -47,7 +47,7 @@
         </q-card>
       </div>
       <div class="col-6 col-sm-6 col-md-3">
-        <q-card class="kpi-card kpi-active">
+        <q-card class="kpi-card kpi-active full-height">
           <q-card-section class="text-center q-pa-sm q-pa-md-md">
             <div class="kpi-icon">
               <q-icon name="check_circle" :size="$q.screen.xs ? '1.5rem' : '2rem'" />
@@ -58,7 +58,7 @@
         </q-card>
       </div>
       <div class="col-6 col-sm-6 col-md-3">
-        <q-card class="kpi-card kpi-inactive">
+        <q-card class="kpi-card kpi-inactive full-height">
           <q-card-section class="text-center q-pa-sm q-pa-md-md">
             <div class="kpi-icon">
               <q-icon name="cancel" :size="$q.screen.xs ? '1.5rem' : '2rem'" />
@@ -69,7 +69,7 @@
         </q-card>
       </div>
       <div class="col-6 col-sm-6 col-md-3">
-        <q-card class="kpi-card kpi-price">
+        <q-card class="kpi-card kpi-price full-height">
           <q-card-section class="text-center q-pa-sm q-pa-md-md">
             <div class="kpi-icon">
               <q-icon name="attach_money" :size="$q.screen.xs ? '1.5rem' : '2rem'" />
@@ -126,9 +126,9 @@
     </q-card>
 
     <!-- Vista de Tarjetas -->
-    <div v-if="isCardsView" class="row q-gutter-sm q-gutter-md-lg">
-      <div v-for="tipo in filteredTiposHuevo" :key="tipo.id" class="col-12 col-sm-6 col-md-6 col-lg-4 col-xl-3">
-        <q-card class="tipo-card" :class="{ 'tipo-inactive': !tipo.activo }">
+    <div v-if="isCardsView" class="row q-col-gutter-md">
+      <div v-for="tipo in filteredTiposHuevo" :key="tipo.id" class="col-12 col-sm-6 col-md-4 col-lg-3">
+        <q-card class="tipo-card full-height" :class="{ 'tipo-inactive': !tipo.activo }">
           <q-card-section class="card-header">
             <div class="row items-center justify-between">
               <div class="col">
@@ -202,6 +202,8 @@
           :dense="$q.screen.xs"
           :grid="$q.screen.xs"
           :hide-header="$q.screen.xs"
+          class="tipos-huevo-table"
+          :class="{'responsive-table': $q.screen.lt.md}"
         >
         <template v-slot:body-cell-estado="props">
           <q-td :props="props">
@@ -325,7 +327,7 @@
 
     <!-- Dialog -->
     <q-dialog v-model="dialog" persistent>
-      <q-card style="min-width: 400px">
+      <q-card class="dialog-responsive">
         <q-card-section>
           <div class="text-h6">
             {{ editingTipoHuevo ? 'Editar Tipo de Huevo' : 'Nuevo Tipo de Huevo' }}

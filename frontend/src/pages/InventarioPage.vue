@@ -223,7 +223,7 @@
 
       <!-- Historial de Ajustes -->
       <q-card class="historial-card">
-        <q-card-section class="historial-header">
+        <q-card-section class="historial-header responsive-header">
           <div class="historial-title-section">
             <q-icon name="history" class="historial-icon" />
             <h3 class="historial-title">Historial de Ajustes</h3>
@@ -278,19 +278,21 @@
                   <q-icon name="tune" color="primary" />
                 </q-item-section>
                 <q-item-section>
-                  <q-item-label class="historial-descripcion">{{ lote.descripcionGeneral }}</q-item-label>
+                  <q-item-label class="historial-descripcion">
+                    <div class="descripcion-texto">{{ lote.descripcionGeneral }}</div>
+                  </q-item-label>
                   <q-item-label caption class="historial-fecha">
                     <q-icon name="schedule" size="xs" />
                     {{ formatFecha(lote.createdAt) }}
                   </q-item-label>
                 </q-item-section>
-                <q-item-section side>
+                <q-item-section side class="historial-actions-section">
                   <div class="historial-actions">
                     <q-badge 
                       :label="`${lote.ajustes.length} ajuste${lote.ajustes.length !== 1 ? 's' : ''}`"
                       color="secondary"
                       outline
-                      class="q-mr-sm"
+                      class="q-mr-sm ajustes-badge"
                     />
                     <q-btn
                       flat
@@ -321,23 +323,73 @@
               </template>
 
               <div class="ajustes-detalle">
-                <div 
-                  v-for="ajuste in lote.ajustes" 
-                  :key="ajuste.id" 
-                  class="ajuste-detalle-item"
+                <q-table
+                  :rows="lote.ajustes"
+                  :columns="[
+                    { name: 'A', label: 'A', field: row => row.tipoHuevo.nombre, align: 'left', style: 'white-space: normal !important; min-width: 150px;', headerStyle: 'white-space: normal !important; min-width: 150px;' },
+                    { name: 'S', label: 'S', field: 'tipoAjuste', align: 'center', style: 'white-space: normal !important; min-width: 120px;', headerStyle: 'white-space: normal !important; min-width: 120px;' },
+                    { name: 'I', label: 'I', field: 'cantidadAjuste', align: 'right', style: 'white-space: normal !important; min-width: 120px;', headerStyle: 'white-space: normal !important; min-width: 120px;' }
+                  ]"
+                  row-key="id"
+                  dense
+                  flat
+                  hide-pagination
+                  class="ajustes-table history-table gt-xs"
+                  :class="{'responsive-table': $q.screen.lt.md}"
                 >
-                  <div class="ajuste-info">
-                    <div class="ajuste-tipo">
-                      <q-icon name="egg" size="sm" />
-                      <span class="tipo-nombre">{{ ajuste.tipoHuevo.nombre }}</span>
+                  <template v-slot:body="props">
+                    <q-tr :props="props" class="ajuste-row">
+                      <q-td key="A" :props="props" class="ajuste-cell">
+                        <div class="ajuste-tipo">
+                          <q-icon name="egg" size="sm" class="ajuste-icon" />
+                          <span class="tipo-nombre">{{ props.row.tipoHuevo.nombre }}</span>
+                        </div>
+                      </q-td>
+                      <q-td key="S" :props="props" class="ajuste-cell">
+                        <div class="ajuste-operacion" :class="props.row.tipoAjuste">
+                          <q-icon 
+                            :name="props.row.tipoAjuste === 'suma' ? 'add' : 'remove'" 
+                            size="xs" 
+                            class="operacion-icon"
+                          />
+                          <span class="operacion-texto">{{ props.row.tipoAjuste === 'suma' ? 'Entrada' : 'Salida' }}</span>
+                        </div>
+                      </q-td>
+                      <q-td key="I" :props="props" class="ajuste-cell">
+                        <span class="cantidad">{{ props.row.cantidadAjuste }}</span>
+                        <span class="unidades">unidades</span>
+                      </q-td>
+                    </q-tr>
+                  </template>
+                </q-table>
+                
+                <!-- Vista móvil alternativa para pantallas pequeñas -->
+                <div v-if="$q.screen.lt.sm" class="ajustes-mobile-list">
+                  <div v-for="(ajuste, index) in lote.ajustes" :key="index" class="ajuste-mobile-item">
+                    <div class="ajuste-mobile-header">
+                      <div class="ajuste-tipo-mobile">
+                        <q-icon name="egg" size="sm" class="ajuste-icon" />
+                        <span class="tipo-nombre">{{ ajuste.tipoHuevo.nombre }}</span>
+                      </div>
                     </div>
-                    <div class="ajuste-operacion" :class="ajuste.tipoAjuste">
-                      <q-icon 
-                        :name="ajuste.tipoAjuste === 'suma' ? 'add' : 'remove'" 
-                        size="xs" 
-                      />
-                      <span class="cantidad">{{ ajuste.cantidadAjuste }}</span>
-                      <span class="unidades">unidades</span>
+                    <div class="ajuste-mobile-content">
+                      <div class="ajuste-mobile-row">
+                        <div class="ajuste-mobile-label">Operación:</div>
+                        <div class="ajuste-operacion-mobile" :class="ajuste.tipoAjuste">
+                          <q-icon 
+                            :name="ajuste.tipoAjuste === 'suma' ? 'add' : 'remove'" 
+                            size="xs" 
+                          />
+                          <span>{{ ajuste.tipoAjuste === 'suma' ? 'Entrada' : 'Salida' }}</span>
+                        </div>
+                      </div>
+                      <div class="ajuste-mobile-row">
+                        <div class="ajuste-mobile-label">Cantidad:</div>
+                        <div class="ajuste-cantidad-mobile">
+                          <span class="cantidad">{{ ajuste.cantidadAjuste }}</span>
+                          <span class="unidades">unidades</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1148,5 +1200,97 @@ onMounted(() => {
 .delete-btn:hover {
   opacity: 1;
   transform: scale(1.1);
+}
+
+/* Estilos responsivos para el historial */
+.responsive-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.ajustes-table {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.ajuste-tipo, .ajuste-operacion {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.suma {
+  color: #21ba45;
+}
+
+.resta {
+  color: #c10015;
+}
+
+@media (max-width: 768px) {
+  .historial-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .historial-actions-section {
+    width: 100%;
+    justify-content: flex-end;
+    padding-top: 0.5rem;
+  }
+  
+  .ajustes-badge {
+    font-size: 0.8rem;
+  }
+  
+  .historial-item-header {
+    padding: 0.5rem;
+  }
+  
+  .historial-descripcion {
+    font-size: 0.9rem;
+  }
+}
+
+/* Scoped: tabla de historial, forzar texto horizontal y diseño minimalista */
+.history-table :deep(th),
+.history-table :deep(td) {
+  white-space: normal !important;
+  word-wrap: break-word !important;
+  word-break: break-word !important;
+  writing-mode: horizontal-tb !important;
+  text-orientation: mixed !important;
+  text-align: left;
+}
+
+.history-table :deep(td) {
+  padding: 6px 8px; /* compacto, sin excesos */
+  line-height: 1.2; /* renglones legibles y juntos */
+}
+
+.history-table :deep(th) {
+  padding: 6px 8px;
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .history-table :deep(th),
+  .history-table :deep(td) {
+    padding: 6px 6px;
+    font-size: 0.9rem;
+    min-width: 100px; /* evitar vertical en columnas estrechas */
+  }
+}
+
+@media (max-width: 480px) {
+  .history-table :deep(th),
+  .history-table :deep(td) {
+    padding: 5px 6px;
+    font-size: 0.85rem;
+    min-width: 90px;
+  }
 }
 </style>

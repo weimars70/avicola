@@ -1,1 +1,386 @@
 // app global css in SCSS form
+
+/* Evitar que el texto se ponga vertical */
+.history-column,
+.ajustes-table th,
+.ajustes-table td,
+.q-table th,
+.q-table td {
+  white-space: normal !important;
+  word-wrap: break-word;
+  min-width: 120px; /* Ancho mínimo para que quepa el texto */
+  writing-mode: horizontal-tb !important;
+  text-orientation: mixed;
+}
+
+/* Para headers de tabla */
+th {
+  white-space: normal !important;
+  word-break: break-word;
+  writing-mode: horizontal-tb !important;
+}
+
+/* Estilos responsivos para todas las tablas */
+.responsive-table {
+  .q-table__container {
+    overflow-x: auto;
+  }
+  
+  @media (max-width: 768px) {
+    .q-table {
+      font-size: 0.85rem;
+    }
+    
+    .q-table th, .q-table td {
+      padding: 8px 4px;
+    }
+    
+    .q-btn {
+      padding: 4px;
+      min-height: 32px;
+      min-width: 32px;
+    }
+    
+    .q-table__grid-content {
+      min-height: 500px;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .q-table {
+      font-size: 0.75rem;
+    }
+    
+    .q-table th, .q-table td {
+      padding: 6px 2px;
+    }
+    
+    .q-btn {
+      padding: 2px;
+      min-height: 28px;
+      min-width: 28px;
+    }
+  }
+  
+  @media (max-width: 600px) {
+    .q-table__top {
+      padding: 8px;
+    }
+    
+    .q-table__bottom {
+      min-height: 0;
+      padding: 4px 8px;
+    }
+    
+    thead tr, tbody td {
+      height: auto;
+    }
+    
+    .q-table__sort-icon {
+      font-size: 1rem;
+    }
+    
+    .q-table__bottom-item {
+      font-size: 0.75rem;
+    }
+    
+    .q-btn {
+      padding: 4px 8px;
+      min-height: 32px;
+    }
+  }
+}
+
+// Estilos para el historial de ajustes
+.historial-list {
+  .historial-item {
+    margin-bottom: 12px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+  
+  .historial-item-header {
+    background-color: #f5f5f5;
+  }
+  
+  .historial-descripcion {
+    max-width: 100%;
+    width: 100%;
+    overflow: visible;
+    
+    .descripcion-texto {
+      white-space: normal !important;
+      word-break: break-word;
+      line-height: 1.4;
+      padding: 4px 0;
+      font-size: 15px;
+      display: block;
+      text-orientation: mixed;
+      writing-mode: horizontal-tb !important;
+      width: 100%;
+      max-height: none;
+      overflow: visible;
+      text-align: left;
+    }
+  }
+  
+  .historial-fecha {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: rgba(0, 0, 0, 0.6);
+  }
+  
+  .historial-actions {
+    display: flex;
+    gap: 8px;
+  }
+  
+  @media (max-width: 768px) {
+    .historial-descripcion {
+      .descripcion-texto {
+        font-size: 14px;
+        padding: 3px 0;
+        width: 100%;
+        max-width: 100%;
+        overflow: visible;
+        white-space: normal !important;
+        text-orientation: mixed;
+        writing-mode: horizontal-tb !important;
+        text-align: left;
+      }
+    }
+    
+    .historial-item-header {
+      flex-direction: row !important;
+      align-items: center;
+      flex-wrap: nowrap;
+      padding: 10px 12px;
+    }
+    
+    .q-item__section--main {
+      width: 100%;
+      min-width: 0;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .historial-item-header {
+      padding: 12px 8px;
+      flex-direction: row !important;
+      flex-wrap: nowrap;
+    }
+    
+    .historial-descripcion {
+      .descripcion-texto {
+        font-size: 13px;
+        line-height: 1.5;
+        padding: 2px 0;
+        width: 100%;
+        max-width: 100%;
+        white-space: normal !important;
+        text-orientation: mixed;
+        writing-mode: horizontal-tb !important;
+        text-align: left;
+      }
+    }
+    
+    .q-item__section--side {
+      padding-left: 8px;
+      min-width: auto;
+    }
+  }
+}
+
+// Estilos para la tabla de ajustes de inventario
+.ajustes-table {
+  width: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-top: 10px;
+  
+  .q-table__top {
+    padding: 8px 12px;
+    background-color: #f5f5f5;
+  }
+  
+  .q-table__middle {
+    max-height: none !important;
+  }
+  
+  thead tr th {
+    font-size: 16px !important;
+    font-weight: 700 !important;
+    color: #333 !important;
+    background-color: #f0f0f0 !important;
+    text-align: center !important;
+    padding: 10px !important;
+  }
+  
+  .ajuste-row {
+    transition: background-color 0.2s;
+    
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.03);
+    }
+  }
+
+  .ajuste-cell {
+    padding: 8px 12px;
+    white-space: normal !important;
+    word-break: break-word;
+  }
+  
+  .ajuste-tipo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    
+    .ajuste-icon {
+      color: #ff9800;
+      flex-shrink: 0;
+    }
+    
+    .tipo-nombre {
+      font-weight: 500;
+    }
+  }
+  
+  .ajuste-operacion {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 4px 8px;
+    border-radius: 16px;
+    width: fit-content;
+    margin: 0 auto;
+    
+    &.suma {
+      background-color: rgba(76, 175, 80, 0.15);
+      color: #2e7d32;
+      
+      .operacion-icon {
+        color: #2e7d32;
+        flex-shrink: 0;
+      }
+    }
+    
+    &.resta {
+      background-color: rgba(244, 67, 54, 0.15);
+      color: #c62828;
+      
+      .operacion-icon {
+        color: #c62828;
+        flex-shrink: 0;
+      }
+    }
+  }
+  
+  .cantidad {
+    font-weight: 600;
+    margin-right: 4px;
+  }
+  
+  .unidades {
+    font-size: 0.8rem;
+    opacity: 0.7;
+  }
+}
+
+// Vista móvil para ajustes de inventario
+.ajustes-mobile-list {
+  margin-top: 12px;
+  
+  .ajuste-mobile-item {
+    background-color: #fff;
+    border-radius: 8px;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    margin-bottom: 12px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+  
+  .ajuste-mobile-header {
+    background-color: #f5f5f5;
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  }
+  
+  .ajuste-tipo-mobile {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    
+    .ajuste-icon {
+      color: #ff9800;
+      flex-shrink: 0;
+    }
+    
+    .tipo-nombre {
+      font-weight: 500;
+      font-size: 14px;
+      word-break: break-word;
+      line-height: 1.4;
+    }
+  }
+  
+  .ajuste-mobile-content {
+    padding: 12px;
+  }
+  
+  .ajuste-mobile-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+  
+  .ajuste-mobile-label {
+    font-weight: 500;
+    color: rgba(0, 0, 0, 0.6);
+    font-size: 13px;
+    flex-shrink: 0;
+    margin-right: 8px;
+  }
+  
+  .ajuste-operacion-mobile {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 13px;
+    
+    &.suma {
+      background-color: rgba(76, 175, 80, 0.15);
+      color: #2e7d32;
+    }
+    
+    &.resta {
+      background-color: rgba(244, 67, 54, 0.15);
+      color: #c62828;
+    }
+  }
+  
+  .ajuste-cantidad-mobile {
+    font-weight: 600;
+    font-size: 14px;
+    text-align: right;
+    
+    .unidades {
+      font-size: 12px;
+      opacity: 0.7;
+      margin-left: 4px;
+    }
+  }
+}

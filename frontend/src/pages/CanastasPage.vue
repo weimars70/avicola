@@ -276,85 +276,108 @@
     </div>
 
     <!-- Dialog -->
-    <q-dialog v-model="dialog" persistent>
-      <q-card style="min-width: 400px">
-        <q-card-section>
+    <q-dialog v-model="dialog" persistent :maximized="$q.screen.lt.sm" transition-show="slide-up" transition-hide="slide-down">
+      <q-card class="dialog-responsive" :style="$q.screen.lt.sm ? 'width: 100%' : 'min-width: 500px; max-width: 90vw'">
+        <q-card-section class="dialog-header">
           <div class="text-h6">
             {{ editingCanasta ? 'Editar Canasta' : 'Nueva Canasta' }}
           </div>
+          <q-space />
+          <q-btn icon="close" flat round dense v-close-popup @click="closeDialog" />
         </q-card-section>
 
-        <q-card-section>
-          <q-form @submit="saveCanasta" class="q-gutter-md">
-            <q-input
-              v-model="form.nombre"
-              label="Nombre *"
-              outlined
-              :rules="[(val: string) => !!val || 'El nombre es requerido']"
-            />
+        <q-card-section class="q-pa-md-lg">
+          <q-form @submit="saveCanasta" class="q-gutter-md form-container">
+            <div class="row q-col-gutter-md">
+              <div class="col-12">
+                <q-input
+                  v-model="form.nombre"
+                  label="Nombre *"
+                  outlined
+                  class="form-field"
+                  :rules="[(val: string) => !!val || 'El nombre es requerido']"
+                />
+              </div>
 
-            <q-input
-              v-model="form.descripcion"
-              label="Descripción"
-              outlined
-              type="textarea"
-              rows="3"
-            />
+              <div class="col-12">
+                <q-input
+                  v-model="form.descripcion"
+                  label="Descripción"
+                  outlined
+                  type="textarea"
+                  rows="3"
+                  class="form-field"
+                />
+              </div>
 
-            <q-select
-              v-model="form.tipoHuevoId"
-              :options="tipoHuevoOptions"
-              option-value="value"
-              option-label="label"
-              label="Tipo de huevo *"
-              outlined
-              dense
-              emit-value
-              map-options
-              :rules="[
-                (val: string) => !!val || 'El tipo de huevo es requerido'
-              ]"
-            />
+              <div class="col-12 col-md-6">
+                <q-select
+                  v-model="form.tipoHuevoId"
+                  :options="tipoHuevoOptions"
+                  option-value="value"
+                  option-label="label"
+                  label="Tipo de huevo *"
+                  outlined
+                  class="form-field"
+                  emit-value
+                  map-options
+                  :rules="[
+                    (val: string) => !!val || 'El tipo de huevo es requerido'
+                  ]"
+                />
+              </div>
 
-            <q-input
-              v-model.number="form.unidadesPorCanasta"
-              label="Unidades por Canasta *"
-              outlined
-              type="number"
-              min="1"
-              suffix="unidades"
-              :rules="[(val: number) => val > 0 || 'Las unidades por canasta deben ser mayor a 0']"
-            />
+              <div class="col-12 col-md-6">
+                <q-input
+                  v-model.number="form.unidadesPorCanasta"
+                  label="Unidades por Canasta *"
+                  outlined
+                  type="number"
+                  min="1"
+                  suffix="unidades"
+                  class="form-field"
+                  :rules="[(val: number) => val > 0 || 'Las unidades por canasta deben ser mayor a 0']"
+                />
+              </div>
 
-            <q-input
-              v-model.number="form.valorCanasta"
-              label="Valor Canasta *"
-              outlined
-              type="number"
-              min="0"
-              step="0.01"
-              prefix="$"
-              :rules="[(val: number) => val > 0 || 'El valor de la canasta debe ser mayor a 0']"
-            />
+              <div class="col-12 col-md-6">
+                <q-input
+                  v-model.number="form.valorCanasta"
+                  label="Valor Canasta *"
+                  outlined
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  prefix="$"
+                  class="form-field"
+                  :rules="[(val: number) => val > 0 || 'El valor de la canasta debe ser mayor a 0']"
+                />
+              </div>
 
-            <q-toggle
-              v-model="form.activo"
-              label="Activo"
-              color="positive"
-            />
+              <div class="col-12 col-md-6">
+                <q-toggle
+                  v-model="form.activo"
+                  label="Activo"
+                  color="positive"
+                  class="form-toggle"
+                />
+              </div>
+            </div>
 
-            <div class="row q-gutter-sm justify-end">
+            <div class="row q-gutter-sm justify-end q-mt-md">
               <q-btn
                 label="Cancelar"
                 color="grey"
                 flat
                 @click="closeDialog"
+                class="form-btn"
               />
               <q-btn
                 label="Guardar"
                 color="primary"
                 type="submit"
                 :loading="saving"
+                class="form-btn"
               />
             </div>
           </q-form>
@@ -1176,5 +1199,54 @@ onMounted(() => {
 <style scoped>
 .q-table {
   border-radius: 8px;
+}
+
+/* Estilos para el formulario responsivo */
+.dialog-responsive {
+  border-radius: 16px;
+}
+
+.dialog-header {
+  display: flex;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.form-container {
+  padding: 0.5rem;
+}
+
+.form-field {
+  margin-bottom: 0.5rem;
+}
+
+.form-toggle {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding-top: 0.5rem;
+}
+
+.form-btn {
+  min-width: 100px;
+}
+
+@media (max-width: 599px) {
+  .dialog-responsive {
+    border-radius: 0;
+  }
+  
+  .dialog-header {
+    padding: 0.75rem 1rem;
+  }
+  
+  .form-container {
+    padding: 0;
+  }
+  
+  .form-btn {
+    flex: 1;
+  }
 }
 </style>

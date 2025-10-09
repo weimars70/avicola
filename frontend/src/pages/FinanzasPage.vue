@@ -222,6 +222,8 @@
               bordered
               :loading="loading"
               :pagination="{ rowsPerPage: 10 }"
+              class="finanzas-table"
+              :class="{'responsive-table': $q.screen.lt.md}"
             >
               <template v-slot:body-cell-actions="props">
                 <q-td :props="props">
@@ -445,9 +447,9 @@
         
         <!-- KPIs de Inversión -->
         <div v-else class="inversion-kpis q-mb-lg">
-          <div class="row q-gutter-md">
+          <div class="row q-col-gutter-md">
             <div class="col-12 col-md-3">
-              <q-card class="inversion-card inversion-total">
+              <q-card class="inversion-card inversion-total full-height">
                 <q-card-section class="kpi-content">
                   <div class="kpi-icon">
                     <q-icon name="savings" size="2rem" />
@@ -461,7 +463,7 @@
             </div>
             
             <div class="col-12 col-md-3">
-              <q-card class="inversion-card inversion-recuperado">
+              <q-card class="inversion-card inversion-recuperado full-height">
                 <q-card-section class="kpi-content">
                   <div class="kpi-icon">
                     <q-icon name="trending_up" size="2rem" />
@@ -475,7 +477,7 @@
             </div>
             
             <div class="col-12 col-md-3">
-              <q-card class="inversion-card inversion-restante">
+              <q-card class="inversion-card inversion-restante full-height">
                 <q-card-section class="kpi-content">
                   <div class="kpi-icon">
                     <q-icon name="schedule" size="2rem" />
@@ -489,7 +491,7 @@
             </div>
             
             <div class="col-12 col-md-3">
-              <q-card class="inversion-card inversion-tiempo">
+              <q-card class="inversion-card inversion-tiempo full-height">
                 <q-card-section class="kpi-content">
                   <div class="kpi-icon">
                     <q-icon name="access_time" size="2rem" />
@@ -505,7 +507,7 @@
         </div>
         
         <!-- Progreso de Recuperación -->
-        <div class="progress-section q-mb-lg">
+        <div class="progress-section q-mb-md">
           <div class="text-subtitle1 q-mb-sm">Progreso de Recuperación</div>
           <q-linear-progress 
             :value="inversionStore.inversionInicial.porcentajeRecuperado / 100" 
@@ -514,7 +516,7 @@
             size="20px" 
             rounded
           />
-          <div class="text-center text-caption q-mt-xs">
+          <div class="text-center text-caption q-mt-sm">
             {{ typeof inversionStore.inversionInicial.porcentajeRecuperado === 'number' ? inversionStore.inversionInicial.porcentajeRecuperado.toFixed(1) : '0.0' }}% recuperado
           </div>
         </div>
@@ -572,7 +574,7 @@
 
     <!-- Dialog para Modificar Inversión -->
     <q-dialog v-model="inversionDialog" persistent>
-      <q-card style="min-width: 400px">
+      <q-card class="dialog-responsive">
         <q-card-section>
           <div class="text-h6">Modificar Inversión Inicial</div>
         </q-card-section>
@@ -616,7 +618,7 @@
 
     <!-- Dialog para Gastos -->
     <q-dialog v-model="gastoDialog" persistent>
-      <q-card style="min-width: 500px">
+      <q-card class="dialog-responsive">
         <q-card-section>
           <div class="text-h6">{{ editingGasto ? 'Editar Gasto' : 'Nuevo Gasto' }}</div>
         </q-card-section>
@@ -752,7 +754,7 @@
 
     <!-- Dialog para Ingresos -->
     <q-dialog v-model="ingresoDialog" persistent>
-      <q-card style="min-width: 500px">
+      <q-card class="dialog-responsive">
         <q-card-section>
           <div class="text-h6">{{ editingIngreso ? 'Editar Ingreso' : 'Nuevo Ingreso Manual' }}</div>
         </q-card-section>
@@ -1992,6 +1994,11 @@ onMounted(async () => {
   
   .inversion-kpis .row {
     flex-direction: column;
+  }
+  
+  .dialog-responsive {
+    width: 90vw !important;
+    max-width: 90vw !important;
   }
 }
 </style>

@@ -1,42 +1,46 @@
 <template>
   <q-page class="q-pa-lg">
     <!-- Header -->
-    <div class="row items-center justify-between q-mb-lg">
-      <div class="col-12 col-md-8">
-        <div class="text-h4 q-mb-sm">
-          <q-icon name="history" class="q-mr-sm text-primary" />
-          Historial Financiero
+    <q-card class="q-mb-lg bg-white">
+      <q-card-section>
+        <div class="row items-center justify-between">
+          <div class="col-12 col-md-8">
+            <div class="text-h4 q-mb-sm">
+              <q-icon name="history" class="q-mr-sm text-primary" />
+              Historial Financiero
+            </div>
+            <div class="text-subtitle1 text-grey-7">
+              Registro completo de todas las transacciones financieras
+            </div>
+          </div>
+          <div class="col-12 col-md-4 q-mt-md q-mt-md-none">
+            <div class="row q-gutter-sm justify-end">
+              <q-btn
+                color="secondary"
+                icon="sync"
+                :label="$q.screen.gt.xs ? 'Sincronizar Ingresos' : ''"
+                @click="syncIngresos"
+                :loading="finanzasLoading"
+                :size="$q.screen.gt.xs ? 'md' : 'sm'"
+                :round="$q.screen.lt.sm"
+              >
+                <q-tooltip v-if="$q.screen.lt.sm">Sincronizar Ingresos</q-tooltip>
+              </q-btn>
+              <q-btn
+                color="primary"
+                icon="add"
+                :label="$q.screen.gt.xs ? 'Nueva Transacción' : ''"
+                @click="openTransactionDialog()"
+                :size="$q.screen.gt.xs ? 'md' : 'sm'"
+                :round="$q.screen.lt.sm"
+              >
+                <q-tooltip v-if="$q.screen.lt.sm">Nueva Transacción</q-tooltip>
+              </q-btn>
+            </div>
+          </div>
         </div>
-        <div class="text-subtitle1 text-grey-7">
-          Registro completo de todas las transacciones financieras
-        </div>
-      </div>
-      <div class="col-12 col-md-4 q-mt-md q-mt-md-none">
-        <div class="row q-gutter-sm justify-end">
-          <q-btn
-            color="secondary"
-            icon="sync"
-            :label="$q.screen.gt.xs ? 'Sincronizar Ingresos' : ''"
-            @click="syncIngresos"
-            :loading="finanzasLoading"
-            :size="$q.screen.gt.xs ? 'md' : 'sm'"
-            :round="$q.screen.lt.sm"
-          >
-            <q-tooltip v-if="$q.screen.lt.sm">Sincronizar Ingresos</q-tooltip>
-          </q-btn>
-          <q-btn
-            color="primary"
-            icon="add"
-            :label="$q.screen.gt.xs ? 'Nueva Transacción' : ''"
-            @click="openTransactionDialog()"
-            :size="$q.screen.gt.xs ? 'md' : 'sm'"
-            :round="$q.screen.lt.sm"
-          >
-            <q-tooltip v-if="$q.screen.lt.sm">Nueva Transacción</q-tooltip>
-          </q-btn>
-        </div>
-      </div>
-    </div>
+      </q-card-section>
+    </q-card>
 
     <!-- Filtros -->
     <q-card class="q-mb-lg">
@@ -154,9 +158,9 @@
     </q-card>
 
     <!-- Resumen -->
-    <div class="row q-gutter-md q-mb-lg">
+    <div class="row q-col-gutter-md q-mb-lg">
       <div class="col-md-3 col-sm-6 col-xs-12">
-        <q-card class="summary-card summary-card--ingresos">
+        <q-card class="summary-card summary-card--ingresos full-height">
           <q-card-section class="summary-card__content">
             <div class="summary-card__icon">
               <q-icon name="trending_up" :size="$q.screen.gt.xs ? '2.5rem' : '2rem'" />
@@ -171,7 +175,7 @@
         </q-card>
       </div>
       <div class="col-md-3 col-sm-6 col-xs-12">
-        <q-card class="summary-card summary-card--gastos">
+        <q-card class="summary-card summary-card--gastos full-height">
           <q-card-section class="summary-card__content">
             <div class="summary-card__icon">
               <q-icon name="trending_down" :size="$q.screen.gt.xs ? '2.5rem' : '2rem'" />
@@ -186,7 +190,7 @@
         </q-card>
       </div>
       <div class="col-md-3 col-sm-6 col-xs-12">
-        <q-card class="summary-card" :class="resumen.balance >= 0 ? 'summary-card--balance-positive' : 'summary-card--balance-negative'">
+        <q-card class="summary-card full-height" :class="resumen.balance >= 0 ? 'summary-card--balance-positive' : 'summary-card--balance-negative'">
           <q-card-section class="summary-card__content">
             <div class="summary-card__icon">
               <q-icon name="account_balance" :size="$q.screen.gt.xs ? '2.5rem' : '2rem'" />
@@ -201,7 +205,7 @@
         </q-card>
       </div>
       <div class="col-md-3 col-sm-6 col-xs-12">
-        <q-card class="summary-card summary-card--transacciones">
+        <q-card class="summary-card summary-card--transacciones full-height">
           <q-card-section class="summary-card__content">
             <div class="summary-card__icon">
               <q-icon name="receipt" size="2.5rem" />
@@ -291,6 +295,8 @@
           :pagination="pagination"
           @request="onRequest"
           binary-state-sort
+          class="historial-table"
+          :class="{'responsive-table': $q.screen.lt.md}"
         >
           <template v-slot:body-cell-tipo="props">
             <q-td :props="props">
@@ -358,7 +364,7 @@
 
     <!-- Dialog para Nueva/Editar Transacción -->
     <q-dialog v-model="dialog" persistent>
-      <q-card style="min-width: 500px">
+      <q-card class="dialog-responsive">
         <q-card-section>
           <div class="text-h6">
             {{ editingTransaction ? 'Editar Transacción' : 'Nueva Transacción' }}
@@ -1025,6 +1031,19 @@ onMounted(() => {
   letter-spacing: 0.5px;
 }
 
+/* Estilos responsivos para tablas */
+.historial-table {
+  width: 100%;
+}
+
+.responsive-table {
+  overflow-x: auto;
+}
+
+.responsive-table .q-table__container {
+  min-width: 100%;
+}
+
 /* Tarjeta de Ingresos */
 .summary-card--ingresos {
   background: linear-gradient(135deg, #4ade80 0%, #22c55e 50%, #16a34a 100%);
@@ -1224,11 +1243,19 @@ onMounted(() => {
   }
   
   /* Ocultar columnas menos importantes en móvil */
-  .q-table th:nth-child(4),
-  .q-table td:nth-child(4),
-  .q-table th:nth-child(6),
-  .q-table td:nth-child(6) {
+  .responsive-table .q-table th:nth-child(4),
+  .responsive-table .q-table td:nth-child(4),
+  .responsive-table .q-table th:nth-child(6),
+  .responsive-table .q-table td:nth-child(6),
+  .responsive-table .q-table th:nth-child(7),
+  .responsive-table .q-table td:nth-child(7) {
     display: none;
+  }
+  
+  /* Diálogos responsivos */
+  .dialog-responsive {
+    width: 90vw;
+    max-width: 90vw;
   }
 }
 
