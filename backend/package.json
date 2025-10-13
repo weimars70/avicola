@@ -6,6 +6,7 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/main.js",
+    "prestart:dev": "lsof -ti:3012 | xargs kill -9 2>/dev/null || true",
     "start:dev": "nodemon --exec ts-node src/main.ts",
     "start:debug": "nodemon --exec ts-node --inspect src/main.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -22,6 +23,7 @@
     "@nestjs/mapped-types": "^2.1.0",
     "@nestjs/passport": "^11.0.5",
     "@nestjs/platform-express": "^11.1.6",
+    "@nestjs/swagger": "^11.2.0",
     "@nestjs/typeorm": "^11.0.0",
     "bcryptjs": "^3.0.2",
     "class-transformer": "^0.5.1",

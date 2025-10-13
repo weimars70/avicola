@@ -16,6 +16,14 @@ import { Gasto } from '../finanzas/entities/gasto.entity';
 import { Ingreso } from '../finanzas/entities/ingreso.entity';
 import { Rendimiento } from '../finanzas/entities/rendimiento.entity';
 
+// Entidades de terceros
+import { Tercero } from '../terceros/entities/tercero.entity';
+import { Ciudad } from '../terceros/entities/ciudad.entity';
+import { Estrato } from '../terceros/entities/estrato.entity';
+import { TipoRegimen } from '../terceros/entities/tipo-regimen.entity';
+import { TipoIdent } from '../terceros/entities/tipo-ident.entity';
+import { TipoImpuesto } from '../terceros/entities/tipo-impuesto.entity';
+
 
 @Module({
   imports: [
@@ -28,8 +36,14 @@ import { Rendimiento } from '../finanzas/entities/rendimiento.entity';
         username: configService.get<string>('DB_USERNAME', 'postgres'),
         password: configService.get<string>('DB_PASSWORD', 'password'),
         database: configService.get<string>('DB_NAME', 'galpones_db'),
-        entities: [User, Galpon, TipoHuevo, Canasta, EntradaProduccion, Salida, Inventario, AjusteInventario, AjusteLote, CategoriaGasto, Gasto, Ingreso, Rendimiento],
-        synchronize: configService.get('NODE_ENV') !== 'production',
+        entities: [
+          User, Galpon, TipoHuevo, Canasta, EntradaProduccion, 
+          Salida, Inventario, AjusteInventario, AjusteLote, 
+          CategoriaGasto, Gasto, Ingreso, Rendimiento,
+          // Entidades de terceros
+          Tercero, Ciudad, Estrato, TipoRegimen, TipoIdent, TipoImpuesto
+        ],
+        synchronize: false, // Desactivado para evitar problemas de sincronización
         logging: configService.get('NODE_ENV') === 'development',
       }),
       inject: [ConfigService],

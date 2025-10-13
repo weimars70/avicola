@@ -15,6 +15,7 @@ import { TiposHuevoService } from './tipos-huevo.service';
 import { CreateTipoHuevoDto } from './dto/create-tipo-huevo.dto';
 import { UpdateTipoHuevoDto } from './dto/update-tipo-huevo.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { IdEmpresaHeader } from '../terceros/decorators/empresa.decorator';
 
 @Controller('tipos-huevo')
 @UseGuards(JwtAuthGuard)
@@ -27,7 +28,7 @@ export class TiposHuevoController {
   }
 
   @Get()
-  findAll(@Query('id_empresa', new ParseIntPipe({ errorHttpStatusCode: 400 })) id_empresa: number) {
+  findAll(@IdEmpresaHeader() id_empresa: number) {
     return this.tiposHuevoService.findAll(id_empresa);
   }
 

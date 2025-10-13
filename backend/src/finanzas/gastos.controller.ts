@@ -8,17 +8,17 @@ import {
   Delete,
   UseGuards,
   ParseUUIDPipe,
-  ParseIntPipe,
-  Query,
   ValidationPipe,
   UsePipes,
   BadRequestException,
+  Query,
 } from '@nestjs/common';
 import { GastosService } from './gastos.service';
 import { CreateGastoDto } from './dto/create-gasto.dto';
 import { UpdateGastoDto } from './dto/update-gasto.dto';
 import { CreateConsumoPropioDto } from './dto/create-consumo-propio.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { IdEmpresaHeader } from '../terceros/decorators/empresa.decorator';
 
 @Controller('gastos')
 @UseGuards(JwtAuthGuard)
@@ -29,7 +29,7 @@ export class GastosController {
   @UsePipes(new ValidationPipe({ transform: true }))
   create(
     @Body() createGastoDto: CreateGastoDto,
-    @Query('id_empresa', new ParseIntPipe()) id_empresa: number,
+    @IdEmpresaHeader() id_empresa: number,
     @Query('id_usuario_inserta') id_usuario_inserta: string | string[],
     @Query('esInversionInicial') esInversionInicial?: string
   ) {
@@ -62,7 +62,7 @@ export class GastosController {
   @UsePipes(new ValidationPipe({ transform: true }))
   createConsumoPropio(
     @Body() createConsumoPropioDto: CreateConsumoPropioDto,
-    @Query('id_empresa', new ParseIntPipe()) id_empresa: number,
+    @IdEmpresaHeader() id_empresa: number,
     @Query('id_usuario_inserta') id_usuario_inserta: string | string[]
   ) {
     // Validar que existan
@@ -80,7 +80,7 @@ export class GastosController {
   }
 
   @Get()
-  findAll(@Query('id_empresa', new ParseIntPipe()) id_empresa: number) {
+  findAll(@IdEmpresaHeader() id_empresa: number) {
     return this.gastosService.findAll(id_empresa);
   }
 
@@ -103,7 +103,7 @@ export class GastosController {
   }
 
   @Get('total')
-  getTotalGastos(@Query('id_empresa', new ParseIntPipe()) id_empresa: number) {
+  getTotalGastos(@IdEmpresaHeader() id_empresa: number) {
     return this.gastosService.getTotalGastos(id_empresa);
   }
 
@@ -111,13 +111,13 @@ export class GastosController {
   getTotalGastosByDateRange(
     @Query('fechaInicio') fechaInicio: string,
     @Query('fechaFin') fechaFin: string,
-    @Query('id_empresa', new ParseIntPipe()) id_empresa: number,
+    @IdEmpresaHeader() id_empresa: number,
   ) {
     return this.gastosService.getTotalGastosByDateRange(fechaInicio, fechaFin, id_empresa);
   }
 
   @Get('total-by-categoria')
-  getTotalGastosByCategoria(@Query('id_empresa', new ParseIntPipe()) id_empresa: number) {
+  getTotalGastosByCategoria(@IdEmpresaHeader() id_empresa: number) {
     return this.gastosService.getTotalGastosByCategoria(id_empresa);
   }
 

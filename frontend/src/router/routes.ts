@@ -22,6 +22,10 @@ const routes: RouteRecordRaw[] = [
       { path: 'resumen', component: () => import('pages/ResumenPage.vue') },
       { path: 'finanzas', component: () => import('pages/FinanzasPage.vue') },
       { path: 'historial-financiero', component: () => import('pages/HistorialFinancieroPage.vue') },
+      // Rutas de terceros
+      { path: 'terceros', component: () => import('pages/ListadoTercerosPage.vue') },
+      { path: 'terceros/formulario', component: () => import('pages/FormularioTerceroPage.vue') },
+      { path: 'terceros/formulario/:id', component: () => import('pages/FormularioTerceroPage.vue') },
     ],
   },
 

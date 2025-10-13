@@ -69,11 +69,8 @@ export const useSalidasStore = defineStore('salidas', () => {
       params.append('page', page.toString());
       params.append('limit', limit.toString());
       
-      // Obtener id_empresa del localStorage y añadirlo a los parámetros
-      const id_empresa = localStorage.getItem('id_empresa');
-      if (id_empresa) {
-        params.append('id_empresa', id_empresa);
-      }
+      // El id_empresa se maneja automáticamente por el interceptor de Axios
+      // No necesitamos añadirlo manualmente como parámetro
       
       if (filters) {
         if (filters.tipoHuevoId) params.append('tipoHuevoId', filters.tipoHuevoId);

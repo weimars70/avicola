@@ -8,13 +8,12 @@ import {
   Delete,
   UseGuards,
   ParseUUIDPipe,
-  Query,
-  ParseIntPipe,
 } from '@nestjs/common';
 import { CanastasService } from './canastas.service';
 import { CreateCanastaDto } from './dto/create-canasta.dto';
 import { UpdateCanastaDto } from './dto/update-canasta.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { IdEmpresaHeader } from '../terceros/decorators/empresa.decorator';
 
 @Controller('canastas')
 @UseGuards(JwtAuthGuard)
@@ -27,19 +26,19 @@ export class CanastasController {
   }
 
   @Get()
-  findAll(@Query('id_empresa', new ParseIntPipe({ errorHttpStatusCode: 400 })) id_empresa: number) {
+  findAll(@IdEmpresaHeader() id_empresa: number) {
     return this.canastasService.findAllByEmpresa(id_empresa);
   }
 
   @Get('all')
-  findAllIncludingInactive(@Query('id_empresa', new ParseIntPipe({ errorHttpStatusCode: 400 })) id_empresa: number) {
+  findAllIncludingInactive(@IdEmpresaHeader() id_empresa: number) {
     return this.canastasService.findAllIncludingInactive(id_empresa);
   }
 
   @Get(':id')
   findOne(
     @Param('id', ParseUUIDPipe) id: string,
-    @Query('id_empresa', ParseIntPipe) id_empresa: number,
+    @IdEmpresaHeader() id_empresa: number,
   ) {
     return this.canastasService.findOne(id, id_empresa);
   }
@@ -47,7 +46,7 @@ export class CanastasController {
   @Patch(':id')
   update(
     @Param('id', ParseUUIDPipe) id: string,
-    @Query('id_empresa', ParseIntPipe) id_empresa: number,
+    @IdEmpresaHeader() id_empresa: number,
     @Body() updateCanastaDto: UpdateCanastaDto,
   ) {
     return this.canastasService.update(id, id_empresa, updateCanastaDto);
@@ -56,7 +55,7 @@ export class CanastasController {
   @Delete(':id')
   remove(
     @Param('id', ParseUUIDPipe) id: string,
-    @Query('id_empresa', ParseIntPipe) id_empresa: number,
+    @IdEmpresaHeader() id_empresa: number,
   ) {
     return this.canastasService.remove(id, id_empresa);
   }

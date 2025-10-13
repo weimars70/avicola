@@ -8,14 +8,16 @@ import {
   Delete,
   ValidationPipe,
   UsePipes,
-  Query,
-  ParseIntPipe,
+  UseGuards,
 } from '@nestjs/common';
 import { SalidasService } from './salidas.service';
 import { CreateSalidaDto } from './dto/create-salida.dto';
 import { UpdateSalidaDto } from './dto/update-salida.dto';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { IdEmpresaHeader } from '../terceros/decorators/empresa.decorator';
 
 @Controller('salidas')
+@UseGuards(JwtAuthGuard)
 export class SalidasController {
   constructor(private readonly salidasService: SalidasService) {}
 
@@ -23,27 +25,22 @@ export class SalidasController {
   @UsePipes(new ValidationPipe({ transform: true }))
   create(
     @Body() createSalidaDto: CreateSalidaDto,
-    @Query('id_empresa', new ParseIntPipe({ errorHttpStatusCode: 400 })) id_empresa: number,
-    @Query('id_usuario_inserta') id_usuario_inserta: string | string[]
+    @IdEmpresaHeader() id_empresa: number,
   ) {
-    // Aseguramos que id_empresa del DTO coincida con el query param
+    // Aseguramos que id_empresa del DTO coincida con el header
     createSalidaDto.id_empresa = id_empresa;
-    // Asignamos el id_usuario_inserta, tomando solo el primer valor si es un array
-    createSalidaDto.id_usuario_inserta = Array.isArray(id_usuario_inserta) 
-      ? id_usuario_inserta[0] 
-      : id_usuario_inserta;
     return this.salidasService.create(createSalidaDto, id_empresa);
   }
 
   @Get()
-  findAll(@Query('id_empresa', new ParseIntPipe({ errorHttpStatusCode: 400 })) id_empresa: number) {
+  findAll(@IdEmpresaHeader() id_empresa: number) {
     return this.salidasService.findAll(id_empresa);
   }
 
   @Get(':id')
   findOne(
     @Param('id') id: string,
-    @Query('id_empresa', ParseIntPipe) id_empresa: number
+    @IdEmpresaHeader() id_empresa: number
   ) {
     return this.salidasService.findOne(id, id_empresa);
   }
@@ -53,18 +50,15 @@ export class SalidasController {
   update(
     @Param('id') id: string,
     @Body() updateSalidaDto: UpdateSalidaDto,
-    @Query('id_empresa', ParseIntPipe) id_empresa: number,
-    @Query('id_usuario_actualiza') id_usuario_actualiza: string
+    @IdEmpresaHeader() id_empresa: number,
   ) {
-    // Asignamos el id_usuario_actualiza
-    updateSalidaDto.id_usuario_actualiza = id_usuario_actualiza;
     return this.salidasService.update(id, updateSalidaDto, id_empresa);
   }
 
   @Delete(':id')
   remove(
     @Param('id') id: string,
-    @Query('id_empresa', ParseIntPipe) id_empresa: number
+    @IdEmpresaHeader() id_empresa: number
   ) {
     return this.salidasService.remove(id, id_empresa);
   }

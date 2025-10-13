@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { api } from 'boot/axios';
+import { clearAllLocalStorage } from 'src/utils/localStorage';
 
 interface User {
   id: string;
@@ -80,9 +81,10 @@ export const useAuthStore = defineStore('auth', () => {
     token.value = null;
     id_usuario.value = null;
     id_empresa.value = null;
-    localStorage.removeItem('token');
-    localStorage.removeItem('id_usuario');
-    localStorage.removeItem('id_empresa');
+    
+    // Limpiar completamente el localStorage usando la utilidad
+    clearAllLocalStorage();
+    
     delete api.defaults.headers.common['Authorization'];
   };
 
@@ -164,9 +166,9 @@ export const useAuthStore = defineStore('auth', () => {
         id_empresa.value = response.data.id_empresa;
         
         // Asegurar que localStorage tenga los valores correctos
-       // localStorage.setItem('id_usuario', response.data.id);
+        localStorage.setItem('id_usuario', response.data.id);
         if (response.data.id_empresa !== undefined) {
-         // localStorage.setItem('id_empresa', response.data.id_empresa.toString());
+          localStorage.setItem('id_empresa', response.data.id_empresa.toString());
         }
         
         //console.log('Datos de usuario actualizados (con correcciones si fueron necesarias):', response.data);

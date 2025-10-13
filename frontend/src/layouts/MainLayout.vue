@@ -114,6 +114,32 @@
             <q-item-label caption class="text-grey-6">{{ inventoryItem.caption }}</q-item-label>
           </q-item-section>
         </q-item>
+        
+        <q-separator class="q-my-md q-mx-md" />
+
+        <q-item-label header class="text-grey-8 text-weight-bold q-px-md" style="font-family: 'Poppins', sans-serif;">
+          <q-icon name="people" class="q-mr-sm" color="primary" />
+          Terceros
+        </q-item-label>
+
+        <q-item
+          v-for="terceroItem in tercerosItems"
+          :key="terceroItem.title"
+          :to="terceroItem.to"
+          clickable
+          v-ripple
+          exact-active-class="bg-secondary text-white"
+          class="q-mx-sm q-my-xs rounded-borders"
+          style="border-radius: 12px;"
+        >
+          <q-item-section avatar>
+            <q-icon :name="terceroItem.icon" />
+          </q-item-section>
+          <q-item-section>
+            <q-item-label class="text-weight-medium" style="font-family: 'Poppins', sans-serif;">{{ terceroItem.title }}</q-item-label>
+            <q-item-label caption class="text-grey-6">{{ terceroItem.caption }}</q-item-label>
+          </q-item-section>
+        </q-item>
       </q-list>
     </q-drawer>
 
@@ -183,6 +209,21 @@ const menuItems = [
     caption: 'Registro completo de transacciones',
     icon: 'history',
     to: '/historial-financiero'
+  }
+];
+
+const tercerosItems = [
+  {
+    title: 'Listado de Terceros',
+    caption: 'Gestión de clientes y proveedores',
+    icon: 'people',
+    to: '/terceros'
+  },
+  {
+    title: 'Nuevo Tercero',
+    caption: 'Crear nuevo cliente o proveedor',
+    icon: 'person_add',
+    to: '/terceros/formulario'
   }
 ];
 

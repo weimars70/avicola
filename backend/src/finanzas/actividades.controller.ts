@@ -1,6 +1,7 @@
 import { Controller, Get, Query, UseGuards, ParseIntPipe } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { ActividadesService } from './actividades.service';
+import { IdEmpresaHeader } from '../terceros/decorators/empresa.decorator';
 
 @Controller('actividades')
 @UseGuards(JwtAuthGuard)
@@ -9,7 +10,7 @@ export class ActividadesController {
 
   @Get('recientes')
   async getActividadesRecientes(
-    @Query('id_empresa', ParseIntPipe) id_empresa: number,
+    @IdEmpresaHeader() id_empresa: number,
     @Query('limit') limit?: string
   ) {
     const limitNumber = limit ? parseInt(limit, 10) : 10;

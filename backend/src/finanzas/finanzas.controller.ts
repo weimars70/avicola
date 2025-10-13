@@ -6,6 +6,7 @@ import { GalponesService } from '../galpones/galpones.service';
 import { EntradasProduccionService } from '../entradas-produccion/entradas-produccion.service';
 import { SalidasService } from '../salidas/salidas.service';
 import { ResumenService as InventarioResumenService } from '../inventario/resumen.service';
+import { IdEmpresaHeader } from '../terceros/decorators/empresa.decorator';
 
 @Controller('finanzas')
 export class FinanzasController {
@@ -21,14 +22,10 @@ export class FinanzasController {
 
   @Get('resumen')
   async getResumenFinanciero(
+    @IdEmpresaHeader() id_empresa_num: number,
     @Query('fechaInicio') fechaInicio?: string,
     @Query('fechaFin') fechaFin?: string,
-    @Query('id_empresa') id_empresa?: string,
   ) {
-    if (!id_empresa) {
-      throw new Error('No hay empresa asociada al usuario logueado');
-    }
-    const id_empresa_num = parseInt(id_empresa);
     let totalIngresos: number;
     let totalGastos: number;
     let totalGastosOperativos: number;
@@ -78,11 +75,10 @@ export class FinanzasController {
 
   @Get('comparativo-mensual')
   async getComparativoMensual(
+    @IdEmpresaHeader() id_empresa_num: number,
     @Query('anio') anio?: string,
-    @Query('id_empresa') id_empresa?: string,
   ) {
     try {
-      const id_empresa_num = id_empresa ? parseInt(id_empresa) : 1;
       const anioActual = anio ? parseInt(anio) : new Date().getFullYear();
       
       // Obtener datos de inversión inicial
@@ -134,11 +130,11 @@ export class FinanzasController {
 
   @Get('kpis')
   async getKPIsFinancieros(
+    @IdEmpresaHeader() id_empresa_num: number,
     @Query('fechaInicio') fechaInicio?: string,
     @Query('fechaFin') fechaFin?: string,
-    @Query('id_empresa') id_empresa?: string,
   ) {
-    const resumen = await this.getResumenFinanciero(fechaInicio, fechaFin, id_empresa);
+    const resumen = await this.getResumenFinanciero(id_empresa_num, fechaInicio, fechaFin);
     
     // Calcular KPIs adicionales
     const promedioGastoDiario = fechaInicio && fechaFin ? 
@@ -157,12 +153,8 @@ export class FinanzasController {
   }
 
   @Get('dashboard-kpis')
-  async getDashboardKpis(@Query('id_empresa') id_empresa?: string) {
+  async getDashboardKpis(@IdEmpresaHeader() id_empresa_num: number) {
     try {
-      if (!id_empresa) {
-        throw new Error('No hay empresa asociada al usuario logueado');
-      }
-      const id_empresa_num = parseInt(id_empresa);
       
       // Obtener fecha actual para calcular datos del mes
       const now = new Date();
@@ -181,13 +173,11 @@ export class FinanzasController {
 
       // Obtener inventario actual total
       const resumenInventario = await this.inventarioResumenService.getInventarioResumen(null, null, id_empresa_num);
-      console.log('Estructura de resumenInventario:', JSON.stringify(resumenInventario, null, 2));
       
       // Filtramos explícitamente por id_empresa desde el tipoHuevo
       const inventarioActual = Object.values(resumenInventario)
         .filter((item: any) => item.tipoHuevo && item.tipoHuevo.id_empresa === id_empresa_num)
         .reduce((total: number, item: any) => {
-          console.log('Item de inventario filtrado:', item);
           return total + (item.stockActual || 0);
         }, 0);
 
@@ -268,9 +258,9 @@ export class FinanzasController {
 
   @Get('datos-diarios')
   async getDatosDiarios(
+    @IdEmpresaHeader() id_empresa_num: number,
     @Query('fechaInicio') fechaInicio?: string,
     @Query('fechaFin') fechaFin?: string,
-    @Query('id_empresa') id_empresa?: string,
   ) {
     try {
       let inicio = fechaInicio;
@@ -287,7 +277,6 @@ export class FinanzasController {
       }
       
       // Obtener datos diarios
-      const id_empresa_num = id_empresa ? parseInt(id_empresa) : 1;
       const ingresosDiarios = await this.ingresosService.getIngresosDiarios(inicio, fin, id_empresa_num);
       const produccionDiaria = await this.entradasProduccionService.getProduccionDiaria(inicio, fin, id_empresa_num);
       const salidasDiarias = await this.salidasService.getSalidasDiarias(inicio, fin, id_empresa_num);

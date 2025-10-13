@@ -38,6 +38,9 @@ export class Rendimiento {
   @Column({ type: 'boolean', default: true })
   activo: boolean;
 
+  @Column({ type: 'int', nullable: false })
+  id_empresa: number;
+
   @CreateDateColumn()
   createdAt: Date;
 
