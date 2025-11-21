@@ -257,25 +257,9 @@ export const useHistorialFinancieroStore = defineStore('historialFinanciero', ()
         // Si el ingreso proviene de una salida, actualizar también la salida
         if (transaccionActual?.salidaId && (data.monto !== undefined || data.nombreComprador !== undefined)) {
           try {
-            // Obtener la salida actual para calcular las nuevas unidades
-            const salidaResponse = await api.get(`/salidas/${transaccionActual.salidaId}`);
-            const salida = salidaResponse.data;
-            
-            const updateData: { unidades?: number; nombreComprador?: string } = {};
-            
-            // Calcular las nuevas unidades basadas en el nuevo monto si se cambió
-            if (data.monto !== undefined) {
-              const valorCanasta = salida.canasta?.valorCanasta || 1;
-              const nuevasUnidades = Math.round(data.monto / valorCanasta);
-              updateData.unidades = nuevasUnidades;
-            }
-            
-            // Actualizar el nombre del comprador si se cambió
-            if (data.nombreComprador !== undefined) {
-              updateData.nombreComprador = data.nombreComprador;
-            }
-            
-            // Actualizar la salida con los nuevos datos
+            const updateData: { valor?: number; nombreComprador?: string } = {};
+            if (typeof data.monto === 'number') updateData.valor = data.monto;
+            if (typeof data.nombreComprador === 'string') updateData.nombreComprador = data.nombreComprador;
             await api.patch(`/salidas/${transaccionActual.salidaId}`, updateData);
           } catch (salidaError) {
             console.warn('Error al actualizar salida relacionada:', salidaError);
@@ -287,7 +271,7 @@ export const useHistorialFinancieroStore = defineStore('historialFinanciero', ()
         const realSalidaId = id.replace('sal-', '');
         
         // Preparar datos para actualizar
-        const salidaPayload: { unidades?: number; nombreComprador?: string } = {};
+        const salidaPayload: { valor?: number; nombreComprador?: string } = {};
         
         // Usar una interfaz extendida para acceder a unidades
         interface SalidaData extends Partial<TransaccionFinanciera> {
@@ -297,7 +281,7 @@ export const useHistorialFinancieroStore = defineStore('historialFinanciero', ()
         const salidaData = data as SalidaData;
         
         if (typeof salidaData.unidades === 'number') {
-          salidaPayload.unidades = salidaData.unidades;
+          // Si se proveen unidades explícitas, no tocar aquí el monto.
         }
         
         if (typeof data.nombreComprador === 'string') {
@@ -315,12 +299,8 @@ export const useHistorialFinancieroStore = defineStore('historialFinanciero', ()
         console.log('Enviando datos de salida:', salidaPayload);
         console.log('URL:', `/salidas/${realSalidaId}`);
         
-        // Si se actualiza el monto, necesitamos calcular las unidades
         if (typeof data.monto === 'number') {
-          const salidaResponse = await api.get(`/salidas/${realSalidaId}`);
-          const salida = salidaResponse.data;
-          const valorCanasta = salida.canasta?.valorCanasta || 1;
-          salidaPayload.unidades = Math.round(data.monto / valorCanasta);
+          salidaPayload.valor = data.monto;
         }
         
         console.log('Enviando datos de salida:', salidaPayload);

@@ -8,6 +8,7 @@ import { TiposHuevoService } from '../tipos-huevo/tipos-huevo.service';
 import { CanastasService } from '../canastas/canastas.service';
 import { InventarioStockService } from '../inventario/inventario-stock.service';
 import { IngresosService } from '../finanzas/ingresos.service';
+import { Ingreso } from '../finanzas/entities/ingreso.entity';
 
 @Injectable()
 export class SalidasService {
@@ -46,34 +47,43 @@ export class SalidasService {
     // Asegurar que siempre haya una fecha definida
     const fechaFinal = createSalidaDto.fecha || new Date().toISOString().split('T')[0];
     
+    // Determinar monto final considerando posibles descuentos enviados desde el frontend
+    let monto = 0;
+    let descripcion = '';
+    if (typeof createSalidaDto.valor === 'number' && createSalidaDto.valor > 0) {
+      // Si el frontend envía un valor explícito (total), respetarlo
+      monto = createSalidaDto.valor;
+    } else if (canasta) {
+      monto = createSalidaDto.unidades * canasta.valorCanasta;
+    } else {
+      // Si no hay canasta, usar el valor unitario del tipo de huevo
+      monto = createSalidaDto.unidades * tipoHuevo.valorUnidad;
+    }
+
     const salida = this.salidasRepository.create({
       ...createSalidaDto,
-      fecha: fechaFinal // Asegurar que la salida siempre tenga una fecha
+      fecha: fechaFinal,
+      valor: monto,
     });
     const savedSalida = await this.salidasRepository.save(salida);
     
     // Crear automáticamente un ingreso por la venta
     try {
-      let monto = 0;
-      let descripcion = '';
-      
-      if (canasta) {
-        monto = createSalidaDto.unidades * canasta.valorCanasta;
-        descripcion = `Venta de ${createSalidaDto.unidades} ${canasta.nombre} de ${tipoHuevo.nombre}`;
-      } else {
-        // Si no hay canasta, usar el valor proporcionado o calcular basado en el tipo de huevo
-        monto = createSalidaDto.valor || (createSalidaDto.unidades * tipoHuevo.valorUnidad);
+      if (!descripcion) {
+        descripcion = canasta
+          ? `Venta de ${createSalidaDto.unidades} ${canasta.nombre} de ${tipoHuevo.nombre}`
+          : `Venta de ${createSalidaDto.unidades} unidades de ${tipoHuevo.nombre}`;
       }
-      
+
       await this.ingresosService.create({
         monto,
-        fecha: fechaFinal, // Usar la misma fecha que la salida
+        fecha: fechaFinal,
         descripcion,
         observaciones: `Generado automáticamente desde salida ${savedSalida.id}`,
         tipo: 'venta',
         salidaId: savedSalida.id,
-        id_empresa: id_empresa, // Asegurar que se pase el id_empresa
-        id_usuario_inserta: createSalidaDto.id_usuario_inserta, // Pasar el id_usuario_inserta
+        id_empresa: id_empresa,
+        id_usuario_inserta: createSalidaDto.id_usuario_inserta,
       });
     } catch (error) {
       // Log del error pero no fallar la creación de la salida
@@ -131,7 +141,7 @@ export class SalidasService {
       await this.inventarioStockService.reducirStock(nuevoTipoHuevo, nuevasUnidades);
     }
     
-    // Asegurarse de que el valor se actualice si se cambian las unidades
+    // Calcular valor automáticamente solo si cambiaron unidades y no se envía un valor explícito
     if (updateSalidaDto.unidades !== undefined && !updateSalidaDto.valor) {
       // Obtener el valor de la canasta actual
       let valorCanasta = 0;
@@ -154,18 +164,19 @@ export class SalidasService {
     
     // Actualizar el ingreso relacionado si existe
     try {
-      const ingresos = await this.dataSource.getRepository('ingresos').find({
-        where: { salidaId: id }
+      const ingresosRepo = this.dataSource.getRepository(Ingreso);
+      const ingresos = await ingresosRepo.find({
+        where: { salidaId: id, id_empresa }
       });
       
       if (ingresos && ingresos.length > 0) {
         const ingreso = ingresos[0];
         // Actualizar el monto del ingreso para que coincida con el valor de la salida
-        await this.dataSource.getRepository('ingresos').update(
+        await ingresosRepo.update(
           { id: ingreso.id },
-          { 
+          {
             monto: salidaActualizada.valor,
-            descripcion: `Venta de ${salidaActualizada.unidades} unidades de ${salidaActualizada.tipoHuevo?.nombre || 'huevos'}`
+            descripcion: `Venta de ${salidaActualizada.unidades} unidades de ${salidaActualizada.tipoHuevo?.nombre || 'huevos'}`,
           }
         );
       }

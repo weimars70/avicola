@@ -757,8 +757,10 @@ const saveSalida = async () => {
       };
 
       // Solo incluir campos opcionales si tienen valores válidos
-      if (form.value.valor && form.value.valor > 0) {
-        updateData.valor = parseFloat(String(form.value.valor));
+      // Enviar el valor total (precio por canasta * unidades) para mantener consistencia con el backend
+      const unidadesNum = parseInt(String(form.value.unidades), 10);
+      if (form.value.valor && unidadesNum > 0) {
+        updateData.valor = parseFloat(String(form.value.valor)) * unidadesNum;
       }
       
       if (form.value.nombreComprador && form.value.nombreComprador.trim()) {
@@ -783,8 +785,9 @@ const saveSalida = async () => {
         createData.canastaId = form.value.canastaId;
       }
       
-      if (form.value.valor && form.value.valor > 0) {
-        createData.valor = parseFloat(String(form.value.valor));
+      if (form.value.valor && form.value.valor > 0 && form.value.unidades > 0) {
+        // Guardar el total (precio por canasta * unidades)
+        createData.valor = parseFloat(String(form.value.valor)) * parseInt(String(form.value.unidades), 10);
       }
       
       if (form.value.nombreComprador && form.value.nombreComprador.trim()) {
