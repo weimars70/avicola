@@ -22,10 +22,14 @@ let EntradasProduccionController = class EntradasProduccionController {
     constructor(entradasProduccionService) {
         this.entradasProduccionService = entradasProduccionService;
     }
-    create(createEntradaProduccionDto) {
+    create(createEntradaProduccionDto, id_empresa, id_usuario_inserta) {
+        createEntradaProduccionDto.id_empresa = id_empresa;
+        createEntradaProduccionDto.id_usuario_inserta = id_usuario_inserta;
         return this.entradasProduccionService.create(createEntradaProduccionDto);
     }
-    createMasivas(createEntradasMasivasDto) {
+    createMasivas(createEntradasMasivasDto, id_empresa, id_usuario_inserta) {
+        createEntradasMasivasDto.id_empresa = id_empresa;
+        createEntradasMasivasDto.id_usuario_inserta = id_usuario_inserta;
         return this.entradasProduccionService.createMasivas(createEntradasMasivasDto);
     }
     findAll(id_empresa) {
@@ -46,16 +50,20 @@ __decorate([
     (0, common_1.Post)(),
     (0, common_1.UsePipes)(new common_1.ValidationPipe({ transform: true })),
     __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Query)('id_empresa', new common_1.ParseIntPipe({ errorHttpStatusCode: 400 }))),
+    __param(2, (0, common_1.Query)('id_usuario_inserta')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [create_entrada_produccion_dto_1.CreateEntradaProduccionDto]),
+    __metadata("design:paramtypes", [create_entrada_produccion_dto_1.CreateEntradaProduccionDto, Number, String]),
     __metadata("design:returntype", void 0)
 ], EntradasProduccionController.prototype, "create", null);
 __decorate([
     (0, common_1.Post)('masivas'),
     (0, common_1.UsePipes)(new common_1.ValidationPipe({ transform: true })),
     __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Query)('id_empresa', new common_1.ParseIntPipe({ errorHttpStatusCode: 400 }))),
+    __param(2, (0, common_1.Query)('id_usuario_inserta')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [create_entradas_masivas_dto_1.CreateEntradasMasivasDto]),
+    __metadata("design:paramtypes", [create_entradas_masivas_dto_1.CreateEntradasMasivasDto, Number, String]),
     __metadata("design:returntype", void 0)
 ], EntradasProduccionController.prototype, "createMasivas", null);
 __decorate([

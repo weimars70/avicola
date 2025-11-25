@@ -14,7 +14,7 @@ export declare class FinanzasController {
     private readonly salidasService;
     private readonly inventarioResumenService;
     constructor(gastosService: GastosService, ingresosService: IngresosService, resumenService: ResumenService, galponesService: GalponesService, entradasProduccionService: EntradasProduccionService, salidasService: SalidasService, inventarioResumenService: InventarioResumenService);
-    getResumenFinanciero(fechaInicio?: string, fechaFin?: string, id_empresa?: string): Promise<{
+    getResumenFinanciero(id_empresa_num: number, fechaInicio?: string, fechaFin?: string, origen?: string): Promise<{
         totalIngresos: number;
         totalGastos: number;
         totalGastosOperativos: number;
@@ -29,13 +29,14 @@ export declare class FinanzasController {
             fechaInicio: string;
             fechaFin: string;
         };
+        origen: string;
     }>;
-    getComparativoMensual(anio?: string, id_empresa?: string): Promise<{
+    getComparativoMensual(id_empresa_num: number, anio?: string): Promise<{
         anio: number;
         totalInversionInicial: number;
         meses: any[];
     }>;
-    getKPIsFinancieros(fechaInicio?: string, fechaFin?: string, id_empresa?: string): Promise<{
+    getKPIsFinancieros(id_empresa_num: number, fechaInicio?: string, fechaFin?: string): Promise<{
         promedioGastoDiario: number;
         promedioIngresoDiario: number;
         ratioIngresoGasto: number;
@@ -53,8 +54,9 @@ export declare class FinanzasController {
             fechaInicio: string;
             fechaFin: string;
         };
+        origen: string;
     }>;
-    getDashboardKpis(id_empresa?: string): Promise<{
+    getDashboardKpis(id_empresa_num: number): Promise<{
         produccionTotal: number;
         ingresosDelMes: number;
         inventarioActual: any;
@@ -65,14 +67,16 @@ export declare class FinanzasController {
     }>;
     private calcularPromedioGastoDiario;
     private calcularPromedioIngresoDiario;
+    private getTotalIngresosTerceros;
+    private getTotalGastosTerceros;
     setInversionInicial(inversionData: {
         montoTotal: number;
         fechaInicio: string;
         metaRecuperacion?: number;
-    }): Promise<{
+    }, id_empresa: number, id_usuario_inserta: string): Promise<{
         success: boolean;
         message: string;
         data: import("./entities/gasto.entity").Gasto;
     }>;
-    getDatosDiarios(fechaInicio?: string, fechaFin?: string, id_empresa?: string): Promise<Record<string, any>>;
+    getDatosDiarios(id_empresa_num: number, fechaInicio?: string, fechaFin?: string): Promise<Record<string, any>>;
 }

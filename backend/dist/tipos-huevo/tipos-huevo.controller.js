@@ -18,6 +18,7 @@ const tipos_huevo_service_1 = require("./tipos-huevo.service");
 const create_tipo_huevo_dto_1 = require("./dto/create-tipo-huevo.dto");
 const update_tipo_huevo_dto_1 = require("./dto/update-tipo-huevo.dto");
 const jwt_auth_guard_1 = require("../auth/jwt-auth.guard");
+const empresa_decorator_1 = require("../terceros/decorators/empresa.decorator");
 let TiposHuevoController = class TiposHuevoController {
     constructor(tiposHuevoService) {
         this.tiposHuevoService = tiposHuevoService;
@@ -51,7 +52,7 @@ __decorate([
 ], TiposHuevoController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
-    __param(0, (0, common_1.Query)('id_empresa', new common_1.ParseIntPipe({ errorHttpStatusCode: 400 }))),
+    __param(0, (0, empresa_decorator_1.IdEmpresaHeader)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)

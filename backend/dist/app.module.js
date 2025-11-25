@@ -20,6 +20,9 @@ const salidas_module_1 = require("./salidas/salidas.module");
 const finanzas_module_1 = require("./finanzas/finanzas.module");
 const notifications_module_1 = require("./notifications/notifications.module");
 const database_module_1 = require("./database/database.module");
+const terceros_module_1 = require("./terceros/terceros.module");
+const compras_terceros_module_1 = require("./compras-terceros/compras-terceros.module");
+const ventas_terceros_module_1 = require("./ventas-terceros/ventas-terceros.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -40,6 +43,9 @@ exports.AppModule = AppModule = __decorate([
             salidas_module_1.SalidasModule,
             finanzas_module_1.FinanzasModule,
             notifications_module_1.NotificationsModule,
+            terceros_module_1.TercerosModule,
+            compras_terceros_module_1.ComprasTercerosModule,
+            ventas_terceros_module_1.VentasTercerosModule,
         ],
     })
 ], AppModule);

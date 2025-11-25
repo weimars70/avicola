@@ -308,13 +308,25 @@
           <div class="rendimiento-content">
             <div class="section-header">
               <h3>Análisis de Rendimiento</h3>
-              <q-btn
-                color="secondary"
-                icon="refresh"
-                label="Actualizar Métricas"
-                @click="actualizarDatos"
-                :loading="loading"
-              />
+              <div class="row items-center q-gutter-sm">
+                <q-select
+                  v-model="rendOrigen"
+                  :options="[{label:'General',value:'general'},{label:'Terceros',value:'terceros'}]"
+                  label="Origen"
+                  dense
+                  outlined
+                  emit-value
+                  map-options
+                  style="width: 160px"
+                />
+                <q-btn
+                  color="secondary"
+                  icon="refresh"
+                  label="Actualizar Métricas"
+                  @click="actualizarDatos"
+                  :loading="loading"
+                />
+              </div>
             </div>
             
             <!-- Calendario Financiero -->
@@ -383,6 +395,9 @@
               <q-card-section>
                 <div class="text-h6 q-mb-md">Análisis Detallado</div>
                 <div v-if="resumen">
+                  <div class="q-mb-md">
+                    <q-chip :color="rendOrigen === 'terceros' ? 'purple' : 'blue'" text-color="white" :label="'Origen: ' + (rendOrigen === 'terceros' ? 'Terceros' : 'General')" />
+                  </div>
                   <p><strong>Ingresos Totales:</strong> {{ formatCurrency(resumen.totalIngresos) }}</p>
                   <p><strong>Gastos Totales:</strong> {{ formatCurrency(resumen.totalGastos) }}</p>
                   <p><strong>Utilidad Neta:</strong> 
@@ -569,6 +584,133 @@
             </q-card>
           </div>
         </div>
+      </q-card-section>
+    </q-card>
+
+    <!-- Sección de Finanzas de Terceros -->
+    <q-card class="content-card q-mt-lg">
+      <q-card-section>
+        <div class="section-header">
+          <h3>
+            <q-icon name="handshake" class="q-mr-sm" />
+            Finanzas de Terceros
+          </h3>
+          <q-btn 
+            color="primary" 
+            icon="refresh" 
+            label="Actualizar"
+            @click="loadFinanzasTerceros"
+            :loading="loadingTercerosFinanzas"
+            size="sm"
+          />
+        </div>
+
+        <!-- KPIs de terceros -->
+        <div class="row q-col-gutter-md q-mb-lg">
+          <div class="col-12 col-md-3">
+            <q-card class="inversion-card inversion-total full-height">
+              <q-card-section class="kpi-content">
+                <div class="kpi-icon">
+                  <q-icon name="attach_money" size="2rem" />
+                </div>
+                <div class="kpi-info">
+                  <div class="kpi-value">{{ formatCurrency(ingresosTercerosPagados) }}</div>
+                  <div class="kpi-label">Ingresos Terceros (Pagados)</div>
+                </div>
+              </q-card-section>
+            </q-card>
+          </div>
+          <div class="col-12 col-md-3">
+            <q-card class="inversion-card inversion-recuperado full-height">
+              <q-card-section class="kpi-content">
+                <div class="kpi-icon">
+                  <q-icon name="money_off" size="2rem" />
+                </div>
+                <div class="kpi-info">
+                  <div class="kpi-value">{{ formatCurrency(gastosTercerosPagados) }}</div>
+                  <div class="kpi-label">Gastos Terceros (Pagados)</div>
+                </div>
+              </q-card-section>
+            </q-card>
+          </div>
+          <div class="col-12 col-md-3">
+            <q-card class="inversion-card inversion-restante full-height">
+              <q-card-section class="kpi-content">
+                <div class="kpi-icon">
+                  <q-icon name="schedule" size="2rem" />
+                </div>
+                <div class="kpi-info">
+                  <div class="kpi-value">{{ formatCurrency(ingresosTercerosPendientes) }}</div>
+                  <div class="kpi-label">Ingresos Pendientes</div>
+                </div>
+              </q-card-section>
+            </q-card>
+          </div>
+          <div class="col-12 col-md-3">
+            <q-card class="inversion-card inversion-tiempo full-height">
+              <q-card-section class="kpi-content">
+                <div class="kpi-icon">
+                  <q-icon name="pending_actions" size="2rem" />
+                </div>
+                <div class="kpi-info">
+                  <div class="kpi-value">{{ formatCurrency(gastosTercerosPendientes) }}</div>
+                  <div class="kpi-label">Gastos Pendientes</div>
+                </div>
+              </q-card-section>
+            </q-card>
+          </div>
+        </div>
+
+        <!-- Filtros y tabla -->
+        <q-card class="filter-card q-mb-md">
+          <q-card-section>
+            <div class="filter-content">
+              <q-input
+                v-model="finTercerosFilter"
+                label="Buscar (tercero o factura)"
+                outlined
+                dense
+                clearable
+              >
+                <template v-slot:append>
+                  <q-icon name="search" />
+                </template>
+              </q-input>
+              <q-select
+                v-model="finTercerosEstado"
+                :options="[{ label: 'Todos', value: null }, { label: 'Pagado', value: 'PAGADO' }, { label: 'Pendiente', value: 'PENDIENTE' }, { label: 'Parcial', value: 'PARCIAL' }]"
+                label="Estado"
+                outlined
+                dense
+                clearable
+                emit-value
+                map-options
+              />
+            </div>
+          </q-card-section>
+        </q-card>
+
+        <q-table
+          :rows="finTercerosRowsFiltered"
+          :columns="finTercerosColumns"
+          row-key="id"
+          flat
+          bordered
+          :pagination="{ rowsPerPage: 10 }"
+          class="finanzas-table"
+          :class="{'responsive-table': $q.screen.lt.md}"
+        >
+          <template v-slot:body-cell-tipo="props">
+            <q-td :props="props">
+              <q-chip :color="props.value === 'Ingreso' ? 'positive' : 'negative'" text-color="white" :label="props.value" size="sm" />
+            </q-td>
+          </template>
+          <template v-slot:body-cell-estado="props">
+            <q-td :props="props">
+              <q-chip :color="getEstadoColor(props.value)" text-color="white" :label="props.value" size="sm" />
+            </q-td>
+          </template>
+        </q-table>
       </q-card-section>
     </q-card>
 
@@ -1089,7 +1231,7 @@ const actualizarDatos = async () => {
   const { fechaInicio, fechaFin } = filtros.value;
   
   await Promise.all([
-    fetchResumenFinanciero(fechaInicio || undefined, fechaFin || undefined),
+    fetchResumenFinancieroWithOrigen(fechaInicio || undefined, fechaFin || undefined, rendOrigen.value),
     fetchGastos(fechaInicio || undefined, fechaFin || undefined),
     fetchIngresos(),
     cargarDatosCalendario()
@@ -1097,6 +1239,30 @@ const actualizarDatos = async () => {
   
   await nextTick();
   updateCharts();
+};
+
+// Origen para rendimiento (General/Terceros)
+const rendOrigen = ref<'general' | 'terceros'>('general');
+
+const fetchResumenFinancieroWithOrigen = async (
+  fechaInicio?: string,
+  fechaFin?: string,
+  origen: 'general' | 'terceros' = 'general'
+) => {
+  let url = '/finanzas/resumen';
+  const params: string[] = [];
+  if (fechaInicio && fechaFin) {
+    params.push(`fechaInicio=${fechaInicio}`, `fechaFin=${fechaFin}`);
+  }
+  if (origen === 'terceros') {
+    params.push('origen=terceros');
+  }
+  if (params.length > 0) {
+    url += `?${params.join('&')}`;
+  }
+  const response = await api.get(url);
+  resumen.value = response.data;
+  return response.data;
 };
 
 const syncIngresos = async () => {
@@ -1587,6 +1753,98 @@ const saveInversion = async () => {
   }
 };
 
+const loadingTercerosFinanzas = ref(false);
+const finTercerosFilter = ref('');
+const finTercerosEstado = ref<string | null>(null);
+
+interface FinTercerosRow {
+  id: string;
+  tipo: 'Ingreso' | 'Gasto';
+  fecha: string;
+  tercero: string;
+  numeroFactura?: string;
+  estado: string;
+  total: number;
+}
+
+const finTercerosColumns = [
+  { name: 'tipo', label: 'Tipo', field: 'tipo', align: 'center' as const },
+  { name: 'fecha', label: 'Fecha', field: 'fecha', align: 'left' as const, format: (val: string) => formatDate(val) },
+  { name: 'tercero', label: 'Tercero', field: 'tercero', align: 'left' as const },
+  { name: 'numeroFactura', label: 'Factura', field: 'numeroFactura', align: 'left' as const },
+  { name: 'estado', label: 'Estado', field: 'estado', align: 'center' as const },
+  { name: 'total', label: 'Total', field: 'total', align: 'right' as const, format: (val: number) => formatCurrency(val) }
+];
+
+const finTercerosRows = computed<FinTercerosRow[]>(() => {
+  const rows: FinTercerosRow[] = [];
+  // Gastos de terceros: categoría específica
+  (gastos.value || []).forEach((g: Gasto) => {
+    if (g.categoria?.nombre === 'Compras de Terceros') {
+      rows.push({
+        id: g.id,
+        tipo: 'Gasto',
+        fecha: formatDate(g.fecha),
+        tercero: g.proveedor || '',
+        numeroFactura: g.numeroFactura || '',
+        estado: 'PAGADO',
+        total: Number(g.monto)
+      });
+    }
+  });
+  // Ingresos de terceros: tienen referencia y tipo 'venta'
+  (ingresos.value || []).forEach((i: Ingreso) => {
+    const esTerceros = (i.tipo === 'venta') && !i.salidaId && ((i.referencia || '').length > 0) && ((i.descripcion || '').toLowerCase().includes('[origen=terceros]'));
+    if (esTerceros) {
+      rows.push({
+        id: i.id,
+        tipo: 'Ingreso',
+        fecha: formatDate(i.fecha),
+        tercero: (i.descripcion || '').replace('Venta terceros', '').replace('[origen=terceros]', '').trim(),
+        numeroFactura: '',
+        estado: 'PAGADO',
+        total: Number(i.monto)
+      });
+    }
+  });
+  return rows;
+});
+
+const finTercerosRowsFiltered = computed(() => {
+  let r = finTercerosRows.value;
+  const s = finTercerosFilter.value.toLowerCase().trim();
+  if (s) {
+    r = r.filter(x => (x.tercero || '').toLowerCase().includes(s) || (x.numeroFactura || '').toLowerCase().includes(s));
+  }
+  if (finTercerosEstado.value) {
+    r = r.filter(x => x.estado === finTercerosEstado.value);
+  }
+  return r;
+});
+
+const ingresosTercerosPagados = computed(() => finTercerosRows.value.filter(r => r.tipo === 'Ingreso' && r.estado === 'PAGADO').reduce((s, r) => s + r.total, 0));
+const gastosTercerosPagados = computed(() => finTercerosRows.value.filter(r => r.tipo === 'Gasto' && r.estado === 'PAGADO').reduce((s, r) => s + r.total, 0));
+const ingresosTercerosPendientes = computed(() => finTercerosRows.value.filter(r => r.tipo === 'Ingreso' && r.estado === 'PENDIENTE').reduce((s, r) => s + r.total, 0));
+const gastosTercerosPendientes = computed(() => finTercerosRows.value.filter(r => r.tipo === 'Gasto' && r.estado === 'PENDIENTE').reduce((s, r) => s + r.total, 0));
+
+const getEstadoColor = (estado: string) => {
+  switch (estado) {
+    case 'PAGADO': return 'positive';
+    case 'PENDIENTE': return 'warning';
+    case 'PARCIAL': return 'info';
+    default: return 'grey';
+  }
+};
+
+const loadFinanzasTerceros = async () => {
+  loadingTercerosFinanzas.value = true;
+  try {
+    await Promise.all([fetchGastos(), fetchIngresos()]);
+  } finally {
+    loadingTercerosFinanzas.value = false;
+  }
+};
+
 // Lifecycle
 onMounted(async () => {
   await fetchCategorias();
@@ -1594,6 +1852,7 @@ onMounted(async () => {
   await inversionStore.loadInversionInicial();
   onPeriodoChange(); // Esto cargará los datos iniciales
   await loadComparativoMensual();
+  await loadFinanzasTerceros();
 });
 </script>
 

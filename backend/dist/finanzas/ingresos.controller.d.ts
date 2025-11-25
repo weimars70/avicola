@@ -7,10 +7,10 @@ export declare class IngresosController {
     create(createIngresoDto: CreateIngresoDto): Promise<import("./entities/ingreso.entity").Ingreso>;
     findAll(id_empresa: number): Promise<import("./entities/ingreso.entity").Ingreso[]>;
     findAllIncludingInactive(id_empresa: number): Promise<import("./entities/ingreso.entity").Ingreso[]>;
-    findByDateRange(fechaInicio: string, fechaFin: string, id_empresa: number): Promise<import("./entities/ingreso.entity").Ingreso[]>;
+    findByDateRange(id_empresa: number): Promise<import("./entities/ingreso.entity").Ingreso[]>;
     findByTipo(tipo: string, id_empresa: number): Promise<import("./entities/ingreso.entity").Ingreso[]>;
     getTotalIngresos(id_empresa: number): Promise<number>;
-    getTotalIngresosByDateRange(fechaInicio: string, fechaFin: string, id_empresa: number): Promise<number>;
+    getTotalIngresosByDateRange(id_empresa: number): Promise<number>;
     getTotalIngresosByTipo(id_empresa: number): Promise<any[]>;
     syncIngresosFromSalidas(id_empresa: number): Promise<import("./entities/ingreso.entity").Ingreso[]>;
     findOne(id: string): Promise<import("./entities/ingreso.entity").Ingreso>;

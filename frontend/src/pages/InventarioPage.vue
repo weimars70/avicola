@@ -400,14 +400,114 @@
       </q-card>
     </div>
 
+    <!-- Inventario de Terceros -->
+    <q-card class="summary-card">
+      <q-card-section class="summary-content">
+        <div class="summary-header">
+          <q-icon name="handshake" class="summary-icon" />
+          <h3 class="summary-title">Inventario de Terceros</h3>
+        </div>
+        <div class="summary-stats">
+          <div class="summary-stat">
+            <div class="summary-stat-label">Tipos de Huevo</div>
+            <div class="summary-stat-value">{{ tercerosItems.length }}</div>
+          </div>
+          <div class="summary-stat">
+            <div class="summary-stat-label">Stock Total</div>
+            <div class="summary-stat-value total-highlight">{{ tercerosTotalUnidades }}</div>
+          </div>
+        </div>
+      </q-card-section>
+    </q-card>
+
+    <q-card class="filter-card">
+      <q-card-section class="filter-section">
+        <div class="filter-content">
+          <q-input v-model="tercerosFilter" placeholder="Buscar en inventario de terceros..." class="search-input" outlined dense clearable>
+            <template v-slot:prepend>
+              <q-icon name="search" color="primary" />
+            </template>
+          </q-input>
+          <q-btn color="primary" icon="refresh" label="Actualizar" @click="loadTercerosInventario" :loading="loadingTerceros" unelevated class="refresh-btn" />
+        </div>
+      </q-card-section>
+    </q-card>
+
+    <div class="inventario-grid" v-if="filteredTercerosItems.length > 0">
+      <q-card v-for="item in filteredTercerosItems" :key="item.key" class="inventario-card">
+        <q-card-section class="inventario-header">
+          <div class="inventario-info">
+            <div class="inventario-title">
+              <q-icon name="egg" class="inventario-icon" />
+              {{ item.tipoHuevoNombre }}
+            </div>
+            <div class="inventario-description">Inventario proveniente de compras y ventas de terceros</div>
+          </div>
+          <q-badge :color="getStockColor(item.stockUnidades)" :label="getStockLabel(item.stockUnidades)" class="status-badge" />
+        </q-card-section>
+
+        <q-card-section class="inventario-content">
+          <div class="inventario-details">
+            <div class="detail-item">
+              <q-icon name="login" class="detail-icon" />
+              <div class="detail-info">
+                <div class="detail-label">Entradas (Compras)</div>
+                <div class="detail-value units-value">{{ item.entradasUnidades }}</div>
+              </div>
+            </div>
+            <div class="detail-item">
+              <q-icon name="logout" class="detail-icon" />
+              <div class="detail-info">
+                <div class="detail-label">Salidas (Ventas)</div>
+                <div class="detail-value units-value">{{ item.salidasUnidades }}</div>
+              </div>
+            </div>
+            <div class="detail-item">
+              <q-icon name="inventory_2" class="detail-icon" />
+              <div class="detail-info">
+                <div class="detail-label">Stock Actual</div>
+                <div class="detail-value units-value">{{ item.stockUnidades }}</div>
+              </div>
+            </div>
+            <div class="detail-item">
+              <q-icon name="attach_money" class="detail-icon" />
+              <div class="detail-info">
+                <div class="detail-label">Valor Total</div>
+                <div class="detail-value total-value">${{ formatCurrency(item.valorTotal) }}</div>
+              </div>
+            </div>
+          </div>
+        </q-card-section>
+
+        <q-card-section class="inventario-stats">
+          <div class="stats-grid">
+            <div class="stat-item">
+              <div class="stat-label">Valor Unitario Promedio</div>
+              <div class="stat-value">${{ formatCurrency(item.valorUnitarioPromedio) }}</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-label">% del Total de Terceros</div>
+              <div class="stat-value">{{ tercerosTotalValor === 0 ? '0' : ((item.valorTotal / tercerosTotalValor) * 100).toFixed(1) }}%</div>
+            </div>
+          </div>
+        </q-card-section>
+      </q-card>
+    </div>
+
+    <div v-else class="empty-state">
+      <q-icon name="group" size="4rem" color="grey-4" />
+      <h3 class="empty-title">No hay inventario de terceros</h3>
+      <p class="empty-subtitle">Aún no hay datos de compras/ventas de terceros</p>
+    </div>
+
     <!-- Modal de Ajuste de Inventario -->
-    <AjusteInventarioModal
+      <AjusteInventarioModal
       v-model="showAjusteModal"
       :inventario="inventario"
       :edit-mode="modalEditMode"
       :lote-data="loteParaEditar"
       @ajuste-realizado="onAjusteRealizado"
-    />
+      />
   </q-page>
 </template>
 
@@ -417,6 +517,10 @@ import { api } from 'src/boot/axios';
 import { useQuasar } from 'quasar';
 import { useAjustesInventarioStore } from 'src/stores/ajustesInventario';
 import AjusteInventarioModal from 'src/components/AjusteInventarioModal.vue';
+import { useComprasTercerosStore } from 'src/stores/compras-terceros';
+import { useVentasTercerosStore } from 'src/stores/ventas-terceros';
+import { useCanastasStore } from 'src/stores/canastas';
+import { useTiposHuevoStore } from 'src/stores/tipos-huevo';
 
 interface TipoHuevo {
   id: string;
@@ -492,6 +596,12 @@ const filter = ref('');
 const showAjusteModal = ref(false);
 const modalEditMode = ref(false);
 const loteParaEditar = ref<AjusteLote | null>(null);
+const comprasStore = useComprasTercerosStore();
+const ventasStore = useVentasTercerosStore();
+const canastasStore = useCanastasStore();
+const tiposHuevoStore = useTiposHuevoStore();
+const loadingTerceros = ref(false);
+const tercerosFilter = ref('');
 
 
 
@@ -605,6 +715,105 @@ const loadHistorialAjustes = async () => {
   }
 };
 
+const unidadesPorCanasta = (canastaId?: string): number => {
+  if (!canastaId) return 1;
+  const c = canastasStore.canastas.find(x => x.id === canastaId);
+  return c ? Number(c.unidadesPorCanasta || 1) : 1;
+};
+
+const valorUnitarioDesdeCanasta = (canastaId?: string): number => {
+  if (!canastaId) return 0;
+  const c = canastasStore.canastas.find(x => x.id === canastaId);
+  if (!c) return 0;
+  const u = Number(c.unidadesPorCanasta || 1);
+  const v = Number(c.valorCanasta || 0);
+  return u > 0 ? v / u : 0;
+};
+
+const canastasSafeFetch = async () => {
+  if (canastasStore.canastas.length === 0) {
+    await canastasStore.fetchCanastas();
+  }
+};
+
+const tiposHuevoSafeFetch = async () => {
+  if (tiposHuevoStore.tiposHuevo.length === 0) {
+    await tiposHuevoStore.fetchTiposHuevo();
+  }
+};
+
+const loadTercerosInventario = async () => {
+  loadingTerceros.value = true;
+  try {
+    await Promise.all([
+      comprasStore.fetchCompras(),
+      ventasStore.fetchVentas(),
+      canastasSafeFetch(),
+      tiposHuevoSafeFetch()
+    ]);
+  } finally {
+    loadingTerceros.value = false;
+  }
+};
+
+interface TercerosItemAgg {
+  key: string;
+  tipoHuevoId: string | null;
+  tipoHuevoNombre: string;
+  entradasUnidades: number;
+  salidasUnidades: number;
+  stockUnidades: number;
+  valorUnitarioPromedio: number;
+  valorTotal: number;
+}
+
+const tercerosItemsRaw = computed<TercerosItemAgg[]>(() => {
+  const map = new Map<string, TercerosItemAgg>();
+
+  comprasStore.compras.forEach(c => {
+    (c.detalles || []).forEach(d => {
+      const tipoNombre = d.tipoHuevoId ? (tiposHuevoStore.tiposHuevo.find(t => t.id === d.tipoHuevoId)?.nombre || 'Tipo Huevo') : (d.canastaId ? (canastasStore.canastas.find(x => x.id === d.canastaId)?.tipoHuevo?.nombre || 'Canasta') : 'General');
+      const tipoId = d.tipoHuevoId || (canastasStore.canastas.find(x => x.id === d.canastaId)?.tipoHuevoId) || null;
+      const key = `${tipoId || tipoNombre}`;
+      const unidades = d.canastaId ? Number(d.cantidad) * unidadesPorCanasta(d.canastaId) : Number(d.cantidad);
+      const valorUnit = d.canastaId ? valorUnitarioDesdeCanasta(d.canastaId) : Number(d.precioUnitario || 0);
+      const item = map.get(key) || { key, tipoHuevoId: tipoId, tipoHuevoNombre: tipoNombre, entradasUnidades: 0, salidasUnidades: 0, stockUnidades: 0, valorUnitarioPromedio: 0, valorTotal: 0 };
+      item.entradasUnidades += unidades;
+      item.stockUnidades += unidades;
+      const prevUnits = item.stockUnidades - unidades;
+      item.valorUnitarioPromedio = prevUnits + unidades > 0 ? ((item.valorUnitarioPromedio * prevUnits) + (valorUnit * unidades)) / (prevUnits + unidades) : valorUnit;
+      item.valorTotal = item.stockUnidades * item.valorUnitarioPromedio;
+      map.set(key, item);
+    });
+  });
+
+  ventasStore.ventas.forEach(v => {
+    (v.detalles || []).forEach(d => {
+      const can = canastasStore.canastas.find(x => x.id === d.canastaId);
+      const tipoNombre = can?.tipoHuevo?.nombre || 'Canasta';
+      const tipoId = can?.tipoHuevoId || null;
+      const key = `${tipoId || tipoNombre}`;
+      const unidades = Number(d.cantidad) * unidadesPorCanasta(d.canastaId);
+      const item = map.get(key) || { key, tipoHuevoId: tipoId, tipoHuevoNombre: tipoNombre, entradasUnidades: 0, salidasUnidades: 0, stockUnidades: 0, valorUnitarioPromedio: valorUnitarioDesdeCanasta(d.canastaId), valorTotal: 0 };
+      item.salidasUnidades += unidades;
+      item.stockUnidades -= unidades;
+      item.valorTotal = Math.max(0, item.stockUnidades) * item.valorUnitarioPromedio;
+      map.set(key, item);
+    });
+  });
+
+  return Array.from(map.values());
+});
+
+const tercerosItems = computed(() => tercerosItemsRaw.value);
+const filteredTercerosItems = computed(() => {
+  if (!tercerosFilter.value) return tercerosItems.value;
+  const s = tercerosFilter.value.toLowerCase();
+  return tercerosItems.value.filter(i => i.tipoHuevoNombre.toLowerCase().includes(s));
+});
+const tercerosTotalUnidades = computed(() => tercerosItems.value.reduce((sum, i) => sum + Math.max(0, i.stockUnidades), 0));
+const tercerosTotalValor = computed(() => tercerosItems.value.reduce((sum, i) => sum + Math.max(0, i.valorTotal), 0));
+
 const formatFecha = (fecha: string): string => {
   return new Date(fecha).toLocaleString('es-CO', {
     year: 'numeric',
@@ -664,6 +873,7 @@ const editarLote = (lote: LoteHistorial) => {
 onMounted(() => {
   void loadInventario();
   void loadHistorialAjustes();
+  void loadTercerosInventario();
 });
 </script>
 

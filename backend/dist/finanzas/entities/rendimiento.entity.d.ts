@@ -9,6 +9,7 @@ export declare class Rendimiento {
     periodo: string;
     observaciones: string;
     activo: boolean;
+    id_empresa: number;
     createdAt: Date;
     updatedAt: Date;
 }

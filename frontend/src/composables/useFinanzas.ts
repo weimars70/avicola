@@ -93,6 +93,7 @@ export interface Ingreso {
   descripcion: string;
   observaciones?: string;
   tipo: string;
+  referencia?: string;
   activo: boolean;
   salida?: Salida;
   salidaId?: string;

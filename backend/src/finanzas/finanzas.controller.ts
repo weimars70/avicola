@@ -25,6 +25,7 @@ export class FinanzasController {
     @IdEmpresaHeader() id_empresa_num: number,
     @Query('fechaInicio') fechaInicio?: string,
     @Query('fechaFin') fechaFin?: string,
+    @Query('origen') origen?: string,
   ) {
     let totalIngresos: number;
     let totalGastos: number;
@@ -33,21 +34,31 @@ export class FinanzasController {
     let gastosPorCategoria: any[];
     let ingresosPorTipo: any[];
 
-    if (fechaInicio && fechaFin) {
-      totalIngresos = await this.ingresosService.getTotalIngresosByDateRange(fechaInicio, fechaFin, id_empresa_num);
-      totalGastos = await this.gastosService.getTotalGastosByDateRange(fechaInicio, fechaFin, id_empresa_num);
-      totalGastosOperativos = await this.gastosService.getTotalGastosByDateRangeExcluyendoInversion(fechaInicio, fechaFin, id_empresa_num);
+    const esTerceros = origen && origen.toLowerCase() === 'terceros';
+
+    if (esTerceros) {
+      const ingresosTerceros = await this.getTotalIngresosTerceros(fechaInicio, fechaFin, id_empresa_num);
+      const gastosTerceros = await this.getTotalGastosTerceros(fechaInicio, fechaFin, id_empresa_num);
+      totalIngresos = ingresosTerceros;
+      totalGastos = gastosTerceros;
+      totalGastosOperativos = gastosTerceros; // Para terceros, no se separa inversión
     } else {
-      totalIngresos = await this.ingresosService.getTotalIngresos(id_empresa_num);
-      totalGastos = await this.gastosService.getTotalGastos(id_empresa_num);
-      totalGastosOperativos = await this.gastosService.getTotalGastosExcluyendoInversion(id_empresa_num);
+      if (fechaInicio && fechaFin) {
+        totalIngresos = await this.ingresosService.getTotalIngresosByDateRange(fechaInicio, fechaFin, id_empresa_num);
+        totalGastos = await this.gastosService.getTotalGastosByDateRange(fechaInicio, fechaFin, id_empresa_num);
+        totalGastosOperativos = await this.gastosService.getTotalGastosByDateRangeExcluyendoInversion(fechaInicio, fechaFin, id_empresa_num);
+      } else {
+        totalIngresos = await this.ingresosService.getTotalIngresos(id_empresa_num);
+        totalGastos = await this.gastosService.getTotalGastos(id_empresa_num);
+        totalGastosOperativos = await this.gastosService.getTotalGastosExcluyendoInversion(id_empresa_num);
+      }
     }
 
     // Obtener inversión inicial total (no por rango de fechas)
     totalInversionInicial = await this.gastosService.getTotalInversionInicial(id_empresa_num);
     
-    gastosPorCategoria = await this.gastosService.getTotalGastosByCategoria(id_empresa_num);
-    ingresosPorTipo = await this.ingresosService.getTotalIngresosByTipo(id_empresa_num);
+    gastosPorCategoria = esTerceros ? [] : await this.gastosService.getTotalGastosByCategoria(id_empresa_num);
+    ingresosPorTipo = esTerceros ? [] : await this.ingresosService.getTotalIngresosByTipo(id_empresa_num);
     
     // Cálculos financieros
     const utilidadOperativa = totalIngresos - totalGastosOperativos;
@@ -70,6 +81,7 @@ export class FinanzasController {
         fechaInicio,
         fechaFin
       } : null
+      , origen: esTerceros ? 'terceros' : 'general'
     };
   }
 
@@ -222,6 +234,41 @@ export class FinanzasController {
     const fin = new Date(fechaFin);
     const diasDiferencia = Math.ceil((fin.getTime() - inicio.getTime()) / (1000 * 60 * 60 * 24)) + 1;
     return diasDiferencia > 0 ? totalIngresos / diasDiferencia : 0;
+  }
+
+  // Helpers para terceros
+  private async getTotalIngresosTerceros(fechaInicio: string | undefined, fechaFin: string | undefined, id_empresa: number): Promise<number> {
+    // Ingresos de terceros se identifican por descripción "Venta terceros" creada desde ventas-terceros
+    try {
+      const ingresos = await this.ingresosService.findAllIncludingInactive(id_empresa);
+      const terceros = ingresos.filter(i => (i.tipo === 'venta') && !i.salidaId && (i.referencia || '').length > 0 && (i.descripcion || '').toLowerCase().startsWith('venta terceros'));
+      if (fechaInicio && fechaFin) {
+        const fi = new Date(fechaInicio);
+        const ff = new Date(fechaFin);
+        return terceros.filter(i => {
+          const d = new Date(i.fecha);
+          return d >= fi && d <= ff;
+        }).reduce((s, i) => s + Number(i.monto), 0);
+      }
+      return terceros.reduce((s, i) => s + Number(i.monto), 0);
+    } catch {
+      return 0;
+    }
+  }
+
+  private async getTotalGastosTerceros(fechaInicio: string | undefined, fechaFin: string | undefined, id_empresa: number): Promise<number> {
+    // Gastos de terceros se basan en categoría "Compras de Terceros"
+    const gastos = await this.gastosService.findAll(id_empresa);
+    const terceros = gastos.filter(g => g.categoria?.nombre === 'Compras de Terceros');
+    if (fechaInicio && fechaFin) {
+      const fi = new Date(fechaInicio);
+      const ff = new Date(fechaFin);
+      return terceros.filter(g => {
+        const d = new Date(g.fecha);
+        return d >= fi && d <= ff;
+      }).reduce((s, g) => s + Number(g.monto), 0);
+    }
+    return terceros.reduce((s, g) => s + Number(g.monto), 0);
   }
 
   @Post('inversion-inicial')

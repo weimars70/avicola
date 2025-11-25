@@ -21,6 +21,7 @@ const tipos_huevo_service_1 = require("../tipos-huevo/tipos-huevo.service");
 const canastas_service_1 = require("../canastas/canastas.service");
 const inventario_stock_service_1 = require("../inventario/inventario-stock.service");
 const ingresos_service_1 = require("../finanzas/ingresos.service");
+const ingreso_entity_1 = require("../finanzas/entities/ingreso.entity");
 let SalidasService = class SalidasService {
     constructor(salidasRepository, tiposHuevoService, canastasService, inventarioStockService, ingresosService, dataSource) {
         this.salidasRepository = salidasRepository;
@@ -38,19 +39,26 @@ let SalidasService = class SalidasService {
             canasta = await this.canastasService.findOne(createSalidaDto.canastaId, id_empresa);
             unidadesTotales = createSalidaDto.unidades * canasta.unidadesPorCanasta;
         }
-        await this.inventarioStockService.reducirInventario(createSalidaDto.tipoHuevoId, unidadesTotales);
+        await this.inventarioStockService.reducirInventario(createSalidaDto.tipoHuevoId, unidadesTotales, id_empresa);
         const fechaFinal = createSalidaDto.fecha || new Date().toISOString().split('T')[0];
-        const salida = this.salidasRepository.create(Object.assign(Object.assign({}, createSalidaDto), { fecha: fechaFinal }));
+        let monto = 0;
+        let descripcion = '';
+        if (typeof createSalidaDto.valor === 'number' && createSalidaDto.valor > 0) {
+            monto = createSalidaDto.valor;
+        }
+        else if (canasta) {
+            monto = createSalidaDto.unidades * canasta.valorCanasta;
+        }
+        else {
+            monto = createSalidaDto.unidades * tipoHuevo.valorUnidad;
+        }
+        const salida = this.salidasRepository.create(Object.assign(Object.assign({}, createSalidaDto), { fecha: fechaFinal, valor: monto }));
         const savedSalida = await this.salidasRepository.save(salida);
         try {
-            let monto = 0;
-            let descripcion = '';
-            if (canasta) {
-                monto = createSalidaDto.unidades * canasta.valorCanasta;
-                descripcion = `Venta de ${createSalidaDto.unidades} ${canasta.nombre} de ${tipoHuevo.nombre}`;
-            }
-            else {
-                monto = createSalidaDto.valor || (createSalidaDto.unidades * tipoHuevo.valorUnidad);
+            if (!descripcion) {
+                descripcion = canasta
+                    ? `Venta de ${createSalidaDto.unidades} ${canasta.nombre} de ${tipoHuevo.nombre}`
+                    : `Venta de ${createSalidaDto.unidades} unidades de ${tipoHuevo.nombre}`;
             }
             await this.ingresosService.create({
                 monto,
@@ -59,6 +67,8 @@ let SalidasService = class SalidasService {
                 observaciones: `Generado automáticamente desde salida ${savedSalida.id}`,
                 tipo: 'venta',
                 salidaId: savedSalida.id,
+                id_empresa: id_empresa,
+                id_usuario_inserta: createSalidaDto.id_usuario_inserta,
             });
         }
         catch (error) {
@@ -117,14 +127,15 @@ let SalidasService = class SalidasService {
         Object.assign(salida, updateSalidaDto);
         const salidaActualizada = await this.salidasRepository.save(salida);
         try {
-            const ingresos = await this.dataSource.getRepository('ingresos').find({
-                where: { salidaId: id }
+            const ingresosRepo = this.dataSource.getRepository(ingreso_entity_1.Ingreso);
+            const ingresos = await ingresosRepo.find({
+                where: { salidaId: id, id_empresa }
             });
             if (ingresos && ingresos.length > 0) {
                 const ingreso = ingresos[0];
-                await this.dataSource.getRepository('ingresos').update({ id: ingreso.id }, {
+                await ingresosRepo.update({ id: ingreso.id }, {
                     monto: salidaActualizada.valor,
-                    descripcion: `Venta de ${salidaActualizada.unidades} unidades de ${((_a = salidaActualizada.tipoHuevo) === null || _a === void 0 ? void 0 : _a.nombre) || 'huevos'}`
+                    descripcion: `Venta de ${salidaActualizada.unidades} unidades de ${((_a = salidaActualizada.tipoHuevo) === null || _a === void 0 ? void 0 : _a.nombre) || 'huevos'}`,
                 });
             }
         }

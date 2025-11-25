@@ -30,13 +30,15 @@ const galpones_module_1 = require("../galpones/galpones.module");
 const entradas_produccion_module_1 = require("../entradas-produccion/entradas-produccion.module");
 const inventario_module_1 = require("../inventario/inventario.module");
 const tipos_huevo_module_1 = require("../tipos-huevo/tipos-huevo.module");
+const compra_entity_1 = require("../compras-terceros/entities/compra.entity");
+const venta_entity_1 = require("../ventas-terceros/entities/venta.entity");
 let FinanzasModule = class FinanzasModule {
 };
 exports.FinanzasModule = FinanzasModule;
 exports.FinanzasModule = FinanzasModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            typeorm_1.TypeOrmModule.forFeature([categoria_gasto_entity_1.CategoriaGasto, gasto_entity_1.Gasto, ingreso_entity_1.Ingreso, rendimiento_entity_1.Rendimiento]),
+            typeorm_1.TypeOrmModule.forFeature([categoria_gasto_entity_1.CategoriaGasto, gasto_entity_1.Gasto, ingreso_entity_1.Ingreso, rendimiento_entity_1.Rendimiento, compra_entity_1.Compra, venta_entity_1.Venta]),
             (0, common_1.forwardRef)(() => salidas_module_1.SalidasModule),
             galpones_module_1.GalponesModule,
             entradas_produccion_module_1.EntradasProduccionModule,

@@ -42,8 +42,8 @@ let GastosService = class GastosService {
         let montoTotal = 0;
         let descripcionDetallada = createConsumoPropioDto.descripcion + ' - ';
         for (const huevoConsumido of createConsumoPropioDto.huevosConsumidos) {
-            const tipoHuevo = await this.tiposHuevoService.findOne(huevoConsumido.tipoHuevoId);
-            await this.inventarioStockService.reducirStock(huevoConsumido.tipoHuevoId, huevoConsumido.unidades);
+            const tipoHuevo = await this.tiposHuevoService.findOne(huevoConsumido.tipoHuevoId, createConsumoPropioDto.id_empresa);
+            await this.inventarioStockService.reducirStock(huevoConsumido.tipoHuevoId, huevoConsumido.unidades, createConsumoPropioDto.id_empresa);
             const valorHuevos = tipoHuevo.valorUnidad * huevoConsumido.unidades;
             montoTotal += valorHuevos;
             descripcionDetallada += `${huevoConsumido.unidades} ${tipoHuevo.nombre} ($${tipoHuevo.valorUnidad} c/u), `;
@@ -56,6 +56,8 @@ let GastosService = class GastosService {
             observaciones: createConsumoPropioDto.observaciones,
             categoriaId: categoriaConsumoPropio.id,
             activo: (_a = createConsumoPropioDto.activo) !== null && _a !== void 0 ? _a : true,
+            id_empresa: createConsumoPropioDto.id_empresa,
+            id_usuario_inserta: createConsumoPropioDto.id_usuario_inserta
         });
         return await this.gastosRepository.save(gasto);
     }
@@ -214,7 +216,7 @@ let GastosService = class GastosService {
             .getRawMany();
         return result;
     }
-    async createOrUpdateInversionInicial(montoTotal, fechaInicio, metaRecuperacion) {
+    async createOrUpdateInversionInicial(montoTotal, fechaInicio, metaRecuperacion, id_empresa, id_usuario_inserta) {
         let categoria;
         try {
             const categorias = await this.categoriasGastosService.findAll();
@@ -236,6 +238,7 @@ let GastosService = class GastosService {
             .where('categoria.nombre = :nombre', { nombre: 'Inversión Inicial' })
             .andWhere('gasto.activo = :activo', { activo: true })
             .andWhere('gasto.categoriaId = :categoriaId', { categoriaId: categoria.id })
+            .andWhere('gasto.id_empresa = :id_empresa', { id_empresa })
             .getOne();
         if (inversionExistente) {
             inversionExistente.monto = montoTotal;
@@ -251,7 +254,9 @@ let GastosService = class GastosService {
                 fecha: new Date(fechaInicio),
                 categoriaId: categoria.id,
                 observaciones: metaRecuperacion ? `Meta de recuperación: ${metaRecuperacion} meses` : undefined,
-                activo: true
+                activo: true,
+                id_empresa,
+                id_usuario_inserta
             });
             return await this.gastosRepository.save(nuevaInversion);
         }

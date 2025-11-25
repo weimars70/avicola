@@ -4,4 +4,5 @@ export declare class CreateEntradaProduccionDto {
     tipoHuevoId: string;
     unidades: number;
     id_empresa: number;
+    id_usuario_inserta?: string;
 }

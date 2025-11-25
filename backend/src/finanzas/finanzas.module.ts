@@ -21,10 +21,12 @@ import { GalponesModule } from '../galpones/galpones.module';
 import { EntradasProduccionModule } from '../entradas-produccion/entradas-produccion.module';
 import { InventarioModule } from '../inventario/inventario.module';
 import { TiposHuevoModule } from '../tipos-huevo/tipos-huevo.module';
+import { Compra } from '../compras-terceros/entities/compra.entity';
+import { Venta } from '../ventas-terceros/entities/venta.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([CategoriaGasto, Gasto, Ingreso, Rendimiento]),
+    TypeOrmModule.forFeature([CategoriaGasto, Gasto, Ingreso, Rendimiento, Compra, Venta]),
     forwardRef(() => SalidasModule),
     GalponesModule,
     EntradasProduccionModule,

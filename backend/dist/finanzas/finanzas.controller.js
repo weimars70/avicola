@@ -21,6 +21,7 @@ const galpones_service_1 = require("../galpones/galpones.service");
 const entradas_produccion_service_1 = require("../entradas-produccion/entradas-produccion.service");
 const salidas_service_1 = require("../salidas/salidas.service");
 const resumen_service_2 = require("../inventario/resumen.service");
+const empresa_decorator_1 = require("../terceros/decorators/empresa.decorator");
 let FinanzasController = class FinanzasController {
     constructor(gastosService, ingresosService, resumenService, galponesService, entradasProduccionService, salidasService, inventarioResumenService) {
         this.gastosService = gastosService;
@@ -31,30 +32,36 @@ let FinanzasController = class FinanzasController {
         this.salidasService = salidasService;
         this.inventarioResumenService = inventarioResumenService;
     }
-    async getResumenFinanciero(fechaInicio, fechaFin, id_empresa) {
-        if (!id_empresa) {
-            throw new Error('No hay empresa asociada al usuario logueado');
-        }
-        const id_empresa_num = parseInt(id_empresa);
+    async getResumenFinanciero(id_empresa_num, fechaInicio, fechaFin, origen) {
         let totalIngresos;
         let totalGastos;
         let totalGastosOperativos;
         let totalInversionInicial;
         let gastosPorCategoria;
         let ingresosPorTipo;
-        if (fechaInicio && fechaFin) {
-            totalIngresos = await this.ingresosService.getTotalIngresosByDateRange(fechaInicio, fechaFin, id_empresa_num);
-            totalGastos = await this.gastosService.getTotalGastosByDateRange(fechaInicio, fechaFin, id_empresa_num);
-            totalGastosOperativos = await this.gastosService.getTotalGastosByDateRangeExcluyendoInversion(fechaInicio, fechaFin, id_empresa_num);
+        const esTerceros = origen && origen.toLowerCase() === 'terceros';
+        if (esTerceros) {
+            const ingresosTerceros = await this.getTotalIngresosTerceros(fechaInicio, fechaFin, id_empresa_num);
+            const gastosTerceros = await this.getTotalGastosTerceros(fechaInicio, fechaFin, id_empresa_num);
+            totalIngresos = ingresosTerceros;
+            totalGastos = gastosTerceros;
+            totalGastosOperativos = gastosTerceros;
         }
         else {
-            totalIngresos = await this.ingresosService.getTotalIngresos(id_empresa_num);
-            totalGastos = await this.gastosService.getTotalGastos(id_empresa_num);
-            totalGastosOperativos = await this.gastosService.getTotalGastosExcluyendoInversion(id_empresa_num);
+            if (fechaInicio && fechaFin) {
+                totalIngresos = await this.ingresosService.getTotalIngresosByDateRange(fechaInicio, fechaFin, id_empresa_num);
+                totalGastos = await this.gastosService.getTotalGastosByDateRange(fechaInicio, fechaFin, id_empresa_num);
+                totalGastosOperativos = await this.gastosService.getTotalGastosByDateRangeExcluyendoInversion(fechaInicio, fechaFin, id_empresa_num);
+            }
+            else {
+                totalIngresos = await this.ingresosService.getTotalIngresos(id_empresa_num);
+                totalGastos = await this.gastosService.getTotalGastos(id_empresa_num);
+                totalGastosOperativos = await this.gastosService.getTotalGastosExcluyendoInversion(id_empresa_num);
+            }
         }
         totalInversionInicial = await this.gastosService.getTotalInversionInicial(id_empresa_num);
-        gastosPorCategoria = await this.gastosService.getTotalGastosByCategoria(id_empresa_num);
-        ingresosPorTipo = await this.ingresosService.getTotalIngresosByTipo(id_empresa_num);
+        gastosPorCategoria = esTerceros ? [] : await this.gastosService.getTotalGastosByCategoria(id_empresa_num);
+        ingresosPorTipo = esTerceros ? [] : await this.ingresosService.getTotalIngresosByTipo(id_empresa_num);
         const utilidadOperativa = totalIngresos - totalGastosOperativos;
         const utilidadNeta = totalIngresos - totalGastos;
         const margenUtilidad = totalIngresos > 0 ? (utilidadOperativa / totalIngresos) * 100 : 0;
@@ -73,12 +80,12 @@ let FinanzasController = class FinanzasController {
             periodo: fechaInicio && fechaFin ? {
                 fechaInicio,
                 fechaFin
-            } : null
+            } : null,
+            origen: esTerceros ? 'terceros' : 'general'
         };
     }
-    async getComparativoMensual(anio, id_empresa) {
+    async getComparativoMensual(id_empresa_num, anio) {
         try {
-            const id_empresa_num = id_empresa ? parseInt(id_empresa) : 1;
             const anioActual = anio ? parseInt(anio) : new Date().getFullYear();
             const totalInversionInicial = await this.gastosService.getTotalInversionInicial(id_empresa_num);
             const meses = [];
@@ -116,8 +123,8 @@ let FinanzasController = class FinanzasController {
             throw error;
         }
     }
-    async getKPIsFinancieros(fechaInicio, fechaFin, id_empresa) {
-        const resumen = await this.getResumenFinanciero(fechaInicio, fechaFin, id_empresa);
+    async getKPIsFinancieros(id_empresa_num, fechaInicio, fechaFin) {
+        const resumen = await this.getResumenFinanciero(id_empresa_num, fechaInicio, fechaFin);
         const promedioGastoDiario = fechaInicio && fechaFin ?
             this.calcularPromedioGastoDiario(resumen.totalGastos, fechaInicio, fechaFin) : 0;
         const promedioIngresoDiario = fechaInicio && fechaFin ?
@@ -125,12 +132,8 @@ let FinanzasController = class FinanzasController {
         return Object.assign(Object.assign({}, resumen), { promedioGastoDiario: parseFloat(promedioGastoDiario.toFixed(2)), promedioIngresoDiario: parseFloat(promedioIngresoDiario.toFixed(2)), ratioIngresoGasto: resumen.totalGastos > 0 ?
                 parseFloat((resumen.totalIngresos / resumen.totalGastos).toFixed(2)) : 0 });
     }
-    async getDashboardKpis(id_empresa) {
+    async getDashboardKpis(id_empresa_num) {
         try {
-            if (!id_empresa) {
-                throw new Error('No hay empresa asociada al usuario logueado');
-            }
-            const id_empresa_num = parseInt(id_empresa);
             const now = new Date();
             const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
             const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
@@ -140,17 +143,16 @@ let FinanzasController = class FinanzasController {
             const produccionTotal = entradasDelMes.reduce((total, entrada) => total + entrada.unidades, 0);
             const ingresosDelMes = await this.ingresosService.getTotalIngresosByDateRange(fechaInicio, fechaFin, id_empresa_num);
             const resumenInventario = await this.inventarioResumenService.getInventarioResumen(null, null, id_empresa_num);
-            console.log('Estructura de resumenInventario:', JSON.stringify(resumenInventario, null, 2));
             const inventarioActual = Object.values(resumenInventario)
                 .filter((item) => item.tipoHuevo && item.tipoHuevo.id_empresa === id_empresa_num)
                 .reduce((total, item) => {
-                console.log('Item de inventario filtrado:', item);
                 return total + (item.stockActual || 0);
             }, 0);
             const galpones = await this.galponesService.findAll(id_empresa_num);
             const galponesActivos = galpones.filter(g => g.activo).length;
             const totalGalpones = galpones.length;
-            const gallinasTotal = galpones.reduce((total, galpon) => total + (galpon.capacidad || 0), 0);
+            const gallinasTotal = galpones
+                .reduce((total, galpon) => total + (galpon.capacidad || 0), 0);
             const gallinasActivas = galpones
                 .filter(g => g.activo)
                 .reduce((total, galpon) => total + (galpon.capacidad || 0), 0);
@@ -181,9 +183,43 @@ let FinanzasController = class FinanzasController {
         const diasDiferencia = Math.ceil((fin.getTime() - inicio.getTime()) / (1000 * 60 * 60 * 24)) + 1;
         return diasDiferencia > 0 ? totalIngresos / diasDiferencia : 0;
     }
-    async setInversionInicial(inversionData) {
+    async getTotalIngresosTerceros(fechaInicio, fechaFin, id_empresa) {
         try {
-            const resultado = await this.gastosService.createOrUpdateInversionInicial(inversionData.montoTotal, inversionData.fechaInicio, inversionData.metaRecuperacion);
+            const ingresos = await this.ingresosService.findAllIncludingInactive(id_empresa);
+            const terceros = ingresos.filter(i => (i.tipo === 'venta') && !i.salidaId && (i.referencia || '').length > 0 && (i.descripcion || '').toLowerCase().startsWith('venta terceros'));
+            if (fechaInicio && fechaFin) {
+                const fi = new Date(fechaInicio);
+                const ff = new Date(fechaFin);
+                return terceros.filter(i => {
+                    const d = new Date(i.fecha);
+                    return d >= fi && d <= ff;
+                }).reduce((s, i) => s + Number(i.monto), 0);
+            }
+            return terceros.reduce((s, i) => s + Number(i.monto), 0);
+        }
+        catch (_a) {
+            return 0;
+        }
+    }
+    async getTotalGastosTerceros(fechaInicio, fechaFin, id_empresa) {
+        const gastos = await this.gastosService.findAll(id_empresa);
+        const terceros = gastos.filter(g => { var _a; return ((_a = g.categoria) === null || _a === void 0 ? void 0 : _a.nombre) === 'Compras de Terceros'; });
+        if (fechaInicio && fechaFin) {
+            const fi = new Date(fechaInicio);
+            const ff = new Date(fechaFin);
+            return terceros.filter(g => {
+                const d = new Date(g.fecha);
+                return d >= fi && d <= ff;
+            }).reduce((s, g) => s + Number(g.monto), 0);
+        }
+        return terceros.reduce((s, g) => s + Number(g.monto), 0);
+    }
+    async setInversionInicial(inversionData, id_empresa, id_usuario_inserta) {
+        try {
+            if (!id_empresa || !id_usuario_inserta) {
+                throw new common_1.BadRequestException('id_empresa e id_usuario_inserta son obligatorios');
+            }
+            const resultado = await this.gastosService.createOrUpdateInversionInicial(inversionData.montoTotal, inversionData.fechaInicio, inversionData.metaRecuperacion, id_empresa, id_usuario_inserta);
             return {
                 success: true,
                 message: 'Inversión inicial registrada exitosamente',
@@ -195,7 +231,7 @@ let FinanzasController = class FinanzasController {
             throw error;
         }
     }
-    async getDatosDiarios(fechaInicio, fechaFin, id_empresa) {
+    async getDatosDiarios(id_empresa_num, fechaInicio, fechaFin) {
         try {
             let inicio = fechaInicio;
             let fin = fechaFin;
@@ -206,7 +242,6 @@ let FinanzasController = class FinanzasController {
                 inicio = hace7Dias.toISOString().split('T')[0];
                 fin = ahora.toISOString().split('T')[0];
             }
-            const id_empresa_num = id_empresa ? parseInt(id_empresa) : 1;
             const ingresosDiarios = await this.ingresosService.getIngresosDiarios(inicio, fin, id_empresa_num);
             const produccionDiaria = await this.entradasProduccionService.getProduccionDiaria(inicio, fin, id_empresa_num);
             const salidasDiarias = await this.salidasService.getSalidasDiarias(inicio, fin, id_empresa_num);
@@ -259,51 +294,54 @@ let FinanzasController = class FinanzasController {
 exports.FinanzasController = FinanzasController;
 __decorate([
     (0, common_1.Get)('resumen'),
-    __param(0, (0, common_1.Query)('fechaInicio')),
-    __param(1, (0, common_1.Query)('fechaFin')),
-    __param(2, (0, common_1.Query)('id_empresa')),
+    __param(0, (0, empresa_decorator_1.IdEmpresaHeader)()),
+    __param(1, (0, common_1.Query)('fechaInicio')),
+    __param(2, (0, common_1.Query)('fechaFin')),
+    __param(3, (0, common_1.Query)('origen')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, String]),
+    __metadata("design:paramtypes", [Number, String, String, String]),
     __metadata("design:returntype", Promise)
 ], FinanzasController.prototype, "getResumenFinanciero", null);
 __decorate([
     (0, common_1.Get)('comparativo-mensual'),
-    __param(0, (0, common_1.Query)('anio')),
-    __param(1, (0, common_1.Query)('id_empresa')),
+    __param(0, (0, empresa_decorator_1.IdEmpresaHeader)()),
+    __param(1, (0, common_1.Query)('anio')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:paramtypes", [Number, String]),
     __metadata("design:returntype", Promise)
 ], FinanzasController.prototype, "getComparativoMensual", null);
 __decorate([
     (0, common_1.Get)('kpis'),
-    __param(0, (0, common_1.Query)('fechaInicio')),
-    __param(1, (0, common_1.Query)('fechaFin')),
-    __param(2, (0, common_1.Query)('id_empresa')),
+    __param(0, (0, empresa_decorator_1.IdEmpresaHeader)()),
+    __param(1, (0, common_1.Query)('fechaInicio')),
+    __param(2, (0, common_1.Query)('fechaFin')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, String]),
+    __metadata("design:paramtypes", [Number, String, String]),
     __metadata("design:returntype", Promise)
 ], FinanzasController.prototype, "getKPIsFinancieros", null);
 __decorate([
     (0, common_1.Get)('dashboard-kpis'),
-    __param(0, (0, common_1.Query)('id_empresa')),
+    __param(0, (0, empresa_decorator_1.IdEmpresaHeader)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", Promise)
 ], FinanzasController.prototype, "getDashboardKpis", null);
 __decorate([
     (0, common_1.Post)('inversion-inicial'),
     __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Query)('id_empresa', new common_1.ParseIntPipe())),
+    __param(2, (0, common_1.Query)('id_usuario_inserta')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [Object, Number, String]),
     __metadata("design:returntype", Promise)
 ], FinanzasController.prototype, "setInversionInicial", null);
 __decorate([
     (0, common_1.Get)('datos-diarios'),
-    __param(0, (0, common_1.Query)('fechaInicio')),
-    __param(1, (0, common_1.Query)('fechaFin')),
-    __param(2, (0, common_1.Query)('id_empresa')),
+    __param(0, (0, empresa_decorator_1.IdEmpresaHeader)()),
+    __param(1, (0, common_1.Query)('fechaInicio')),
+    __param(2, (0, common_1.Query)('fechaFin')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, String]),
+    __metadata("design:paramtypes", [Number, String, String]),
     __metadata("design:returntype", Promise)
 ], FinanzasController.prototype, "getDatosDiarios", null);
 exports.FinanzasController = FinanzasController = __decorate([

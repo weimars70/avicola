@@ -26,6 +26,8 @@ const routes: RouteRecordRaw[] = [
       { path: 'terceros', component: () => import('pages/ListadoTercerosPage.vue') },
       { path: 'terceros/formulario', component: () => import('pages/FormularioTerceroPage.vue') },
       { path: 'terceros/formulario/:id', component: () => import('pages/FormularioTerceroPage.vue') },
+      { path: 'terceros/compras', component: () => import('pages/ComprasTercerosPage.vue') },
+      { path: 'terceros/ventas', component: () => import('pages/VentasTercerosPage.vue') },
     ],
   },
 

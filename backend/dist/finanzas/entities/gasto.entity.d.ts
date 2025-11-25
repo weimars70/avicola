@@ -11,6 +11,7 @@ export declare class Gasto {
     categoria: CategoriaGasto;
     categoriaId: number;
     id_empresa: number;
+    id_usuario_inserta: string;
     createdAt: Date;
     updatedAt: Date;
 }

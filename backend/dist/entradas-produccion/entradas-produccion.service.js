@@ -32,19 +32,25 @@ let EntradasProduccionService = class EntradasProduccionService {
         if (!galpon) {
             throw new common_1.NotFoundException(`Galpón con ID ${createEntradaProduccionDto.galponId} no encontrado`);
         }
+        if (!galpon.activo) {
+            throw new common_1.BadRequestException(`No se pueden registrar entradas en el galpón "${galpon.nombre}" porque está inactivo`);
+        }
         const tipoHuevo = await this.tiposHuevoRepository.findOne({ where: { id: createEntradaProduccionDto.tipoHuevoId } });
         if (!tipoHuevo) {
             throw new common_1.NotFoundException(`Tipo de huevo con ID ${createEntradaProduccionDto.tipoHuevoId} no encontrado`);
         }
         const entradaProduccion = this.entradasProduccionRepository.create(createEntradaProduccionDto);
         const savedEntrada = await this.entradasProduccionRepository.save(entradaProduccion);
-        await this.inventarioStockService.actualizarInventario(createEntradaProduccionDto.tipoHuevoId, createEntradaProduccionDto.unidades);
+        await this.inventarioStockService.actualizarInventario(createEntradaProduccionDto.tipoHuevoId, createEntradaProduccionDto.unidades, createEntradaProduccionDto.id_empresa);
         return savedEntrada;
     }
     async createMasivas(createEntradasMasivasDto) {
         const galpon = await this.galponesRepository.findOne({ where: { id: createEntradasMasivasDto.galponId } });
         if (!galpon) {
             throw new common_1.NotFoundException(`Galpón con ID ${createEntradasMasivasDto.galponId} no encontrado`);
+        }
+        if (!galpon.activo) {
+            throw new common_1.BadRequestException(`No se pueden registrar entradas en el galpón "${galpon.nombre}" porque está inactivo`);
         }
         const tipoHuevoIds = createEntradasMasivasDto.entradas.map(entrada => entrada.tipoHuevoId);
         const tiposHuevo = await this.tiposHuevoRepository.findByIds(tipoHuevoIds);
@@ -65,7 +71,7 @@ let EntradasProduccionService = class EntradasProduccionService {
         }));
         const savedEntradas = await this.entradasProduccionRepository.save(entradasProduccion);
         for (const entrada of savedEntradas) {
-            await this.inventarioStockService.actualizarInventario(entrada.tipoHuevoId, entrada.unidades);
+            await this.inventarioStockService.actualizarInventario(entrada.tipoHuevoId, entrada.unidades, entrada.id_empresa);
         }
         return savedEntradas;
     }

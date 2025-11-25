@@ -19,14 +19,32 @@ const create_gasto_dto_1 = require("./dto/create-gasto.dto");
 const update_gasto_dto_1 = require("./dto/update-gasto.dto");
 const create_consumo_propio_dto_1 = require("./dto/create-consumo-propio.dto");
 const jwt_auth_guard_1 = require("../auth/jwt-auth.guard");
+const empresa_decorator_1 = require("../terceros/decorators/empresa.decorator");
 let GastosController = class GastosController {
     constructor(gastosService) {
         this.gastosService = gastosService;
     }
-    create(createGastoDto) {
+    create(createGastoDto, id_empresa, id_usuario_inserta, esInversionInicial) {
+        if (!id_empresa || !id_usuario_inserta) {
+            throw new common_1.BadRequestException('id_empresa e id_usuario_inserta son obligatorios');
+        }
+        createGastoDto.id_empresa = id_empresa;
+        createGastoDto.id_usuario_inserta = Array.isArray(id_usuario_inserta)
+            ? id_usuario_inserta[0]
+            : id_usuario_inserta;
+        if (esInversionInicial === 'true') {
+            return this.gastosService.createOrUpdateInversionInicial(createGastoDto.monto, createGastoDto.fecha, undefined, id_empresa, createGastoDto.id_usuario_inserta);
+        }
         return this.gastosService.create(createGastoDto);
     }
-    createConsumoPropio(createConsumoPropioDto) {
+    createConsumoPropio(createConsumoPropioDto, id_empresa, id_usuario_inserta) {
+        if (!id_empresa || !id_usuario_inserta) {
+            throw new common_1.BadRequestException('id_empresa e id_usuario_inserta son obligatorios');
+        }
+        createConsumoPropioDto.id_empresa = id_empresa;
+        createConsumoPropioDto.id_usuario_inserta = Array.isArray(id_usuario_inserta)
+            ? id_usuario_inserta[0]
+            : id_usuario_inserta;
         return this.gastosService.createConsumoPropio(createConsumoPropioDto);
     }
     findAll(id_empresa) {
@@ -85,21 +103,26 @@ __decorate([
     (0, common_1.Post)(),
     (0, common_1.UsePipes)(new common_1.ValidationPipe({ transform: true })),
     __param(0, (0, common_1.Body)()),
+    __param(1, (0, empresa_decorator_1.IdEmpresaHeader)()),
+    __param(2, (0, common_1.Query)('id_usuario_inserta')),
+    __param(3, (0, common_1.Query)('esInversionInicial')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [create_gasto_dto_1.CreateGastoDto]),
+    __metadata("design:paramtypes", [create_gasto_dto_1.CreateGastoDto, Number, Object, String]),
     __metadata("design:returntype", void 0)
 ], GastosController.prototype, "create", null);
 __decorate([
     (0, common_1.Post)('consumo-propio'),
     (0, common_1.UsePipes)(new common_1.ValidationPipe({ transform: true })),
     __param(0, (0, common_1.Body)()),
+    __param(1, (0, empresa_decorator_1.IdEmpresaHeader)()),
+    __param(2, (0, common_1.Query)('id_usuario_inserta')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [create_consumo_propio_dto_1.CreateConsumoPropioDto]),
+    __metadata("design:paramtypes", [create_consumo_propio_dto_1.CreateConsumoPropioDto, Number, Object]),
     __metadata("design:returntype", void 0)
 ], GastosController.prototype, "createConsumoPropio", null);
 __decorate([
     (0, common_1.Get)(),
-    __param(0, (0, common_1.Query)('id_empresa', new common_1.ParseIntPipe())),
+    __param(0, (0, empresa_decorator_1.IdEmpresaHeader)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
@@ -127,7 +150,7 @@ __decorate([
 ], GastosController.prototype, "findByCategoria", null);
 __decorate([
     (0, common_1.Get)('total'),
-    __param(0, (0, common_1.Query)('id_empresa', new common_1.ParseIntPipe())),
+    __param(0, (0, empresa_decorator_1.IdEmpresaHeader)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
@@ -136,14 +159,14 @@ __decorate([
     (0, common_1.Get)('total-by-date-range'),
     __param(0, (0, common_1.Query)('fechaInicio')),
     __param(1, (0, common_1.Query)('fechaFin')),
-    __param(2, (0, common_1.Query)('id_empresa', new common_1.ParseIntPipe())),
+    __param(2, (0, empresa_decorator_1.IdEmpresaHeader)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, String, Number]),
     __metadata("design:returntype", void 0)
 ], GastosController.prototype, "getTotalGastosByDateRange", null);
 __decorate([
     (0, common_1.Get)('total-by-categoria'),
-    __param(0, (0, common_1.Query)('id_empresa', new common_1.ParseIntPipe())),
+    __param(0, (0, empresa_decorator_1.IdEmpresaHeader)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)

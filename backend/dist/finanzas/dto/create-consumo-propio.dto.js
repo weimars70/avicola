@@ -51,4 +51,15 @@ __decorate([
     (0, class_validator_1.IsBoolean)(),
     __metadata("design:type", Boolean)
 ], CreateConsumoPropioDto.prototype, "activo", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsInt)(),
+    (0, class_transformer_1.Transform)(({ value }) => parseInt(value)),
+    __metadata("design:type", Number)
+], CreateConsumoPropioDto.prototype, "id_empresa", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsUUID)(),
+    __metadata("design:type", String)
+], CreateConsumoPropioDto.prototype, "id_usuario_inserta", void 0);
 //# sourceMappingURL=create-consumo-propio.dto.js.map

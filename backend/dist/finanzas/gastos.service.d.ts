@@ -28,5 +28,5 @@ export declare class GastosService {
     getTotalGastosByDateRange(fechaInicio: string, fechaFin: string, id_empresa: number): Promise<number>;
     getTotalGastosByDateRangeExcluyendoInversion(fechaInicio: string, fechaFin: string, id_empresa: number): Promise<number>;
     getGastosDiarios(fechaInicio: string, fechaFin: string, id_empresa?: number): Promise<any[]>;
-    createOrUpdateInversionInicial(montoTotal: number, fechaInicio: string, metaRecuperacion?: number): Promise<Gasto>;
+    createOrUpdateInversionInicial(montoTotal: number, fechaInicio: string, metaRecuperacion?: number, id_empresa?: number, id_usuario_inserta?: string): Promise<Gasto>;
 }

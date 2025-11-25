@@ -18,6 +18,7 @@ const canastas_service_1 = require("./canastas.service");
 const create_canasta_dto_1 = require("./dto/create-canasta.dto");
 const update_canasta_dto_1 = require("./dto/update-canasta.dto");
 const jwt_auth_guard_1 = require("../auth/jwt-auth.guard");
+const empresa_decorator_1 = require("../terceros/decorators/empresa.decorator");
 let CanastasController = class CanastasController {
     constructor(canastasService) {
         this.canastasService = canastasService;
@@ -51,14 +52,14 @@ __decorate([
 ], CanastasController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
-    __param(0, (0, common_1.Query)('id_empresa', new common_1.ParseIntPipe({ errorHttpStatusCode: 400 }))),
+    __param(0, (0, empresa_decorator_1.IdEmpresaHeader)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
 ], CanastasController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Get)('all'),
-    __param(0, (0, common_1.Query)('id_empresa', new common_1.ParseIntPipe({ errorHttpStatusCode: 400 }))),
+    __param(0, (0, empresa_decorator_1.IdEmpresaHeader)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
@@ -66,7 +67,7 @@ __decorate([
 __decorate([
     (0, common_1.Get)(':id'),
     __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
-    __param(1, (0, common_1.Query)('id_empresa', common_1.ParseIntPipe)),
+    __param(1, (0, empresa_decorator_1.IdEmpresaHeader)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, Number]),
     __metadata("design:returntype", void 0)
@@ -74,7 +75,7 @@ __decorate([
 __decorate([
     (0, common_1.Patch)(':id'),
     __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
-    __param(1, (0, common_1.Query)('id_empresa', common_1.ParseIntPipe)),
+    __param(1, (0, empresa_decorator_1.IdEmpresaHeader)()),
     __param(2, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, Number, update_canasta_dto_1.UpdateCanastaDto]),
@@ -83,7 +84,7 @@ __decorate([
 __decorate([
     (0, common_1.Delete)(':id'),
     __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
-    __param(1, (0, common_1.Query)('id_empresa', common_1.ParseIntPipe)),
+    __param(1, (0, empresa_decorator_1.IdEmpresaHeader)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, Number]),
     __metadata("design:returntype", void 0)

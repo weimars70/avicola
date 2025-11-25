@@ -5,8 +5,8 @@ import { CreateConsumoPropioDto } from './dto/create-consumo-propio.dto';
 export declare class GastosController {
     private readonly gastosService;
     constructor(gastosService: GastosService);
-    create(createGastoDto: CreateGastoDto): Promise<import("./entities/gasto.entity").Gasto>;
-    createConsumoPropio(createConsumoPropioDto: CreateConsumoPropioDto): Promise<import("./entities/gasto.entity").Gasto>;
+    create(createGastoDto: CreateGastoDto, id_empresa: number, id_usuario_inserta: string | string[], esInversionInicial?: string): Promise<import("./entities/gasto.entity").Gasto>;
+    createConsumoPropio(createConsumoPropioDto: CreateConsumoPropioDto, id_empresa: number, id_usuario_inserta: string | string[]): Promise<import("./entities/gasto.entity").Gasto>;
     findAll(id_empresa: number): Promise<import("./entities/gasto.entity").Gasto[]>;
     findAllIncludingInactive(): Promise<import("./entities/gasto.entity").Gasto[]>;
     findByDateRange(fechaInicio: string, fechaFin: string): Promise<import("./entities/gasto.entity").Gasto[]>;

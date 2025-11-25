@@ -7,7 +7,7 @@ export declare class TiposHuevoService {
     constructor(tiposHuevoRepository: Repository<TipoHuevo>);
     create(createTipoHuevoDto: CreateTipoHuevoDto): Promise<TipoHuevo>;
     findAll(id_empresa: number): Promise<TipoHuevo[]>;
-    findOne(id: string): Promise<TipoHuevo>;
+    findOne(id: string, id_empresa?: number): Promise<TipoHuevo>;
     update(id: string, updateTipoHuevoDto: UpdateTipoHuevoDto): Promise<TipoHuevo>;
     remove(id: string): Promise<void>;
     findAllIncludingInactive(): Promise<TipoHuevo[]>;

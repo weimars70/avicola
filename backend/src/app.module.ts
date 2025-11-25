@@ -13,6 +13,8 @@ import { FinanzasModule } from './finanzas/finanzas.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { DatabaseModule } from './database/database.module';
 import { TercerosModule } from './terceros/terceros.module';
+import { ComprasTercerosModule } from './compras-terceros/compras-terceros.module';
+import { VentasTercerosModule } from './ventas-terceros/ventas-terceros.module';
 
 @Module({
   imports: [
@@ -31,6 +33,8 @@ import { TercerosModule } from './terceros/terceros.module';
     FinanzasModule,
     NotificationsModule,
     TercerosModule,
+    ComprasTercerosModule,
+    VentasTercerosModule,
   ],
 })
-export class AppModule {}
+export class AppModule { }

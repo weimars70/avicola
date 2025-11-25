@@ -18,6 +18,7 @@ const ingresos_service_1 = require("./ingresos.service");
 const create_ingreso_dto_1 = require("./dto/create-ingreso.dto");
 const update_ingreso_dto_1 = require("./dto/update-ingreso.dto");
 const jwt_auth_guard_1 = require("../auth/jwt-auth.guard");
+const empresa_decorator_1 = require("../terceros/decorators/empresa.decorator");
 let IngresosController = class IngresosController {
     constructor(ingresosService) {
         this.ingresosService = ingresosService;
@@ -31,8 +32,8 @@ let IngresosController = class IngresosController {
     findAllIncludingInactive(id_empresa) {
         return this.ingresosService.findAllIncludingInactive(id_empresa);
     }
-    findByDateRange(fechaInicio, fechaFin, id_empresa) {
-        return this.ingresosService.findByDateRange(fechaInicio, fechaFin, id_empresa);
+    findByDateRange(id_empresa) {
+        return this.ingresosService.findAll(id_empresa);
     }
     findByTipo(tipo, id_empresa) {
         return this.ingresosService.findByTipo(tipo, id_empresa);
@@ -40,8 +41,8 @@ let IngresosController = class IngresosController {
     getTotalIngresos(id_empresa) {
         return this.ingresosService.getTotalIngresos(id_empresa);
     }
-    getTotalIngresosByDateRange(fechaInicio, fechaFin, id_empresa) {
-        return this.ingresosService.getTotalIngresosByDateRange(fechaInicio, fechaFin, id_empresa);
+    getTotalIngresosByDateRange(id_empresa) {
+        return this.ingresosService.getTotalIngresos(id_empresa);
     }
     getTotalIngresosByTipo(id_empresa) {
         return this.ingresosService.getTotalIngresosByTipo(id_empresa);
@@ -70,61 +71,57 @@ __decorate([
 ], IngresosController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
-    __param(0, (0, common_1.Query)('id_empresa', new common_1.ParseIntPipe())),
+    __param(0, (0, empresa_decorator_1.IdEmpresaHeader)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
 ], IngresosController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Get)('all-including-inactive'),
-    __param(0, (0, common_1.Query)('id_empresa', new common_1.ParseIntPipe())),
+    __param(0, (0, empresa_decorator_1.IdEmpresaHeader)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
 ], IngresosController.prototype, "findAllIncludingInactive", null);
 __decorate([
     (0, common_1.Get)('by-date-range'),
-    __param(0, (0, common_1.Query)('fechaInicio')),
-    __param(1, (0, common_1.Query)('fechaFin')),
-    __param(2, (0, common_1.Query)('id_empresa', new common_1.ParseIntPipe())),
+    __param(0, (0, empresa_decorator_1.IdEmpresaHeader)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, Number]),
+    __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
 ], IngresosController.prototype, "findByDateRange", null);
 __decorate([
     (0, common_1.Get)('by-tipo/:tipo'),
     __param(0, (0, common_1.Param)('tipo')),
-    __param(1, (0, common_1.Query)('id_empresa', new common_1.ParseIntPipe())),
+    __param(1, (0, empresa_decorator_1.IdEmpresaHeader)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, Number]),
     __metadata("design:returntype", void 0)
 ], IngresosController.prototype, "findByTipo", null);
 __decorate([
     (0, common_1.Get)('total'),
-    __param(0, (0, common_1.Query)('id_empresa', new common_1.ParseIntPipe())),
+    __param(0, (0, empresa_decorator_1.IdEmpresaHeader)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
 ], IngresosController.prototype, "getTotalIngresos", null);
 __decorate([
     (0, common_1.Get)('total-by-date-range'),
-    __param(0, (0, common_1.Query)('fechaInicio')),
-    __param(1, (0, common_1.Query)('fechaFin')),
-    __param(2, (0, common_1.Query)('id_empresa', new common_1.ParseIntPipe())),
+    __param(0, (0, empresa_decorator_1.IdEmpresaHeader)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, Number]),
+    __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
 ], IngresosController.prototype, "getTotalIngresosByDateRange", null);
 __decorate([
     (0, common_1.Get)('total-by-tipo'),
-    __param(0, (0, common_1.Query)('id_empresa', new common_1.ParseIntPipe())),
+    __param(0, (0, empresa_decorator_1.IdEmpresaHeader)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
 ], IngresosController.prototype, "getTotalIngresosByTipo", null);
 __decorate([
     (0, common_1.Post)('sync-from-salidas'),
-    __param(0, (0, common_1.Query)('id_empresa', common_1.ParseIntPipe)),
+    __param(0, (0, empresa_decorator_1.IdEmpresaHeader)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)

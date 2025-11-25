@@ -6,5 +6,7 @@ export declare class CreateGastoDto {
     numeroFactura?: string;
     proveedor?: string;
     categoriaId: number;
+    id_empresa?: number;
+    id_usuario_inserta?: string;
     activo?: boolean;
 }

@@ -16,6 +16,7 @@ exports.ActividadesController = void 0;
 const common_1 = require("@nestjs/common");
 const jwt_auth_guard_1 = require("../auth/jwt-auth.guard");
 const actividades_service_1 = require("./actividades.service");
+const empresa_decorator_1 = require("../terceros/decorators/empresa.decorator");
 let ActividadesController = class ActividadesController {
     constructor(actividadesService) {
         this.actividadesService = actividadesService;
@@ -28,7 +29,7 @@ let ActividadesController = class ActividadesController {
 exports.ActividadesController = ActividadesController;
 __decorate([
     (0, common_1.Get)('recientes'),
-    __param(0, (0, common_1.Query)('id_empresa', common_1.ParseIntPipe)),
+    __param(0, (0, empresa_decorator_1.IdEmpresaHeader)()),
     __param(1, (0, common_1.Query)('limit')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number, String]),

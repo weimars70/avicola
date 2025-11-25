@@ -224,6 +224,18 @@ const tercerosItems = [
     caption: 'Crear nuevo cliente o proveedor',
     icon: 'person_add',
     to: '/terceros/formulario'
+  },
+  {
+    title: 'Compras Terceros',
+    caption: 'Compras a proveedores',
+    icon: 'shopping_cart',
+    to: '/terceros/compras'
+  },
+  {
+    title: 'Ventas Terceros',
+    caption: 'Ventas a clientes',
+    icon: 'point_of_sale',
+    to: '/terceros/ventas'
   }
 ];
 

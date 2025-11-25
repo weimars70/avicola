@@ -109,7 +109,7 @@ async function bootstrap() {
   
   console.log('✅ 9. ValidationPipe configurado');
   
-  const port = process.env.PORT || 3000;
+  const port = process.env.PORT || 3012;
   console.log(`🔧 10. Iniciando servidor en puerto ${port}...`);
   
   await app.listen(port);

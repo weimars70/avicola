@@ -31,12 +31,16 @@ let TiposHuevoService = class TiposHuevoService {
             order: { nombre: 'ASC' },
         });
     }
-    async findOne(id) {
+    async findOne(id, id_empresa) {
+        const whereCondition = { id, activo: true };
+        if (id_empresa !== undefined) {
+            whereCondition.id_empresa = id_empresa;
+        }
         const tipoHuevo = await this.tiposHuevoRepository.findOne({
-            where: { id, activo: true },
+            where: whereCondition,
         });
         if (!tipoHuevo) {
-            throw new common_1.NotFoundException(`Tipo de huevo con ID ${id} no encontrado`);
+            throw new common_1.NotFoundException(`Tipo de huevo con ID ${id} no encontrado${id_empresa ? ' para la empresa indicada' : ''}`);
         }
         return tipoHuevo;
     }

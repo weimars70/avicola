@@ -18,6 +18,7 @@ const inventario_stock_service_1 = require("./inventario-stock.service");
 const create_inventario_dto_1 = require("./dto/create-inventario.dto");
 const update_inventario_dto_1 = require("./dto/update-inventario.dto");
 const jwt_auth_guard_1 = require("../auth/jwt-auth.guard");
+const empresa_decorator_1 = require("../terceros/decorators/empresa.decorator");
 let InventarioStockController = class InventarioStockController {
     constructor(inventarioStockService) {
         this.inventarioStockService = inventarioStockService;
@@ -54,14 +55,14 @@ __decorate([
 ], InventarioStockController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
-    __param(0, (0, common_1.Query)('id_empresa', new common_1.ParseIntPipe({ errorHttpStatusCode: 400 }))),
+    __param(0, (0, empresa_decorator_1.IdEmpresaHeader)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
 ], InventarioStockController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Get)('vista/inventario'),
-    __param(0, (0, common_1.Query)('id_empresa', new common_1.ParseIntPipe())),
+    __param(0, (0, empresa_decorator_1.IdEmpresaHeader)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
@@ -69,7 +70,7 @@ __decorate([
 __decorate([
     (0, common_1.Get)('tipo-huevo/:tipoHuevoId'),
     __param(0, (0, common_1.Param)('tipoHuevoId', common_1.ParseUUIDPipe)),
-    __param(1, (0, common_1.Query)('id_empresa', new common_1.ParseIntPipe({ errorHttpStatusCode: 400 }))),
+    __param(1, (0, empresa_decorator_1.IdEmpresaHeader)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, Number]),
     __metadata("design:returntype", void 0)

@@ -8,4 +8,6 @@ export declare class CreateConsumoPropioDto {
     observaciones?: string;
     huevosConsumidos: ConsumoHuevoDto[];
     activo?: boolean;
+    id_empresa?: number;
+    id_usuario_inserta?: string;
 }

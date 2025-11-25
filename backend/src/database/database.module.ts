@@ -23,6 +23,10 @@ import { Estrato } from '../terceros/entities/estrato.entity';
 import { TipoRegimen } from '../terceros/entities/tipo-regimen.entity';
 import { TipoIdent } from '../terceros/entities/tipo-ident.entity';
 import { TipoImpuesto } from '../terceros/entities/tipo-impuesto.entity';
+import { Compra } from '../compras-terceros/entities/compra.entity';
+import { DetalleCompra } from '../compras-terceros/entities/detalle-compra.entity';
+import { Venta } from '../ventas-terceros/entities/venta.entity';
+import { DetalleVenta } from '../ventas-terceros/entities/detalle-venta.entity';
 
 
 @Module({
@@ -41,7 +45,9 @@ import { TipoImpuesto } from '../terceros/entities/tipo-impuesto.entity';
           Salida, Inventario, AjusteInventario, AjusteLote, 
           CategoriaGasto, Gasto, Ingreso, Rendimiento,
           // Entidades de terceros
-          Tercero, Ciudad, Estrato, TipoRegimen, TipoIdent, TipoImpuesto
+          Tercero, Ciudad, Estrato, TipoRegimen, TipoIdent, TipoImpuesto,
+          // Compras/Ventas de terceros
+          Compra, DetalleCompra, Venta, DetalleVenta
         ],
         synchronize: false, // Desactivado para evitar problemas de sincronización
         logging: configService.get('NODE_ENV') === 'development',

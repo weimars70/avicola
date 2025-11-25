@@ -16,26 +16,23 @@ exports.ResumenController = void 0;
 const common_1 = require("@nestjs/common");
 const resumen_service_1 = require("./resumen.service");
 const jwt_auth_guard_1 = require("../auth/jwt-auth.guard");
+const empresa_decorator_1 = require("../terceros/decorators/empresa.decorator");
 let ResumenController = class ResumenController {
     constructor(resumenService) {
         this.resumenService = resumenService;
     }
-    getResumen(galponId, tipoHuevoId, id_empresa) {
-        if (!id_empresa) {
-            throw new Error('No hay empresa asociada al usuario logueado');
-        }
-        const id_empresa_num = parseInt(id_empresa);
+    getResumen(id_empresa_num, galponId, tipoHuevoId) {
         return this.resumenService.getInventarioResumen(galponId, tipoHuevoId, id_empresa_num);
     }
 };
 exports.ResumenController = ResumenController;
 __decorate([
     (0, common_1.Get)('resumen'),
-    __param(0, (0, common_1.Query)('galponId')),
-    __param(1, (0, common_1.Query)('tipoHuevoId')),
-    __param(2, (0, common_1.Query)('id_empresa')),
+    __param(0, (0, empresa_decorator_1.IdEmpresaHeader)()),
+    __param(1, (0, common_1.Query)('galponId')),
+    __param(2, (0, common_1.Query)('tipoHuevoId')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, String]),
+    __metadata("design:paramtypes", [Number, String, String]),
     __metadata("design:returntype", void 0)
 ], ResumenController.prototype, "getResumen", null);
 exports.ResumenController = ResumenController = __decorate([
