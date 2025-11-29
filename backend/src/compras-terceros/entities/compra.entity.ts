@@ -31,6 +31,12 @@ export class Compra {
   @Column({ name: 'numero_factura', nullable: true, length: 20 })
   numeroFactura: string;
 
+  @Column({ default: 'PENDIENTE', length: 20 })
+  estado: string;
+
+  @Column({ name: 'forma_pago', nullable: true, length: 50 })
+  formaPago: string;
+
   @Column({ name: 'tipo_movimiento', default: 2 })
   tipoMovimiento: number; // 1 = normal, 2 = terceros
 
@@ -45,6 +51,6 @@ export class Compra {
   @JoinColumn({ name: 'id_tercero', referencedColumnName: 'codigo' })
   tercero: Tercero;
 
-  @OneToMany(() => DetalleCompra, detalle => detalle.compra, { cascade: true })
+  @OneToMany(() => DetalleCompra, detalle => detalle.compra)
   detalles: DetalleCompra[];
 }

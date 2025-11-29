@@ -24,6 +24,10 @@ let ResumenController = class ResumenController {
     getResumen(id_empresa_num, galponId, tipoHuevoId) {
         return this.resumenService.getInventarioResumen(galponId, tipoHuevoId, id_empresa_num);
     }
+    getResumenTerceros(id_empresa_num, terceroId) {
+        const id_tercero_num = terceroId ? parseInt(terceroId) : undefined;
+        return this.resumenService.getInventarioTercerosResumen(id_empresa_num, id_tercero_num);
+    }
 };
 exports.ResumenController = ResumenController;
 __decorate([
@@ -35,6 +39,14 @@ __decorate([
     __metadata("design:paramtypes", [Number, String, String]),
     __metadata("design:returntype", void 0)
 ], ResumenController.prototype, "getResumen", null);
+__decorate([
+    (0, common_1.Get)('terceros-resumen'),
+    __param(0, (0, empresa_decorator_1.IdEmpresaHeader)()),
+    __param(1, (0, common_1.Query)('terceroId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, String]),
+    __metadata("design:returntype", void 0)
+], ResumenController.prototype, "getResumenTerceros", null);
 exports.ResumenController = ResumenController = __decorate([
     (0, common_1.Controller)('inventario'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),

@@ -4,11 +4,19 @@ import { DetalleVenta } from './entities/detalle-venta.entity';
 import { CreateVentaDto } from './dto/create-venta.dto';
 import { UpdateVentaDto } from './dto/update-venta.dto';
 import { IngresosService } from '../finanzas/ingresos.service';
+import { InventarioTerceros } from '../inventario-terceros/entities/inventario-terceros.entity';
+import { Canasta } from '../canastas/entities/canasta.entity';
+import { Salida } from '../salidas/entities/salida.entity';
+import { Inventario } from '../inventario/entities/inventario.entity';
 export declare class VentasTercerosService {
     private ventasRepository;
     private detallesRepository;
+    private invTercerosRepo;
+    private canastasRepo;
+    private salidasRepo;
+    private inventarioRepo;
     private ingresosService;
-    constructor(ventasRepository: Repository<Venta>, detallesRepository: Repository<DetalleVenta>, ingresosService: IngresosService);
+    constructor(ventasRepository: Repository<Venta>, detallesRepository: Repository<DetalleVenta>, invTercerosRepo: Repository<InventarioTerceros>, canastasRepo: Repository<Canasta>, salidasRepo: Repository<Salida>, inventarioRepo: Repository<Inventario>, ingresosService: IngresosService);
     create(createVentaDto: CreateVentaDto, idEmpresa: number, idUsuario: string): Promise<Venta>;
     findAll(idEmpresa: number): Promise<Venta[]>;
     findOne(id: string, idEmpresa: number): Promise<Venta>;
@@ -27,4 +35,6 @@ export declare class VentasTercerosService {
     }>;
     private createIngresoDesdeVenta;
     private syncIngresoDesdeVenta;
+    private getStockActualTerceros;
+    private getStockActualTercerosWithRepo;
 }

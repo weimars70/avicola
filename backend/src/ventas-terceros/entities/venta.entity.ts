@@ -60,6 +60,6 @@ export class Venta {
     @JoinColumn({ name: 'id_tercero', referencedColumnName: 'codigo' })
     tercero: Tercero;
 
-    @OneToMany(() => DetalleVenta, detalle => detalle.venta, { cascade: true })
+    @OneToMany(() => DetalleVenta, detalle => detalle.venta)
     detalles: DetalleVenta[];
 }

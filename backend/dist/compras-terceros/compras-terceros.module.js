@@ -13,13 +13,16 @@ const compras_terceros_service_1 = require("./compras-terceros.service");
 const compras_terceros_controller_1 = require("./compras-terceros.controller");
 const compra_entity_1 = require("./entities/compra.entity");
 const detalle_compra_entity_1 = require("./entities/detalle-compra.entity");
+const inventario_terceros_entity_1 = require("../inventario-terceros/entities/inventario-terceros.entity");
+const canasta_entity_1 = require("../canastas/entities/canasta.entity");
+const tercero_entity_1 = require("../terceros/entities/tercero.entity");
 const finanzas_module_1 = require("../finanzas/finanzas.module");
 let ComprasTercerosModule = class ComprasTercerosModule {
 };
 exports.ComprasTercerosModule = ComprasTercerosModule;
 exports.ComprasTercerosModule = ComprasTercerosModule = __decorate([
     (0, common_1.Module)({
-        imports: [typeorm_1.TypeOrmModule.forFeature([compra_entity_1.Compra, detalle_compra_entity_1.DetalleCompra]), (0, common_1.forwardRef)(() => finanzas_module_1.FinanzasModule)],
+        imports: [typeorm_1.TypeOrmModule.forFeature([compra_entity_1.Compra, detalle_compra_entity_1.DetalleCompra, inventario_terceros_entity_1.InventarioTerceros, canasta_entity_1.Canasta, tercero_entity_1.Tercero]), (0, common_1.forwardRef)(() => finanzas_module_1.FinanzasModule)],
         controllers: [compras_terceros_controller_1.ComprasTercerosController],
         providers: [compras_terceros_service_1.ComprasTercerosService],
         exports: [compras_terceros_service_1.ComprasTercerosService],

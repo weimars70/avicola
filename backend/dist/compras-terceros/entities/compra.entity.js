@@ -53,6 +53,14 @@ __decorate([
     __metadata("design:type", String)
 ], Compra.prototype, "numeroFactura", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ default: 'PENDIENTE', length: 20 }),
+    __metadata("design:type", String)
+], Compra.prototype, "estado", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'forma_pago', nullable: true, length: 50 }),
+    __metadata("design:type", String)
+], Compra.prototype, "formaPago", void 0);
+__decorate([
     (0, typeorm_1.Column)({ name: 'tipo_movimiento', default: 2 }),
     __metadata("design:type", Number)
 ], Compra.prototype, "tipoMovimiento", void 0);
@@ -70,7 +78,7 @@ __decorate([
     __metadata("design:type", tercero_entity_1.Tercero)
 ], Compra.prototype, "tercero", void 0);
 __decorate([
-    (0, typeorm_1.OneToMany)(() => detalle_compra_entity_1.DetalleCompra, detalle => detalle.compra, { cascade: true }),
+    (0, typeorm_1.OneToMany)(() => detalle_compra_entity_1.DetalleCompra, detalle => detalle.compra),
     __metadata("design:type", Array)
 ], Compra.prototype, "detalles", void 0);
 exports.Compra = Compra = __decorate([

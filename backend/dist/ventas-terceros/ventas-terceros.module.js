@@ -13,13 +13,17 @@ const ventas_terceros_service_1 = require("./ventas-terceros.service");
 const ventas_terceros_controller_1 = require("./ventas-terceros.controller");
 const venta_entity_1 = require("./entities/venta.entity");
 const detalle_venta_entity_1 = require("./entities/detalle-venta.entity");
+const inventario_terceros_entity_1 = require("../inventario-terceros/entities/inventario-terceros.entity");
+const canasta_entity_1 = require("../canastas/entities/canasta.entity");
+const salida_entity_1 = require("../salidas/entities/salida.entity");
+const inventario_entity_1 = require("../inventario/entities/inventario.entity");
 const finanzas_module_1 = require("../finanzas/finanzas.module");
 let VentasTercerosModule = class VentasTercerosModule {
 };
 exports.VentasTercerosModule = VentasTercerosModule;
 exports.VentasTercerosModule = VentasTercerosModule = __decorate([
     (0, common_1.Module)({
-        imports: [typeorm_1.TypeOrmModule.forFeature([venta_entity_1.Venta, detalle_venta_entity_1.DetalleVenta]), (0, common_1.forwardRef)(() => finanzas_module_1.FinanzasModule)],
+        imports: [typeorm_1.TypeOrmModule.forFeature([venta_entity_1.Venta, detalle_venta_entity_1.DetalleVenta, inventario_terceros_entity_1.InventarioTerceros, canasta_entity_1.Canasta, salida_entity_1.Salida, inventario_entity_1.Inventario]), (0, common_1.forwardRef)(() => finanzas_module_1.FinanzasModule)],
         controllers: [ventas_terceros_controller_1.VentasTercerosController],
         providers: [ventas_terceros_service_1.VentasTercerosService],
         exports: [ventas_terceros_service_1.VentasTercerosService],

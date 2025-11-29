@@ -97,6 +97,11 @@
             {{ props.row.tercero?.nombre || 'N/A' }}
           </q-td>
         </template>
+        <template v-slot:body-cell-detalles="props">
+          <q-td :props="props">
+            {{ canastaResumenVenta(props.row) || '—' }}
+          </q-td>
+        </template>
         <template v-slot:body-cell-total="props">
           <q-td :props="props">
             ${{ formatNumber(Number(props.row.total)) }}
@@ -104,7 +109,11 @@
         </template>
         <template v-slot:body-cell-estado="props">
           <q-td :props="props">
-            <q-chip :color="getEstadoColor(props.row.estado)" text-color="white" :label="props.row.estado" size="sm" />
+            <q-chip :color="getEstadoColor(props.row.estado)" text-color="white" :label="props.row.estado" size="sm">
+              <q-popup-edit v-model="props.row.estado" title="Cambiar estado" buttons v-slot="scope" @save="val => updateEstadoVenta(props.row.id, val as string)">
+                <q-select v-model="scope.value" :options="['PENDIENTE','PAGADO','PARCIAL']" dense outlined />
+              </q-popup-edit>
+            </q-chip>
           </q-td>
         </template>
         <template v-slot:body-cell-acciones="props">
@@ -114,6 +123,9 @@
             </q-btn>
             <q-btn flat round color="negative" icon="delete" size="sm" @click="deleteVenta(props.row.id)">
               <q-tooltip>Eliminar</q-tooltip>
+            </q-btn>
+            <q-btn v-if="props.row.estado !== 'PAGADO'" flat round color="positive" icon="check_circle" size="sm" @click="markVentaPagada(props.row.id)">
+              <q-tooltip>Marcar como Pagada</q-tooltip>
             </q-btn>
           </q-td>
         </template>
@@ -162,8 +174,8 @@
             <q-btn flat label="Agregar Detalle" icon="add" @click="addDetalle()" />
             <div class="total-box">Total: ${{ calcularTotal().toFixed(2) }}</div>
             <div class="row justify-end q-gutter-sm">
-              <q-btn label="Cancelar" flat @click="closeDialog()" />
-              <q-btn label="Guardar" type="submit" color="primary" :loading="saving" />
+              <q-btn label="Cancelar" flat @click="closeDialog()" :disable="saving" />
+              <q-btn label="Guardar" type="submit" color="primary" :loading="saving" :disable="saving" />
             </div>
           </q-form>
         </q-card-section>
@@ -205,6 +217,7 @@ const columns = [
   { name: 'tercero', label: 'Cliente', field: 'tercero', align: 'left' as const },
   { name: 'numeroFactura', label: 'Factura', field: 'numeroFactura', align: 'left' as const },
   { name: 'total', label: 'Total', field: 'total', align: 'right' as const, format: (val: number) => `$${val.toFixed(2)}` },
+  { name: 'detalles', label: 'Canastas', field: 'detalles', align: 'left' as const },
   { name: 'estado', label: 'Estado', field: 'estado', align: 'center' as const },
   { name: 'acciones', label: 'Acciones', field: 'acciones', align: 'center' as const }
 ];
@@ -230,7 +243,7 @@ const addDetalle = () => {
     cantidad: 1,
     precioUnitario: 0,
     canastaId: '',
-    inventarioOrigen: 1
+    inventarioOrigen: 2
   });
 };
 
@@ -281,6 +294,17 @@ const filteredVentas = computed(() => {
   return rows;
 });
 
+const canastaResumenVenta = (v: Venta): string => {
+  const counts = new Map<string, number>();
+  (v.detalles || []).forEach(d => {
+    const id = d.canastaId || '';
+    const nombre = (canastasStore.canastas.find(x => x.id === id)?.nombre) || 'Canasta';
+    const prev = counts.get(nombre) || 0;
+    counts.set(nombre, prev + Number(d.cantidad || 0));
+  });
+  return Array.from(counts.entries()).map(([nombre, qty]) => `${nombre}: ${qty}`).join(', ');
+};
+
 const openDialog = (venta?: Venta) => {
   if (venta) {
     editing.value = true;
@@ -323,8 +347,38 @@ const closeDialog = () => {
 };
 
 const saveVenta = async () => {
+  // Prevenir múltiples envíos
+  if (saving.value) {
+    console.warn('Ya hay un guardado en progreso');
+    return;
+  }
+
+  // Validaciones del formulario
   if (form.value.detalles.length === 0) {
     $q.notify({ type: 'negative', message: 'Debe agregar al menos un detalle' });
+    return;
+  }
+
+  const faltanCanastas = form.value.detalles.some(d => !d.canastaId || String(d.canastaId).trim().length === 0);
+  if (faltanCanastas) {
+    $q.notify({ type: 'negative', message: 'Seleccione una canasta en cada detalle' });
+    return;
+  }
+
+  if (!form.value.idTercero || form.value.idTercero === 0) {
+    $q.notify({ type: 'negative', message: 'Debe seleccionar un cliente' });
+    return;
+  }
+
+  const cantidadesInvalidas = form.value.detalles.some(d => !d.cantidad || d.cantidad <= 0);
+  if (cantidadesInvalidas) {
+    $q.notify({ type: 'negative', message: 'La cantidad debe ser mayor a 0 en todos los detalles' });
+    return;
+  }
+
+  const preciosInvalidos = form.value.detalles.some(d => !d.precioUnitario || d.precioUnitario <= 0);
+  if (preciosInvalidos) {
+    $q.notify({ type: 'negative', message: 'El precio unitario debe ser mayor a 0 en todos los detalles' });
     return;
   }
 
@@ -332,15 +386,24 @@ const saveVenta = async () => {
   try {
     if (editing.value && editingId.value) {
       await ventasStore.updateVenta(editingId.value, form.value as UpdateVentaDto);
-      $q.notify({ type: 'positive', message: 'Venta actualizada' });
+      $q.notify({ type: 'positive', message: 'Venta actualizada exitosamente' });
     } else {
       await ventasStore.createVenta(form.value);
-      $q.notify({ type: 'positive', message: 'Venta creada' });
+      $q.notify({ type: 'positive', message: 'Venta creada exitosamente' });
     }
     closeDialog();
     await fetchData();
-  } catch {
-    $q.notify({ type: 'negative', message: 'Error al guardar' });
+  } catch (error: unknown) {
+    let errorMessage = 'Error al guardar la venta';
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    }
+    $q.notify({
+      type: 'negative',
+      message: errorMessage,
+      timeout: 5000,
+      position: 'top'
+    });
   } finally {
     saving.value = false;
   }
@@ -362,6 +425,26 @@ const deleteVenta = (id: string) => {
       }
     })();
   });
+};
+
+const markVentaPagada = async (id: string) => {
+  try {
+    await ventasStore.updateVenta(id, { estado: 'PAGADO' } as UpdateVentaDto);
+    $q.notify({ type: 'positive', message: 'Venta marcada como pagada' });
+    await fetchData();
+  } catch {
+    $q.notify({ type: 'negative', message: 'Error al marcar como pagada' });
+  }
+};
+
+const updateEstadoVenta = async (id: string, estado: string) => {
+  try {
+    await ventasStore.updateVenta(id, { estado } as UpdateVentaDto);
+    $q.notify({ type: 'positive', message: 'Estado actualizado' });
+    await fetchData();
+  } catch {
+    $q.notify({ type: 'negative', message: 'Error al actualizar estado' });
+  }
 };
 
 const fetchData = async () => {
@@ -389,11 +472,12 @@ onMounted(() => {
 .kpi-section { margin: 1.5rem 0; }
 .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; }
 .kpi-card { border-radius: 14px; box-shadow: 0 4px 18px rgba(0,0,0,0.08); color: white; }
-.kpi-content { display: flex; align-items: center; gap: 1rem; padding: 1rem 1.25rem; }
-.kpi-icon { font-size: 2rem; }
-.kpi-info { flex: 1; }
-.kpi-value { font-size: 1.8rem; font-weight: 700; }
-.kpi-label { font-weight: 500; opacity: 0.9; }
+.kpi-content { display: flex; align-items: center; gap: 1rem; padding: 1rem 1.25rem; color: #fff; }
+.kpi-icon { font-size: 2rem; color: #fff; }
+.kpi-info { flex: 1; color: #fff; }
+.kpi-value { font-size: 1.8rem; font-weight: 700; color: #fff; }
+.kpi-label { font-weight: 500; opacity: 0.95; color: #fff; }
+.kpi-icon .q-icon { color: #fff; }
 .kpi-primary, .kpi-warning, .kpi-success, .kpi-info { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
 .filter-card { border-radius: 14px; box-shadow: 0 4px 18px rgba(0,0,0,0.08); }
 .filter-content { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }

@@ -6,6 +6,8 @@ import { AjusteInventario } from './entities/ajuste-inventario.entity';
 import { AjusteLote } from './entities/ajuste-lote.entity';
 import { EntradaProduccion } from '../entradas-produccion/entities/entrada-produccion.entity';
 import { Salida } from '../salidas/entities/salida.entity';
+import { InventarioTerceros } from '../inventario-terceros/entities/inventario-terceros.entity';
+import { Canasta } from '../canastas/entities/canasta.entity';
 import { InventarioStockController } from './inventario-stock.controller';
 import { InventarioStockService } from './inventario-stock.service';
 import { AjustesInventarioController } from './ajustes-inventario.controller';
@@ -20,7 +22,7 @@ import { UsersModule } from '../users/users.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Inventario, AjusteInventario, AjusteLote, EntradaProduccion, Salida]),
+    TypeOrmModule.forFeature([Inventario, AjusteInventario, AjusteLote, EntradaProduccion, Salida, InventarioTerceros, Canasta]),
     GalponesModule,
     TiposHuevoModule,
     CanastasModule,

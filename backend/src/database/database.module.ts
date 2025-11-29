@@ -27,6 +27,7 @@ import { Compra } from '../compras-terceros/entities/compra.entity';
 import { DetalleCompra } from '../compras-terceros/entities/detalle-compra.entity';
 import { Venta } from '../ventas-terceros/entities/venta.entity';
 import { DetalleVenta } from '../ventas-terceros/entities/detalle-venta.entity';
+import { InventarioTerceros } from '../inventario-terceros/entities/inventario-terceros.entity';
 
 
 @Module({
@@ -47,9 +48,9 @@ import { DetalleVenta } from '../ventas-terceros/entities/detalle-venta.entity';
           // Entidades de terceros
           Tercero, Ciudad, Estrato, TipoRegimen, TipoIdent, TipoImpuesto,
           // Compras/Ventas de terceros
-          Compra, DetalleCompra, Venta, DetalleVenta
+          Compra, DetalleCompra, Venta, DetalleVenta, InventarioTerceros
         ],
-        synchronize: false, // Desactivado para evitar problemas de sincronización
+        synchronize: false, // Desactivado para evitar crash por metadata
         logging: configService.get('NODE_ENV') === 'development',
       }),
       inject: [ConfigService],

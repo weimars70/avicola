@@ -405,11 +405,11 @@
       <q-card-section class="summary-content">
         <div class="summary-header">
           <q-icon name="handshake" class="summary-icon" />
-          <h3 class="summary-title">Inventario de Terceros</h3>
+          <h3 class="summary-title">Inventario de Terceros (Canastas)</h3>
         </div>
         <div class="summary-stats">
           <div class="summary-stat">
-            <div class="summary-stat-label">Tipos de Huevo</div>
+            <div class="summary-stat-label">Canastas</div>
             <div class="summary-stat-value">{{ tercerosItems.length }}</div>
           </div>
           <div class="summary-stat">
@@ -438,7 +438,7 @@
         <q-card-section class="inventario-header">
           <div class="inventario-info">
             <div class="inventario-title">
-              <q-icon name="egg" class="inventario-icon" />
+              <q-icon name="shopping_basket" class="inventario-icon" />
               {{ item.tipoHuevoNombre }}
             </div>
             <div class="inventario-description">Inventario proveniente de compras y ventas de terceros</div>
@@ -715,20 +715,6 @@ const loadHistorialAjustes = async () => {
   }
 };
 
-const unidadesPorCanasta = (canastaId?: string): number => {
-  if (!canastaId) return 1;
-  const c = canastasStore.canastas.find(x => x.id === canastaId);
-  return c ? Number(c.unidadesPorCanasta || 1) : 1;
-};
-
-const valorUnitarioDesdeCanasta = (canastaId?: string): number => {
-  if (!canastaId) return 0;
-  const c = canastasStore.canastas.find(x => x.id === canastaId);
-  if (!c) return 0;
-  const u = Number(c.unidadesPorCanasta || 1);
-  const v = Number(c.valorCanasta || 0);
-  return u > 0 ? v / u : 0;
-};
 
 const canastasSafeFetch = async () => {
   if (canastasStore.canastas.length === 0) {
@@ -770,33 +756,34 @@ interface TercerosItemAgg {
 const tercerosItemsRaw = computed<TercerosItemAgg[]>(() => {
   const map = new Map<string, TercerosItemAgg>();
 
+  // Entradas por compras: contar canastas
   comprasStore.compras.forEach(c => {
     (c.detalles || []).forEach(d => {
-      const tipoNombre = d.tipoHuevoId ? (tiposHuevoStore.tiposHuevo.find(t => t.id === d.tipoHuevoId)?.nombre || 'Tipo Huevo') : (d.canastaId ? (canastasStore.canastas.find(x => x.id === d.canastaId)?.tipoHuevo?.nombre || 'Canasta') : 'General');
-      const tipoId = d.tipoHuevoId || (canastasStore.canastas.find(x => x.id === d.canastaId)?.tipoHuevoId) || null;
-      const key = `${tipoId || tipoNombre}`;
-      const unidades = d.canastaId ? Number(d.cantidad) * unidadesPorCanasta(d.canastaId) : Number(d.cantidad);
-      const valorUnit = d.canastaId ? valorUnitarioDesdeCanasta(d.canastaId) : Number(d.precioUnitario || 0);
-      const item = map.get(key) || { key, tipoHuevoId: tipoId, tipoHuevoNombre: tipoNombre, entradasUnidades: 0, salidasUnidades: 0, stockUnidades: 0, valorUnitarioPromedio: 0, valorTotal: 0 };
-      item.entradasUnidades += unidades;
-      item.stockUnidades += unidades;
-      const prevUnits = item.stockUnidades - unidades;
-      item.valorUnitarioPromedio = prevUnits + unidades > 0 ? ((item.valorUnitarioPromedio * prevUnits) + (valorUnit * unidades)) / (prevUnits + unidades) : valorUnit;
+      const can = canastasStore.canastas.find(x => x.id === d.canastaId);
+      const canastaNombre = can?.nombre || 'Canasta';
+      const key = d.canastaId || canastaNombre;
+      const canastas = Math.round(Number(d.cantidad));
+      const precioCanasta = Number(d.precioUnitario || 0);
+      const item = map.get(key) || { key, tipoHuevoId: null, tipoHuevoNombre: canastaNombre, entradasUnidades: 0, salidasUnidades: 0, stockUnidades: 0, valorUnitarioPromedio: 0, valorTotal: 0 };
+      item.entradasUnidades += canastas;
+      item.stockUnidades += canastas;
+      const prevUnits = item.stockUnidades - canastas;
+      item.valorUnitarioPromedio = prevUnits + canastas > 0 ? ((item.valorUnitarioPromedio * prevUnits) + (precioCanasta * canastas)) / (prevUnits + canastas) : precioCanasta;
       item.valorTotal = item.stockUnidades * item.valorUnitarioPromedio;
       map.set(key, item);
     });
   });
 
+  // Salidas por ventas: contar canastas
   ventasStore.ventas.forEach(v => {
     (v.detalles || []).forEach(d => {
       const can = canastasStore.canastas.find(x => x.id === d.canastaId);
-      const tipoNombre = can?.tipoHuevo?.nombre || 'Canasta';
-      const tipoId = can?.tipoHuevoId || null;
-      const key = `${tipoId || tipoNombre}`;
-      const unidades = Number(d.cantidad) * unidadesPorCanasta(d.canastaId);
-      const item = map.get(key) || { key, tipoHuevoId: tipoId, tipoHuevoNombre: tipoNombre, entradasUnidades: 0, salidasUnidades: 0, stockUnidades: 0, valorUnitarioPromedio: valorUnitarioDesdeCanasta(d.canastaId), valorTotal: 0 };
-      item.salidasUnidades += unidades;
-      item.stockUnidades -= unidades;
+      const canastaNombre = can?.nombre || 'Canasta';
+      const key = d.canastaId || canastaNombre;
+      const canastas = Math.round(Number(d.cantidad));
+      const item = map.get(key) || { key, tipoHuevoId: null, tipoHuevoNombre: canastaNombre, entradasUnidades: 0, salidasUnidades: 0, stockUnidades: 0, valorUnitarioPromedio: Number(can?.valorCanasta || 0), valorTotal: 0 };
+      item.salidasUnidades += canastas;
+      item.stockUnidades -= canastas;
       item.valorTotal = Math.max(0, item.stockUnidades) * item.valorUnitarioPromedio;
       map.set(key, item);
     });
@@ -975,22 +962,22 @@ onMounted(() => {
   background: linear-gradient(90deg, var(--kpi-color-start), var(--kpi-color-end));
 }
 
-.kpi-primary {
+.kpi-card.kpi-primary {
   --kpi-color-start: #3498db;
   --kpi-color-end: #2980b9;
 }
 
-.kpi-success {
+.kpi-card.kpi-success {
   --kpi-color-start: #2ecc71;
   --kpi-color-end: #27ae60;
 }
 
-.kpi-warning {
+.kpi-card.kpi-warning {
   --kpi-color-start: #f39c12;
   --kpi-color-end: #e67e22;
 }
 
-.kpi-info {
+.kpi-card.kpi-info {
   --kpi-color-start: #9b59b6;
   --kpi-color-end: #8e44ad;
 }
@@ -1014,7 +1001,7 @@ onMounted(() => {
   flex-shrink: 0;
 }
 
-.kpi-info {
+.kpi-content .kpi-info {
   flex: 1;
 }
 

@@ -90,7 +90,7 @@ __decorate([
     __metadata("design:type", tercero_entity_1.Tercero)
 ], Venta.prototype, "tercero", void 0);
 __decorate([
-    (0, typeorm_1.OneToMany)(() => detalle_venta_entity_1.DetalleVenta, detalle => detalle.venta, { cascade: true }),
+    (0, typeorm_1.OneToMany)(() => detalle_venta_entity_1.DetalleVenta, detalle => detalle.venta),
     __metadata("design:type", Array)
 ], Venta.prototype, "detalles", void 0);
 exports.Venta = Venta = __decorate([

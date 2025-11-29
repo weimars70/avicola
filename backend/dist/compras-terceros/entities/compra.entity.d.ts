@@ -10,6 +10,8 @@ export declare class Compra {
     idUsuarioInserta: string;
     activo: boolean;
     numeroFactura: string;
+    estado: string;
+    formaPago: string;
     tipoMovimiento: number;
     createdAt: Date;
     updatedAt: Date;

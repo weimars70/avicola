@@ -21,4 +21,13 @@ export class ResumenController {
   ) {
     return this.resumenService.getInventarioResumen(galponId, tipoHuevoId, id_empresa_num);
   }
+
+  @Get('terceros-resumen')
+  getResumenTerceros(
+    @IdEmpresaHeader() id_empresa_num: number,
+    @Query('terceroId') terceroId?: string,
+  ) {
+    const id_tercero_num = terceroId ? parseInt(terceroId) : undefined;
+    return this.resumenService.getInventarioTercerosResumen(id_empresa_num, id_tercero_num);
+  }
 }

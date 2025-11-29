@@ -33,6 +33,7 @@ const compra_entity_1 = require("../compras-terceros/entities/compra.entity");
 const detalle_compra_entity_1 = require("../compras-terceros/entities/detalle-compra.entity");
 const venta_entity_1 = require("../ventas-terceros/entities/venta.entity");
 const detalle_venta_entity_1 = require("../ventas-terceros/entities/detalle-venta.entity");
+const inventario_terceros_entity_1 = require("../inventario-terceros/entities/inventario-terceros.entity");
 let DatabaseModule = class DatabaseModule {
 };
 exports.DatabaseModule = DatabaseModule;
@@ -53,7 +54,7 @@ exports.DatabaseModule = DatabaseModule = __decorate([
                         salida_entity_1.Salida, inventario_entity_1.Inventario, ajuste_inventario_entity_1.AjusteInventario, ajuste_lote_entity_1.AjusteLote,
                         categoria_gasto_entity_1.CategoriaGasto, gasto_entity_1.Gasto, ingreso_entity_1.Ingreso, rendimiento_entity_1.Rendimiento,
                         tercero_entity_1.Tercero, ciudad_entity_1.Ciudad, estrato_entity_1.Estrato, tipo_regimen_entity_1.TipoRegimen, tipo_ident_entity_1.TipoIdent, tipo_impuesto_entity_1.TipoImpuesto,
-                        compra_entity_1.Compra, detalle_compra_entity_1.DetalleCompra, venta_entity_1.Venta, detalle_venta_entity_1.DetalleVenta
+                        compra_entity_1.Compra, detalle_compra_entity_1.DetalleCompra, venta_entity_1.Venta, detalle_venta_entity_1.DetalleVenta, inventario_terceros_entity_1.InventarioTerceros
                     ],
                     synchronize: false,
                     logging: configService.get('NODE_ENV') === 'development',

@@ -14,6 +14,8 @@ const ajuste_inventario_entity_1 = require("./entities/ajuste-inventario.entity"
 const ajuste_lote_entity_1 = require("./entities/ajuste-lote.entity");
 const entrada_produccion_entity_1 = require("../entradas-produccion/entities/entrada-produccion.entity");
 const salida_entity_1 = require("../salidas/entities/salida.entity");
+const inventario_terceros_entity_1 = require("../inventario-terceros/entities/inventario-terceros.entity");
+const canasta_entity_1 = require("../canastas/entities/canasta.entity");
 const inventario_stock_controller_1 = require("./inventario-stock.controller");
 const inventario_stock_service_1 = require("./inventario-stock.service");
 const ajustes_inventario_controller_1 = require("./ajustes-inventario.controller");
@@ -30,7 +32,7 @@ exports.InventarioModule = InventarioModule;
 exports.InventarioModule = InventarioModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            typeorm_1.TypeOrmModule.forFeature([inventario_entity_1.Inventario, ajuste_inventario_entity_1.AjusteInventario, ajuste_lote_entity_1.AjusteLote, entrada_produccion_entity_1.EntradaProduccion, salida_entity_1.Salida]),
+            typeorm_1.TypeOrmModule.forFeature([inventario_entity_1.Inventario, ajuste_inventario_entity_1.AjusteInventario, ajuste_lote_entity_1.AjusteLote, entrada_produccion_entity_1.EntradaProduccion, salida_entity_1.Salida, inventario_terceros_entity_1.InventarioTerceros, canasta_entity_1.Canasta]),
             galpones_module_1.GalponesModule,
             tipos_huevo_module_1.TiposHuevoModule,
             canastas_module_1.CanastasModule,

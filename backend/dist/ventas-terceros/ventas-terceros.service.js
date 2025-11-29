@@ -11,6 +11,17 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
+var __rest = (this && this.__rest) || function (s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                t[p[i]] = s[p[i]];
+        }
+    return t;
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.VentasTercerosService = void 0;
 const common_1 = require("@nestjs/common");
@@ -19,22 +30,158 @@ const typeorm_2 = require("typeorm");
 const venta_entity_1 = require("./entities/venta.entity");
 const detalle_venta_entity_1 = require("./entities/detalle-venta.entity");
 const ingresos_service_1 = require("../finanzas/ingresos.service");
+const inventario_terceros_entity_1 = require("../inventario-terceros/entities/inventario-terceros.entity");
+const canasta_entity_1 = require("../canastas/entities/canasta.entity");
+const salida_entity_1 = require("../salidas/entities/salida.entity");
+const inventario_entity_1 = require("../inventario/entities/inventario.entity");
 let VentasTercerosService = class VentasTercerosService {
-    constructor(ventasRepository, detallesRepository, ingresosService) {
+    constructor(ventasRepository, detallesRepository, invTercerosRepo, canastasRepo, salidasRepo, inventarioRepo, ingresosService) {
         this.ventasRepository = ventasRepository;
         this.detallesRepository = detallesRepository;
+        this.invTercerosRepo = invTercerosRepo;
+        this.canastasRepo = canastasRepo;
+        this.salidasRepo = salidasRepo;
+        this.inventarioRepo = inventarioRepo;
         this.ingresosService = ingresosService;
     }
     async create(createVentaDto, idEmpresa, idUsuario) {
+        if (!createVentaDto.detalles || createVentaDto.detalles.length === 0) {
+            throw new common_1.BadRequestException('Debe incluir al menos un detalle en la venta');
+        }
+        if (!createVentaDto.idTercero || createVentaDto.idTercero <= 0) {
+            throw new common_1.BadRequestException('Debe especificar un cliente (tercero) válido');
+        }
         const total = createVentaDto.detalles.reduce((sum, detalle) => sum + (detalle.cantidad * detalle.precioUnitario), 0);
-        const venta = this.ventasRepository.create(Object.assign(Object.assign({}, createVentaDto), { total,
-            idEmpresa, idUsuarioInserta: idUsuario, tipoMovimiento: 2 }));
-        const savedVenta = await this.ventasRepository.save(venta);
-        const detalles = createVentaDto.detalles.map(detalle => this.detallesRepository.create(Object.assign(Object.assign({}, detalle), { idVenta: savedVenta.id, inventarioOrigen: detalle.inventarioOrigen || 1 })));
-        await this.detallesRepository.save(detalles);
-        const ventaCompleta = await this.findOne(savedVenta.id, idEmpresa);
-        await this.createIngresoDesdeVenta(ventaCompleta, idEmpresa, idUsuario);
-        return ventaCompleta;
+        const _a = createVentaDto, { detalles: detallesDto } = _a, ventaData = __rest(_a, ["detalles"]);
+        const detallesValidados = (detallesDto || []).map((detalle) => {
+            var _a;
+            return (Object.assign(Object.assign({}, detalle), { inventarioOrigen: (_a = detalle.inventarioOrigen) !== null && _a !== void 0 ? _a : 2 }));
+        });
+        for (const d of detallesValidados) {
+            const canastaCodigo = d.canastaId || '';
+            if (!canastaCodigo || canastaCodigo.trim() === '') {
+                throw new common_1.BadRequestException('Cada detalle debe tener una canasta asignada');
+            }
+            const canastaExiste = await this.canastasRepo.findOne({ where: { id: canastaCodigo } });
+            if (!canastaExiste) {
+                throw new common_1.BadRequestException(`La canasta con ID ${canastaCodigo} no existe`);
+            }
+        }
+        const savedVenta = await this.ventasRepository.manager.transaction(async (manager) => {
+            var _a, _b, _c;
+            const ventasRepo = manager.getRepository(venta_entity_1.Venta);
+            const detallesRepo = manager.getRepository(detalle_venta_entity_1.DetalleVenta);
+            const invRepo = manager.getRepository(inventario_terceros_entity_1.InventarioTerceros);
+            for (const d of detallesValidados) {
+                if (((_a = d.inventarioOrigen) !== null && _a !== void 0 ? _a : 2) === 2) {
+                    const canastaCodigo = d.canastaId || '';
+                    const cantidadCanastas = Number(d.cantidad);
+                    if (cantidadCanastas <= 0) {
+                        throw new common_1.BadRequestException(`La cantidad debe ser mayor a 0`);
+                    }
+                    const stockRaw = await invRepo.createQueryBuilder('i')
+                        .select("COALESCE(SUM(CASE WHEN i.tipo_movimiento = 'entrada' THEN i.cantidad WHEN i.tipo_movimiento = 'salida' THEN -i.cantidad ELSE 0 END),0)", 'stock')
+                        .where('i.id_empresa = :idEmpresa AND i.tipo_huevo_codigo = :tipoHuevoCodigo AND i.activo = true', {
+                        idEmpresa,
+                        tipoHuevoCodigo: canastaCodigo,
+                    })
+                        .getRawOne();
+                    const stockActual = Number((stockRaw === null || stockRaw === void 0 ? void 0 : stockRaw.stock) || 0);
+                    if (stockActual < cantidadCanastas) {
+                        const canasta = await this.canastasRepo.findOne({ where: { id: canastaCodigo }, relations: ['tipoHuevo'] });
+                        const canastaNombre = (canasta === null || canasta === void 0 ? void 0 : canasta.nombre) || 'Canasta';
+                        throw new common_1.BadRequestException(`Stock insuficiente de ${canastaNombre}. Disponible: ${stockActual} canasta(s), solicitado: ${cantidadCanastas} canasta(s)`);
+                    }
+                }
+            }
+            const venta = ventasRepo.create(Object.assign(Object.assign({}, ventaData), { total,
+                idEmpresa, idUsuarioInserta: idUsuario, tipoMovimiento: 2 }));
+            const v = await ventasRepo.save(venta);
+            const detalles = detallesValidados.map((d) => {
+                var _a;
+                return detallesRepo.create(Object.assign(Object.assign({}, d), { idVenta: v.id, inventarioOrigen: (_a = d.inventarioOrigen) !== null && _a !== void 0 ? _a : 2 }));
+            });
+            await detallesRepo.save(detalles);
+            const salidasRepo = manager.getRepository(salida_entity_1.Salida);
+            const inventarioRepo = manager.getRepository(inventario_entity_1.Inventario);
+            for (const d of detalles) {
+                const origen = (_b = d.inventarioOrigen) !== null && _b !== void 0 ? _b : 2;
+                const canastaCodigo = d.canastaId || '';
+                const cantidadCanastas = Number(d.cantidad);
+                const precioCanasta = Number(d.precioUnitario);
+                if (origen === 2) {
+                    const stockRaw = await invRepo.createQueryBuilder('i')
+                        .select("COALESCE(SUM(CASE WHEN i.tipo_movimiento = 'entrada' THEN i.cantidad WHEN i.tipo_movimiento = 'salida' THEN -i.cantidad ELSE 0 END),0)", 'stock')
+                        .where('i.id_empresa = :idEmpresa AND i.tipo_huevo_codigo = :tipoHuevoCodigo AND i.activo = true', {
+                        idEmpresa,
+                        tipoHuevoCodigo: canastaCodigo,
+                    })
+                        .getRawOne();
+                    const stockAnterior = Number((stockRaw === null || stockRaw === void 0 ? void 0 : stockRaw.stock) || 0);
+                    const stockNuevo = stockAnterior - cantidadCanastas;
+                    const movimiento = invRepo.create({
+                        idEmpresa,
+                        idTercero: v.idTercero,
+                        tipoHuevoCodigo: canastaCodigo,
+                        cantidad: cantidadCanastas,
+                        tipoMovimiento: 'salida',
+                        precioUnitario: precioCanasta,
+                        valorTotal: cantidadCanastas * precioCanasta,
+                        concepto: 'Venta terceros',
+                        descripcion: `Factura ${v.numeroFactura || v.id}`.trim(),
+                        stockAnterior,
+                        stockActual: stockNuevo,
+                        activo: true,
+                    });
+                    await invRepo.save(movimiento);
+                }
+                else if (origen === 1) {
+                    const canasta = await this.canastasRepo.findOne({ where: { id: canastaCodigo }, relations: ['tipoHuevo'] });
+                    if (!canasta) {
+                        throw new common_1.BadRequestException(`La canasta con ID ${canastaCodigo} no existe`);
+                    }
+                    const tipoHuevoId = (_c = canasta.tipoHuevo) === null || _c === void 0 ? void 0 : _c.id;
+                    if (!tipoHuevoId) {
+                        throw new common_1.BadRequestException(`La canasta ${canasta.nombre} no tiene tipo de huevo asociado`);
+                    }
+                    const unidadesTotal = cantidadCanastas * canasta.unidadesPorCanasta;
+                    const salida = salidasRepo.create({
+                        tipoHuevoId,
+                        canastaId: canastaCodigo,
+                        nombreComprador: `Venta Tercero: ${v.numeroFactura || v.id}`,
+                        unidades: unidadesTotal,
+                        valor: cantidadCanastas * precioCanasta,
+                        fecha: v.fecha,
+                        activo: true,
+                        id_empresa: idEmpresa,
+                        id_usuario_inserta: idUsuario,
+                    });
+                    await salidasRepo.save(salida);
+                    const inv = await inventarioRepo.findOne({
+                        where: { tipoHuevoId, id_empresa: idEmpresa }
+                    });
+                    if (inv) {
+                        inv.unidades = Math.max(0, inv.unidades - unidadesTotal);
+                        inv.id_usuario_actualiza = idUsuario;
+                        await inventarioRepo.save(inv);
+                    }
+                }
+            }
+            return v;
+        });
+        setImmediate(async () => {
+            try {
+                const ventaCompleta = await this.findOne(savedVenta.id, idEmpresa);
+                await this.createIngresoDesdeVenta(ventaCompleta, idEmpresa, idUsuario);
+            }
+            catch (error) {
+                console.error('Error al crear ingreso desde venta:', error);
+            }
+        });
+        return await this.ventasRepository.findOne({
+            where: { id: savedVenta.id, idEmpresa },
+            relations: ['tercero', 'detalles', 'detalles.canasta']
+        });
     }
     async findAll(idEmpresa) {
         return await this.ventasRepository.find({
@@ -44,7 +191,10 @@ let VentasTercerosService = class VentasTercerosService {
                 activo: true,
             },
             relations: ['tercero', 'detalles', 'detalles.canasta'],
-            order: { fecha: 'DESC' },
+            order: {
+                fecha: 'DESC',
+                createdAt: 'DESC'
+            },
         });
     }
     async findOne(id, idEmpresa) {
@@ -62,14 +212,95 @@ let VentasTercerosService = class VentasTercerosService {
         if (updateVentaDto.detalles) {
             const total = updateVentaDto.detalles.reduce((sum, detalle) => sum + (detalle.cantidad * detalle.precioUnitario), 0);
             updateVentaDto['total'] = total;
-            await this.detallesRepository.delete({ idVenta: id });
-            const nuevosDetalles = updateVentaDto.detalles.map(detalle => this.detallesRepository.create(Object.assign(Object.assign({}, detalle), { idVenta: id, inventarioOrigen: detalle.inventarioOrigen || 1 })));
-            await this.detallesRepository.save(nuevosDetalles);
+            const nuevosDetalles = updateVentaDto.detalles.map(detalle => {
+                var _a;
+                return (Object.assign(Object.assign({}, detalle), { inventarioOrigen: (_a = detalle.inventarioOrigen) !== null && _a !== void 0 ? _a : 2 }));
+            });
+            for (const d of nuevosDetalles) {
+                const canastaCodigo = d.canastaId || '';
+                if (!canastaCodigo || canastaCodigo.trim() === '') {
+                    throw new common_1.BadRequestException('Cada detalle debe tener una canasta asignada');
+                }
+                const canastaExiste = await this.canastasRepo.findOne({ where: { id: canastaCodigo } });
+                if (!canastaExiste) {
+                    throw new common_1.BadRequestException(`La canasta con ID ${canastaCodigo} no existe`);
+                }
+            }
+            await this.ventasRepository.manager.transaction(async (manager) => {
+                var _a, _b;
+                const detallesRepo = manager.getRepository(detalle_venta_entity_1.DetalleVenta);
+                const ventasRepo = manager.getRepository(venta_entity_1.Venta);
+                const invRepo = manager.getRepository(inventario_terceros_entity_1.InventarioTerceros);
+                await detallesRepo.delete({ idVenta: id });
+                await invRepo.createQueryBuilder()
+                    .update()
+                    .set({ activo: false })
+                    .where('id_empresa = :idEmpresa AND concepto = :concepto AND descripcion LIKE :desc', {
+                    idEmpresa,
+                    concepto: 'Venta terceros',
+                    desc: `%${venta.numeroFactura || venta.id}%`
+                })
+                    .execute();
+                for (const d of nuevosDetalles) {
+                    if (((_a = d.inventarioOrigen) !== null && _a !== void 0 ? _a : 2) === 2) {
+                        const canastaCodigo = d.canastaId || '';
+                        const cantidadCanastas = Number(d.cantidad);
+                        if (cantidadCanastas <= 0) {
+                            throw new common_1.BadRequestException(`La cantidad debe ser mayor a 0`);
+                        }
+                        const stockActual = await this.getStockActualTercerosWithRepo(invRepo, idEmpresa, venta.idTercero, canastaCodigo);
+                        if (stockActual < cantidadCanastas) {
+                            const canasta = await this.canastasRepo.findOne({ where: { id: canastaCodigo }, relations: ['tipoHuevo'] });
+                            const canastaNombre = (canasta === null || canasta === void 0 ? void 0 : canasta.nombre) || 'Canasta';
+                            throw new common_1.BadRequestException(`Stock insuficiente de ${canastaNombre}. Disponible: ${stockActual} canasta(s), solicitado: ${cantidadCanastas} canasta(s)`);
+                        }
+                    }
+                }
+                const detalles = nuevosDetalles.map(detalle => {
+                    var _a;
+                    return detallesRepo.create(Object.assign(Object.assign({}, detalle), { idVenta: id, inventarioOrigen: (_a = detalle.inventarioOrigen) !== null && _a !== void 0 ? _a : 2 }));
+                });
+                await detallesRepo.save(detalles);
+                for (const d of detalles) {
+                    if (((_b = d.inventarioOrigen) !== null && _b !== void 0 ? _b : 2) === 2) {
+                        const canastaCodigo = d.canastaId || '';
+                        const cantidadCanastas = Number(d.cantidad);
+                        const precioCanasta = Number(d.precioUnitario);
+                        const stockAnterior = await this.getStockActualTercerosWithRepo(invRepo, idEmpresa, venta.idTercero, canastaCodigo);
+                        const movimiento = invRepo.create({
+                            idEmpresa,
+                            idTercero: venta.idTercero,
+                            tipoHuevoCodigo: canastaCodigo,
+                            cantidad: cantidadCanastas,
+                            tipoMovimiento: 'salida',
+                            precioUnitario: precioCanasta,
+                            valorTotal: cantidadCanastas * precioCanasta,
+                            concepto: 'Venta terceros',
+                            descripcion: `Factura ${venta.numeroFactura || venta.id}`.trim(),
+                            stockAnterior,
+                            stockActual: stockAnterior - cantidadCanastas,
+                            activo: true,
+                        });
+                        await invRepo.save(movimiento);
+                    }
+                }
+                const _c = updateVentaDto, { detalles: _omitDetalles } = _c, updateSinDetalles = __rest(_c, ["detalles"]);
+                Object.assign(venta, updateSinDetalles);
+                await ventasRepo.save(venta);
+            });
         }
-        Object.assign(venta, updateVentaDto);
-        await this.ventasRepository.save(venta);
+        else {
+            const _a = updateVentaDto, { detalles: _omitDetalles } = _a, updateSinDetalles = __rest(_a, ["detalles"]);
+            Object.assign(venta, updateSinDetalles);
+            await this.ventasRepository.save(venta);
+        }
         const ventaActualizada = await this.findOne(id, idEmpresa);
-        await this.syncIngresoDesdeVenta(ventaActualizada, idEmpresa, ventaActualizada.idUsuarioInserta || '');
+        try {
+            await this.syncIngresoDesdeVenta(ventaActualizada, idEmpresa, ventaActualizada.idUsuarioInserta || '');
+        }
+        catch (error) {
+            console.error('Error al sincronizar ingreso desde venta:', error);
+        }
         return ventaActualizada;
     }
     async remove(id, idEmpresa) {
@@ -84,6 +315,18 @@ let VentasTercerosService = class VentasTercerosService {
             }
         }
         catch (_a) { }
+        try {
+            await this.invTercerosRepo.createQueryBuilder()
+                .update()
+                .set({ activo: false })
+                .where('id_empresa = :idEmpresa AND concepto = :concepto AND descripcion LIKE :desc', {
+                idEmpresa,
+                concepto: 'Venta terceros',
+                desc: `%${venta.numeroFactura || ''}%`
+            })
+                .execute();
+        }
+        catch (_b) { }
         return { message: 'Venta eliminada correctamente' };
     }
     async getEstadisticas(idEmpresa) {
@@ -150,13 +393,47 @@ let VentasTercerosService = class VentasTercerosService {
         }
         catch (_b) { }
     }
+    async getStockActualTerceros(idEmpresa, idTercero, tipoHuevoCodigo) {
+        if (!tipoHuevoCodigo)
+            return 0;
+        const raw = await this.invTercerosRepo.createQueryBuilder('i')
+            .select("COALESCE(SUM(CASE WHEN i.tipo_movimiento = 'entrada' THEN i.cantidad WHEN i.tipo_movimiento = 'salida' THEN -i.cantidad ELSE 0 END),0)", 'stock')
+            .where('i.id_empresa = :idEmpresa AND i.tipo_huevo_codigo = :tipoHuevoCodigo AND i.activo = true', {
+            idEmpresa,
+            tipoHuevoCodigo,
+        })
+            .andWhere("EXISTS (SELECT 1 FROM canastas c WHERE c.id::text = i.tipo_huevo_codigo)")
+            .getRawOne();
+        return Number((raw === null || raw === void 0 ? void 0 : raw.stock) || 0);
+    }
+    async getStockActualTercerosWithRepo(repo, idEmpresa, idTercero, tipoHuevoCodigo) {
+        if (!tipoHuevoCodigo)
+            return 0;
+        const raw = await repo.createQueryBuilder('i')
+            .select("COALESCE(SUM(CASE WHEN i.tipo_movimiento = 'entrada' THEN i.cantidad WHEN i.tipo_movimiento = 'salida' THEN -i.cantidad ELSE 0 END),0)", 'stock')
+            .where('i.id_empresa = :idEmpresa AND i.tipo_huevo_codigo = :tipoHuevoCodigo AND i.activo = true', {
+            idEmpresa,
+            tipoHuevoCodigo,
+        })
+            .andWhere("EXISTS (SELECT 1 FROM canastas c WHERE c.id::text = i.tipo_huevo_codigo)")
+            .getRawOne();
+        return Number((raw === null || raw === void 0 ? void 0 : raw.stock) || 0);
+    }
 };
 exports.VentasTercerosService = VentasTercerosService;
 exports.VentasTercerosService = VentasTercerosService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_1.InjectRepository)(venta_entity_1.Venta)),
     __param(1, (0, typeorm_1.InjectRepository)(detalle_venta_entity_1.DetalleVenta)),
+    __param(2, (0, typeorm_1.InjectRepository)(inventario_terceros_entity_1.InventarioTerceros)),
+    __param(3, (0, typeorm_1.InjectRepository)(canasta_entity_1.Canasta)),
+    __param(4, (0, typeorm_1.InjectRepository)(salida_entity_1.Salida)),
+    __param(5, (0, typeorm_1.InjectRepository)(inventario_entity_1.Inventario)),
     __metadata("design:paramtypes", [typeorm_2.Repository,
+        typeorm_2.Repository,
+        typeorm_2.Repository,
+        typeorm_2.Repository,
+        typeorm_2.Repository,
         typeorm_2.Repository,
         ingresos_service_1.IngresosService])
 ], VentasTercerosService);

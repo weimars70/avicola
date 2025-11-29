@@ -50,23 +50,43 @@ export const useVentasTercerosStore = defineStore('ventas-terceros', {
         },
 
         async createVenta(ventaDto: CreateVentaDto) {
+            // Prevenir múltiples ejecuciones simultáneas
+            if (this.loading) {
+                console.warn('Ya hay una operación en progreso, ignorando petición duplicada');
+                return;
+            }
+
             this.loading = true;
             this.error = null;
             try {
                 const response = await api.post<Venta>('/ventas-terceros', ventaDto);
                 this.ventas.unshift(response.data);
-                await this.fetchEstadisticas();
+
+                // Actualizar estadísticas en segundo plano sin bloquear
+                this.fetchEstadisticas().catch(err => console.error('Error al actualizar estadísticas:', err));
+
                 return response.data;
-            } catch (error) {
-                this.error = 'Error al crear venta';
+            } catch (error: unknown) {
+                let errorMessage = 'Error al crear venta';
+                if (error && typeof error === 'object' && 'response' in error) {
+                    const axiosError = error as { response?: { data?: { message?: string } } };
+                    errorMessage = axiosError.response?.data?.message || errorMessage;
+                }
+                this.error = errorMessage;
                 console.error('Error creating venta:', error);
-                throw error;
+                throw new Error(errorMessage);
             } finally {
                 this.loading = false;
             }
         },
 
         async updateVenta(id: string, ventaDto: UpdateVentaDto) {
+            // Prevenir múltiples ejecuciones simultáneas
+            if (this.loading) {
+                console.warn('Ya hay una operación en progreso, ignorando petición duplicada');
+                return;
+            }
+
             this.loading = true;
             this.error = null;
             try {
@@ -75,28 +95,49 @@ export const useVentasTercerosStore = defineStore('ventas-terceros', {
                 if (index !== -1) {
                     this.ventas[index] = response.data;
                 }
-                await this.fetchEstadisticas();
+
+                // Actualizar estadísticas en segundo plano sin bloquear
+                this.fetchEstadisticas().catch(err => console.error('Error al actualizar estadísticas:', err));
+
                 return response.data;
-            } catch (error) {
-                this.error = 'Error al actualizar venta';
+            } catch (error: unknown) {
+                let errorMessage = 'Error al actualizar venta';
+                if (error && typeof error === 'object' && 'response' in error) {
+                    const axiosError = error as { response?: { data?: { message?: string } } };
+                    errorMessage = axiosError.response?.data?.message || errorMessage;
+                }
+                this.error = errorMessage;
                 console.error('Error updating venta:', error);
-                throw error;
+                throw new Error(errorMessage);
             } finally {
                 this.loading = false;
             }
         },
 
         async deleteVenta(id: string) {
+            // Prevenir múltiples ejecuciones simultáneas
+            if (this.loading) {
+                console.warn('Ya hay una operación en progreso, ignorando petición duplicada');
+                return;
+            }
+
             this.loading = true;
             this.error = null;
             try {
                 await api.delete(`/ventas-terceros/${id}`);
                 this.ventas = this.ventas.filter(v => v.id !== id);
-                await this.fetchEstadisticas();
-            } catch (error) {
-                this.error = 'Error al eliminar venta';
+
+                // Actualizar estadísticas en segundo plano sin bloquear
+                this.fetchEstadisticas().catch(err => console.error('Error al actualizar estadísticas:', err));
+            } catch (error: unknown) {
+                let errorMessage = 'Error al eliminar venta';
+                if (error && typeof error === 'object' && 'response' in error) {
+                    const axiosError = error as { response?: { data?: { message?: string } } };
+                    errorMessage = axiosError.response?.data?.message || errorMessage;
+                }
+                this.error = errorMessage;
                 console.error('Error deleting venta:', error);
-                throw error;
+                throw new Error(errorMessage);
             } finally {
                 this.loading = false;
             }

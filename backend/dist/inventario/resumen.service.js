@@ -19,11 +19,15 @@ const typeorm_2 = require("typeorm");
 const entrada_produccion_entity_1 = require("../entradas-produccion/entities/entrada-produccion.entity");
 const salida_entity_1 = require("../salidas/entities/salida.entity");
 const inventario_entity_1 = require("./entities/inventario.entity");
+const inventario_terceros_entity_1 = require("../inventario-terceros/entities/inventario-terceros.entity");
+const canasta_entity_1 = require("../canastas/entities/canasta.entity");
 let ResumenService = class ResumenService {
-    constructor(entradasRepository, salidasRepository, inventarioRepository) {
+    constructor(entradasRepository, salidasRepository, inventarioRepository, invTercerosRepository, canastasRepository) {
         this.entradasRepository = entradasRepository;
         this.salidasRepository = salidasRepository;
         this.inventarioRepository = inventarioRepository;
+        this.invTercerosRepository = invTercerosRepository;
+        this.canastasRepository = canastasRepository;
     }
     async getInventarioResumen(galponId, tipoHuevoId, id_empresa) {
         if (!id_empresa) {
@@ -118,6 +122,30 @@ let ResumenService = class ResumenService {
         });
         return resultado;
     }
+    async getInventarioTercerosResumen(id_empresa, id_tercero) {
+        if (!id_empresa) {
+            throw new Error('No hay empresa asociada al usuario logueado');
+        }
+        const query = this.invTercerosRepository
+            .createQueryBuilder('i')
+            .leftJoin(canasta_entity_1.Canasta, 'c', 'c.id::text = i.tipo_huevo_codigo')
+            .select(['i.tipo_huevo_codigo AS "canastaId"'])
+            .addSelect("COALESCE(SUM(CASE WHEN i.tipo_movimiento = 'entrada' THEN i.cantidad WHEN i.tipo_movimiento = 'salida' THEN -i.cantidad ELSE 0 END),0)", 'stockCanastas')
+            .where('i.id_empresa = :id_empresa AND i.activo = true', { id_empresa })
+            .andWhere('c.id IS NOT NULL');
+        if (id_tercero) {
+            query.andWhere('i.id_tercero = :id_tercero', { id_tercero });
+        }
+        query.groupBy('i.tipo_huevo_codigo');
+        const rows = await query.getRawMany();
+        const ids = rows.map(r => r.canastaId).filter(Boolean);
+        const canastas = ids.length > 0 ? await this.canastasRepository.findBy({ id: ids }) : [];
+        const canastaMap = new Map(canastas.map(c => [c.id, c]));
+        return rows.map(r => ({
+            canasta: canastaMap.get(r.canastaId) || { id: r.canastaId, nombre: 'Canasta', unidadesPorCanasta: 0 },
+            stockActual: Number(r.stockCanastas || 0),
+        }));
+    }
 };
 exports.ResumenService = ResumenService;
 exports.ResumenService = ResumenService = __decorate([
@@ -125,7 +153,11 @@ exports.ResumenService = ResumenService = __decorate([
     __param(0, (0, typeorm_1.InjectRepository)(entrada_produccion_entity_1.EntradaProduccion)),
     __param(1, (0, typeorm_1.InjectRepository)(salida_entity_1.Salida)),
     __param(2, (0, typeorm_1.InjectRepository)(inventario_entity_1.Inventario)),
+    __param(3, (0, typeorm_1.InjectRepository)(inventario_terceros_entity_1.InventarioTerceros)),
+    __param(4, (0, typeorm_1.InjectRepository)(canasta_entity_1.Canasta)),
     __metadata("design:paramtypes", [typeorm_2.Repository,
+        typeorm_2.Repository,
+        typeorm_2.Repository,
         typeorm_2.Repository,
         typeorm_2.Repository])
 ], ResumenService);

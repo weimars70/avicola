@@ -11,6 +11,17 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
+var __rest = (this && this.__rest) || function (s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                t[p[i]] = s[p[i]];
+        }
+    return t;
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ComprasTercerosService = void 0;
 const common_1 = require("@nestjs/common");
@@ -20,23 +31,71 @@ const compra_entity_1 = require("./entities/compra.entity");
 const detalle_compra_entity_1 = require("./entities/detalle-compra.entity");
 const gastos_service_1 = require("../finanzas/gastos.service");
 const categorias_gastos_service_1 = require("../finanzas/categorias-gastos.service");
+const inventario_terceros_entity_1 = require("../inventario-terceros/entities/inventario-terceros.entity");
+const canasta_entity_1 = require("../canastas/entities/canasta.entity");
+const tercero_entity_1 = require("../terceros/entities/tercero.entity");
 let ComprasTercerosService = class ComprasTercerosService {
-    constructor(comprasRepository, detallesRepository, gastosService, categoriasService) {
+    constructor(comprasRepository, detallesRepository, invTercerosRepo, canastasRepo, tercerosRepo, gastosService, categoriasService) {
         this.comprasRepository = comprasRepository;
         this.detallesRepository = detallesRepository;
+        this.invTercerosRepo = invTercerosRepo;
+        this.canastasRepo = canastasRepo;
+        this.tercerosRepo = tercerosRepo;
         this.gastosService = gastosService;
         this.categoriasService = categoriasService;
     }
     async create(createCompraDto, idEmpresa, idUsuario) {
-        const total = createCompraDto.detalles.reduce((sum, detalle) => sum + (detalle.cantidad * detalle.precioUnitario), 0);
-        const compra = this.comprasRepository.create(Object.assign(Object.assign({}, createCompraDto), { total, tipoMovimiento: 2 }));
+        const terceroCodigo = Number(createCompraDto.idTercero);
+        if (!terceroCodigo || terceroCodigo <= 0) {
+            throw new common_1.BadRequestException('Tercero inválido: seleccione un proveedor válido');
+        }
+        const tercero = await this.tercerosRepo.findOne({ where: { codigo: terceroCodigo, idEmpresa } });
+        if (!tercero) {
+            throw new common_1.BadRequestException('El tercero no existe en esta empresa');
+        }
+        const detallesArray = createCompraDto.detalles || [];
+        const total = detallesArray.reduce((sum, detalle) => sum + (detalle.cantidad * detalle.precioUnitario), 0);
+        const _a = createCompraDto, { detalles: detallesDto } = _a, compraData = __rest(_a, ["detalles"]);
+        const compra = this.comprasRepository.create(Object.assign(Object.assign({}, compraData), { total, tipoMovimiento: 2 }));
         compra.idEmpresa = idEmpresa;
         compra.idUsuarioInserta = idUsuario;
+        compra.idTercero = terceroCodigo;
         const savedCompra = await this.comprasRepository.save(compra);
-        const detalles = createCompraDto.detalles.map(detalle => this.detallesRepository.create(Object.assign(Object.assign({}, detalle), { idCompra: savedCompra.id, tipoMovimiento: 2 })));
+        const detalles = (detallesDto || []).map((detalle) => this.detallesRepository.create(Object.assign(Object.assign({}, detalle), { idCompra: savedCompra.id, tipoMovimiento: 2 })));
         await this.detallesRepository.save(detalles);
+        for (const d of detalles) {
+            const canastaCodigo = d.canastaId || 'sin_canasta';
+            const cantidadCanastas = Math.round(Number(d.cantidad));
+            const precioCanasta = Number(d.precioUnitario);
+            const stockRaw = await this.invTercerosRepo.createQueryBuilder('i')
+                .select("COALESCE(SUM(CASE WHEN i.tipo_movimiento = 'entrada' THEN i.cantidad WHEN i.tipo_movimiento = 'salida' THEN -i.cantidad ELSE 0 END),0)", 'stock')
+                .where('i.id_empresa = :idEmpresa AND i.tipo_huevo_codigo = :tipoHuevoCodigo AND i.activo = true', {
+                idEmpresa,
+                tipoHuevoCodigo: canastaCodigo,
+            })
+                .getRawOne();
+            const stockAnterior = Number((stockRaw === null || stockRaw === void 0 ? void 0 : stockRaw.stock) || 0);
+            const stockNuevo = stockAnterior + cantidadCanastas;
+            const movimiento = this.invTercerosRepo.create({
+                idEmpresa,
+                idTercero: compra.idTercero,
+                tipoHuevoCodigo: canastaCodigo,
+                cantidad: cantidadCanastas,
+                tipoMovimiento: 'entrada',
+                precioUnitario: precioCanasta,
+                valorTotal: cantidadCanastas * precioCanasta,
+                concepto: 'Compra terceros',
+                descripcion: `Factura ${compra.numeroFactura || ''}`.trim(),
+                stockAnterior,
+                stockActual: stockNuevo,
+                activo: true,
+            });
+            await this.invTercerosRepo.save(movimiento);
+        }
         const compraCompleta = await this.findOne(savedCompra.id, idEmpresa);
-        await this.createGastoDesdeCompra(compraCompleta, idEmpresa, idUsuario);
+        if ((createCompraDto.estado || 'PENDIENTE') === 'PAGADO') {
+            await this.createGastoDesdeCompra(compraCompleta, idEmpresa, idUsuario);
+        }
         return compraCompleta;
     }
     async findAll(idEmpresa) {
@@ -67,11 +126,60 @@ let ComprasTercerosService = class ComprasTercerosService {
             await this.detallesRepository.delete({ idCompra: id });
             const nuevosDetalles = updateCompraDto.detalles.map(detalle => this.detallesRepository.create(Object.assign(Object.assign({}, detalle), { idCompra: id, tipoMovimiento: 2 })));
             await this.detallesRepository.save(nuevosDetalles);
+            try {
+                await this.invTercerosRepo.createQueryBuilder()
+                    .update()
+                    .set({ activo: false })
+                    .where('id_empresa = :idEmpresa AND concepto = :concepto AND descripcion LIKE :desc', {
+                    idEmpresa,
+                    concepto: 'Compra terceros',
+                    desc: `%${compra.numeroFactura || ''}%`
+                })
+                    .execute();
+                for (const d of nuevosDetalles) {
+                    const canastaCodigo = d.canastaId || 'sin_canasta';
+                    const cantidadCanastas = Math.round(Number(d.cantidad));
+                    const precioCanasta = Number(d.precioUnitario);
+                    const stockAnterior = await this.getStockActualTerceros(idEmpresa, compra.idTercero, canastaCodigo);
+                    const movimiento = this.invTercerosRepo.create({
+                        idEmpresa,
+                        idTercero: compra.idTercero,
+                        tipoHuevoCodigo: canastaCodigo,
+                        cantidad: cantidadCanastas,
+                        tipoMovimiento: 'entrada',
+                        precioUnitario: precioCanasta,
+                        valorTotal: cantidadCanastas * precioCanasta,
+                        concepto: 'Compra terceros',
+                        descripcion: `Factura ${compra.numeroFactura || ''}`.trim(),
+                        stockAnterior,
+                        stockActual: stockAnterior + cantidadCanastas,
+                        activo: true,
+                    });
+                    await this.invTercerosRepo.save(movimiento);
+                }
+            }
+            catch (_a) { }
         }
-        Object.assign(compra, updateCompraDto);
+        const _b = updateCompraDto, { detalles: _omitDetalles } = _b, updateSinDetalles = __rest(_b, ["detalles"]);
+        Object.assign(compra, updateSinDetalles);
         await this.comprasRepository.save(compra);
         const compraActualizada = await this.findOne(id, idEmpresa);
-        await this.syncGastoDesdeCompra(compraActualizada, idEmpresa, compraActualizada.idUsuarioInserta || '');
+        if (updateCompraDto.estado === 'PAGADO') {
+            await this.createGastoDesdeCompra(compraActualizada, idEmpresa, compraActualizada.idUsuarioInserta || '');
+        }
+        else if (updateCompraDto.estado === 'PENDIENTE') {
+            try {
+                const gastos = await this.gastosService.findAll(idEmpresa);
+                const gastoRelacionado = gastos.find(g => { var _a; return (g.numeroFactura || '') === (compraActualizada.numeroFactura || '') && (g.proveedor || '') === (((_a = compraActualizada.tercero) === null || _a === void 0 ? void 0 : _a.nombre) || ''); });
+                if (gastoRelacionado) {
+                    await this.gastosService.remove(gastoRelacionado.id);
+                }
+            }
+            catch (_c) { }
+        }
+        else {
+            await this.syncGastoDesdeCompra(compraActualizada, idEmpresa, compraActualizada.idUsuarioInserta || '');
+        }
         return compraActualizada;
     }
     async remove(id, idEmpresa) {
@@ -86,6 +194,18 @@ let ComprasTercerosService = class ComprasTercerosService {
             }
         }
         catch (_a) { }
+        try {
+            await this.invTercerosRepo.createQueryBuilder()
+                .update()
+                .set({ activo: false })
+                .where('id_empresa = :idEmpresa AND concepto = :concepto AND descripcion LIKE :desc', {
+                idEmpresa,
+                concepto: 'Compra terceros',
+                desc: `%${compra.numeroFactura || ''}%`
+            })
+                .execute();
+        }
+        catch (_b) { }
         return { message: 'Compra eliminada correctamente' };
     }
     async getEstadisticas(idEmpresa) {
@@ -155,13 +275,32 @@ let ComprasTercerosService = class ComprasTercerosService {
         }
         catch (_b) { }
     }
+    async getStockActualTerceros(idEmpresa, idTercero, tipoHuevoCodigo) {
+        if (!tipoHuevoCodigo)
+            return 0;
+        const raw = await this.invTercerosRepo.createQueryBuilder('i')
+            .select("COALESCE(SUM(CASE WHEN i.tipo_movimiento = 'entrada' THEN i.cantidad WHEN i.tipo_movimiento = 'salida' THEN -i.cantidad ELSE 0 END),0)", 'stock')
+            .where('i.id_empresa = :idEmpresa AND i.tipo_huevo_codigo = :tipoHuevoCodigo AND i.activo = true', {
+            idEmpresa,
+            tipoHuevoCodigo,
+        })
+            .andWhere("EXISTS (SELECT 1 FROM canastas c WHERE c.id::text = i.tipo_huevo_codigo)")
+            .getRawOne();
+        return Number((raw === null || raw === void 0 ? void 0 : raw.stock) || 0);
+    }
 };
 exports.ComprasTercerosService = ComprasTercerosService;
 exports.ComprasTercerosService = ComprasTercerosService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_1.InjectRepository)(compra_entity_1.Compra)),
     __param(1, (0, typeorm_1.InjectRepository)(detalle_compra_entity_1.DetalleCompra)),
+    __param(2, (0, typeorm_1.InjectRepository)(inventario_terceros_entity_1.InventarioTerceros)),
+    __param(3, (0, typeorm_1.InjectRepository)(canasta_entity_1.Canasta)),
+    __param(4, (0, typeorm_1.InjectRepository)(tercero_entity_1.Tercero)),
     __metadata("design:paramtypes", [typeorm_2.Repository,
+        typeorm_2.Repository,
+        typeorm_2.Repository,
+        typeorm_2.Repository,
         typeorm_2.Repository,
         gastos_service_1.GastosService,
         categorias_gastos_service_1.CategoriasGastosService])

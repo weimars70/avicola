@@ -964,6 +964,8 @@ import { useQuasar } from 'quasar';
 import Chart from 'chart.js/auto';
 import CalendarioFinanciero from 'src/components/CalendarioFinanciero.vue';
 import { api } from 'src/boot/axios';
+import { useComprasTercerosStore } from 'src/stores/compras-terceros';
+import { useVentasTercerosStore } from 'src/stores/ventas-terceros';
 
 // Interfaces para formularios
 interface GastoForm {
@@ -1778,9 +1780,11 @@ const finTercerosColumns = [
 
 const finTercerosRows = computed<FinTercerosRow[]>(() => {
   const rows: FinTercerosRow[] = [];
+  const gastosLista = (gastos.value || []) as Gasto[];
   // Gastos de terceros: categoría específica
-  (gastos.value || []).forEach((g: Gasto) => {
-    if (g.categoria?.nombre === 'Compras de Terceros') {
+  gastosLista.forEach((g: Gasto) => {
+    const esTerceros = (g.categoria?.nombre || '').toLowerCase() === 'compras de terceros' || (g.observaciones || '').toLowerCase().includes('[origen=terceros]');
+    if (esTerceros) {
       rows.push({
         id: g.id,
         tipo: 'Gasto',
@@ -1792,17 +1796,33 @@ const finTercerosRows = computed<FinTercerosRow[]>(() => {
       });
     }
   });
+  // Compras pendientes de terceros que aún no tienen gasto
+  (comprasStore.compras || []).forEach(c => {
+    const existeGasto = gastosLista.some((g: Gasto) => ((g.categoria?.nombre || '').toLowerCase() === 'compras de terceros') && ((g.numeroFactura || '') === (c.numeroFactura || '')) && ((g.proveedor || '') === (c.tercero?.nombre || '')));
+    if (!existeGasto) {
+      rows.push({
+        id: c.id,
+        tipo: 'Gasto',
+        fecha: formatDate(c.fecha),
+        tercero: c.tercero?.nombre || '',
+        numeroFactura: c.numeroFactura || '',
+        estado: 'PENDIENTE',
+        total: Number(c.total)
+      });
+    }
+  });
   // Ingresos de terceros: tienen referencia y tipo 'venta'
   (ingresos.value || []).forEach((i: Ingreso) => {
     const esTerceros = (i.tipo === 'venta') && !i.salidaId && ((i.referencia || '').length > 0) && ((i.descripcion || '').toLowerCase().includes('[origen=terceros]'));
     if (esTerceros) {
+      const ventaRef = ventasStore.ventas.find(v => v.id === i.referencia);
       rows.push({
         id: i.id,
         tipo: 'Ingreso',
         fecha: formatDate(i.fecha),
         tercero: (i.descripcion || '').replace('Venta terceros', '').replace('[origen=terceros]', '').trim(),
         numeroFactura: '',
-        estado: 'PAGADO',
+        estado: ventaRef ? (ventaRef.estado || 'PENDIENTE') : 'PENDIENTE',
         total: Number(i.monto)
       });
     }
@@ -1822,10 +1842,14 @@ const finTercerosRowsFiltered = computed(() => {
   return r;
 });
 
-const ingresosTercerosPagados = computed(() => finTercerosRows.value.filter(r => r.tipo === 'Ingreso' && r.estado === 'PAGADO').reduce((s, r) => s + r.total, 0));
-const gastosTercerosPagados = computed(() => finTercerosRows.value.filter(r => r.tipo === 'Gasto' && r.estado === 'PAGADO').reduce((s, r) => s + r.total, 0));
-const ingresosTercerosPendientes = computed(() => finTercerosRows.value.filter(r => r.tipo === 'Ingreso' && r.estado === 'PENDIENTE').reduce((s, r) => s + r.total, 0));
-const gastosTercerosPendientes = computed(() => finTercerosRows.value.filter(r => r.tipo === 'Gasto' && r.estado === 'PENDIENTE').reduce((s, r) => s + r.total, 0));
+// KPIs de terceros basados en estado real de compras/ventas de terceros
+const comprasStore = useComprasTercerosStore();
+const ventasStore = useVentasTercerosStore();
+
+const ingresosTercerosPagados = computed(() => ventasStore.ventas.filter(v => v.estado === 'PAGADO').reduce((s, v) => s + Number(v.total), 0));
+const ingresosTercerosPendientes = computed(() => ventasStore.ventas.filter(v => v.estado !== 'PAGADO').reduce((s, v) => s + Number(v.total), 0));
+const gastosTercerosPagados = computed(() => comprasStore.compras.filter(c => c.estado === 'PAGADO').reduce((s, c) => s + Number(c.total), 0));
+const gastosTercerosPendientes = computed(() => comprasStore.compras.filter(c => c.estado !== 'PAGADO').reduce((s, c) => s + Number(c.total), 0));
 
 const getEstadoColor = (estado: string) => {
   switch (estado) {
@@ -1839,7 +1863,12 @@ const getEstadoColor = (estado: string) => {
 const loadFinanzasTerceros = async () => {
   loadingTercerosFinanzas.value = true;
   try {
-    await Promise.all([fetchGastos(), fetchIngresos()]);
+    await Promise.all([
+      fetchGastos(),
+      fetchIngresos(),
+      comprasStore.fetchCompras(),
+      ventasStore.fetchVentas()
+    ]);
   } finally {
     loadingTercerosFinanzas.value = false;
   }
