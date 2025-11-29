@@ -966,6 +966,9 @@ import CalendarioFinanciero from 'src/components/CalendarioFinanciero.vue';
 import { api } from 'src/boot/axios';
 import { useComprasTercerosStore } from 'src/stores/compras-terceros';
 import { useVentasTercerosStore } from 'src/stores/ventas-terceros';
+import { useCanastasStore } from 'src/stores/canastas';
+import type { DetalleCompra } from 'src/types/compras-terceros';
+import type { DetalleVenta } from 'src/types/ventas-terceros';
 
 // Interfaces para formularios
 interface GastoForm {
@@ -1013,6 +1016,9 @@ const {
 
 // Stores
 const inversionStore = useInversionInicialStore();
+const comprasStore = useComprasTercerosStore();
+const ventasStore = useVentasTercerosStore();
+const canastasStore = useCanastasStore();
 
 // Estados reactivos
 const activeTab = ref('resumen');
@@ -1765,6 +1771,7 @@ interface FinTercerosRow {
   fecha: string;
   tercero: string;
   numeroFactura?: string;
+  detalles?: string;
   estado: string;
   total: number;
 }
@@ -1774,6 +1781,7 @@ const finTercerosColumns = [
   { name: 'fecha', label: 'Fecha', field: 'fecha', align: 'left' as const, format: (val: string) => formatDate(val) },
   { name: 'tercero', label: 'Tercero', field: 'tercero', align: 'left' as const },
   { name: 'numeroFactura', label: 'Factura', field: 'numeroFactura', align: 'left' as const },
+  { name: 'detalles', label: 'Productos/Cantidad', field: 'detalles', align: 'left' as const },
   { name: 'estado', label: 'Estado', field: 'estado', align: 'center' as const },
   { name: 'total', label: 'Total', field: 'total', align: 'right' as const, format: (val: number) => formatCurrency(val) }
 ];
@@ -1781,51 +1789,47 @@ const finTercerosColumns = [
 const finTercerosRows = computed<FinTercerosRow[]>(() => {
   const rows: FinTercerosRow[] = [];
   const gastosLista = (gastos.value || []) as Gasto[];
-  // Gastos de terceros: categoría específica
-  gastosLista.forEach((g: Gasto) => {
-    const esTerceros = (g.categoria?.nombre || '').toLowerCase() === 'compras de terceros' || (g.observaciones || '').toLowerCase().includes('[origen=terceros]');
-    if (esTerceros) {
-      rows.push({
-        id: g.id,
-        tipo: 'Gasto',
-        fecha: formatDate(g.fecha),
-        tercero: g.proveedor || '',
-        numeroFactura: g.numeroFactura || '',
-        estado: 'PAGADO',
-        total: Number(g.monto)
-      });
-    }
-  });
-  // Compras pendientes de terceros que aún no tienen gasto
+  // Compras de terceros (todas)
   (comprasStore.compras || []).forEach(c => {
-    const existeGasto = gastosLista.some((g: Gasto) => ((g.categoria?.nombre || '').toLowerCase() === 'compras de terceros') && ((g.numeroFactura || '') === (c.numeroFactura || '')) && ((g.proveedor || '') === (c.tercero?.nombre || '')));
-    if (!existeGasto) {
-      rows.push({
-        id: c.id,
-        tipo: 'Gasto',
-        fecha: formatDate(c.fecha),
-        tercero: c.tercero?.nombre || '',
-        numeroFactura: c.numeroFactura || '',
-        estado: 'PENDIENTE',
-        total: Number(c.total)
-      });
-    }
+    const detallesText = (c.detalles || []).map((d: DetalleCompra) => {
+      const canasta = canastasStore.canastas.find(can => can.id === d.canastaId);
+      return `${canasta?.nombre || 'Canasta'}: ${d.cantidad}`;
+    }).join(', ') || 'Sin detalles';
+
+    const yaConGasto = gastosLista.some((g: Gasto) =>
+      ((g.categoria?.nombre || '').toLowerCase() === 'compras de terceros') &&
+      ((g.numeroFactura || '') === (c.numeroFactura || '')) &&
+      ((g.proveedor || '') === (c.tercero?.nombre || ''))
+    );
+
+    rows.push({
+      id: c.id,
+      tipo: 'Gasto',
+      fecha: formatDate(c.fecha),
+      tercero: c.tercero?.nombre || '',
+      numeroFactura: c.numeroFactura || '',
+      detalles: detallesText,
+      estado: yaConGasto ? 'PAGADO' : (c.estado || 'PENDIENTE'),
+      total: Number(c.total)
+    });
   });
-  // Ingresos de terceros: tienen referencia y tipo 'venta'
-  (ingresos.value || []).forEach((i: Ingreso) => {
-    const esTerceros = (i.tipo === 'venta') && !i.salidaId && ((i.referencia || '').length > 0) && ((i.descripcion || '').toLowerCase().includes('[origen=terceros]'));
-    if (esTerceros) {
-      const ventaRef = ventasStore.ventas.find(v => v.id === i.referencia);
-      rows.push({
-        id: i.id,
-        tipo: 'Ingreso',
-        fecha: formatDate(i.fecha),
-        tercero: (i.descripcion || '').replace('Venta terceros', '').replace('[origen=terceros]', '').trim(),
-        numeroFactura: '',
-        estado: ventaRef ? (ventaRef.estado || 'PENDIENTE') : 'PENDIENTE',
-        total: Number(i.monto)
-      });
-    }
+  // Ventas de terceros (todas)
+  (ventasStore.ventas || []).forEach(v => {
+    const detallesText = (v.detalles || []).map((d: DetalleVenta) => {
+      const canasta = canastasStore.canastas.find(can => can.id === d.canastaId);
+      return `${canasta?.nombre || 'Canasta'}: ${d.cantidad}`;
+    }).join(', ') || 'Sin detalles';
+
+    rows.push({
+      id: v.id,
+      tipo: 'Ingreso',
+      fecha: formatDate(v.fecha),
+      tercero: v.tercero?.nombre || '',
+      numeroFactura: v.numeroFactura || '',
+      detalles: detallesText,
+      estado: v.estado || 'PENDIENTE',
+      total: Number(v.total)
+    });
   });
   return rows;
 });
@@ -1843,8 +1847,6 @@ const finTercerosRowsFiltered = computed(() => {
 });
 
 // KPIs de terceros basados en estado real de compras/ventas de terceros
-const comprasStore = useComprasTercerosStore();
-const ventasStore = useVentasTercerosStore();
 
 const ingresosTercerosPagados = computed(() => ventasStore.ventas.filter(v => v.estado === 'PAGADO').reduce((s, v) => s + Number(v.total), 0));
 const ingresosTercerosPendientes = computed(() => ventasStore.ventas.filter(v => v.estado !== 'PAGADO').reduce((s, v) => s + Number(v.total), 0));
@@ -1997,27 +1999,27 @@ onMounted(async () => {
   color: white;
 }
 
-.kpi-ingresos .kpi-icon {
+.kpi-card.kpi-ingresos .kpi-icon {
   background: linear-gradient(135deg, #4CAF50, #45a049);
 }
 
-.kpi-gastos .kpi-icon {
+.kpi-card.kpi-gastos .kpi-icon {
   background: linear-gradient(135deg, #F44336, #d32f2f);
 }
 
-.kpi-positive .kpi-icon {
+.kpi-card.kpi-positive .kpi-icon {
   background: linear-gradient(135deg, #2196F3, #1976d2);
 }
 
-.kpi-negative .kpi-icon {
+.kpi-card.kpi-negative .kpi-icon {
   background: linear-gradient(135deg, #FF9800, #f57c00);
 }
 
-.kpi-margen .kpi-icon {
+.kpi-card.kpi-margen .kpi-icon {
   background: linear-gradient(135deg, #9C27B0, #7b1fa2);
 }
 
-.kpi-info {
+.kpi-content .kpi-info {
   flex: 1;
 }
 

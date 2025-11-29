@@ -132,51 +132,126 @@
       </q-table>
     </q-card>
 
-    <q-dialog v-model="dialog" persistent :maximized="$q.screen.lt.sm" transition-show="slide-up" transition-hide="slide-down">
-      <q-card class="dialog-responsive" :style="$q.screen.lt.sm ? 'width: 100%' : 'min-width: 600px; max-width: 90vw'">
-        <q-card-section class="dialog-header">
-          <div class="text-h6">{{ editing ? 'Editar Compra' : 'Nueva Compra' }}</div>
+    <q-dialog v-model="dialog" persistent transition-show="slide-up" transition-hide="slide-down">
+      <q-card class="modern-dialog" :style="'width: 850px; max-width: 95vw; height: 90vh'">
+        <q-card-section class="dialog-header bg-primary text-white">
+          <q-icon name="shopping_cart" size="sm" />
+          <span>{{ editing ? 'Editar Compra' : 'Nueva Compra' }}</span>
           <q-space />
           <q-btn icon="close" flat round dense v-close-popup @click="closeDialog" />
         </q-card-section>
-        <q-card-section class="q-pa-md-lg">
-          <q-form @submit="saveCompra" class="q-gutter-md">
-            <q-select v-model="form.idTercero" :options="terceroOptions" label="Proveedor *" outlined dense emit-value map-options />
-            <q-input v-model="form.fecha" label="Fecha *" type="date" outlined dense />
-            <div class="row q-col-gutter-md">
-              <div class="col-12 col-md-6">
-                <q-input v-model="form.numeroFactura" label="Número de Factura" outlined dense />
+
+        <q-card-section class="dialog-body" style="height: calc(100% - 130px); overflow-y: auto">
+          <q-form @submit="saveCompra">
+            <!-- Sección Proveedor -->
+            <div class="form-section">
+              <div class="section-title">
+                <q-icon name="store" />
+                Información del Proveedor
               </div>
-              <div class="col-12 col-md-6">
-                <q-select v-model="form.estado" :options="['PENDIENTE','PAGADO','PARCIAL']" label="Estado *" outlined dense />
+              <div class="row q-col-gutter-md">
+                <div class="col-12 col-md-6">
+                  <q-select v-model="form.idTercero" :options="terceroOptions" label="Proveedor" outlined dense emit-value map-options>
+                    <template v-slot:prepend>
+                      <q-icon name="person" />
+                    </template>
+                  </q-select>
+                </div>
+                <div class="col-12 col-md-6">
+                  <q-input v-model="form.fecha" label="Fecha" type="date" outlined dense>
+                    <template v-slot:prepend>
+                      <q-icon name="event" />
+                    </template>
+                  </q-input>
+                </div>
               </div>
             </div>
-            <div class="row q-col-gutter-md">
-              <div class="col-12 col-md-6">
-                <q-input v-model="form.formaPago" label="Forma de Pago" outlined dense />
+
+            <!-- Sección Facturación -->
+            <div class="form-section">
+              <div class="section-title">
+                <q-icon name="receipt" />
+                Información de Facturación
               </div>
-              <div class="col-12 col-md-6">
-                <q-input v-model="form.observaciones" label="Observaciones" type="textarea" outlined dense />
+              <div class="row q-col-gutter-md">
+                <div class="col-12 col-md-6">
+                  <q-input v-model="form.numeroFactura" label="Número de Factura" outlined dense>
+                    <template v-slot:prepend>
+                      <q-icon name="tag" />
+                    </template>
+                  </q-input>
+                </div>
+                <div class="col-12 col-md-6">
+                  <q-select v-model="form.estado" :options="['PENDIENTE','PAGADO','PARCIAL']" label="Estado" outlined dense>
+                    <template v-slot:prepend>
+                      <q-icon name="info" />
+                    </template>
+                  </q-select>
+                </div>
+              </div>
+              <div class="row q-col-gutter-md q-mt-sm">
+                <div class="col-12 col-md-6">
+                  <q-input v-model="form.formaPago" label="Forma de Pago" outlined dense>
+                    <template v-slot:prepend>
+                      <q-icon name="payment" />
+                    </template>
+                  </q-input>
+                </div>
+                <div class="col-12 col-md-6">
+                  <q-input v-model="form.observaciones" label="Observaciones" outlined dense>
+                    <template v-slot:prepend>
+                      <q-icon name="note" />
+                    </template>
+                  </q-input>
+                </div>
               </div>
             </div>
-            <div class="text-subtitle1">Detalles</div>
-            <div v-for="(detalle, index) in form.detalles" :key="index" class="detalle-box">
-              <div class="row q-gutter-md">
-                <q-input v-model="detalle.descripcion" label="Descripción" outlined dense class="col" />
-                <q-input v-model.number="detalle.cantidad" label="Cantidad *" type="number" outlined dense class="col-12 col-sm-3" />
-                <q-input v-model.number="detalle.precioUnitario" label="Precio Unit. *" type="number" outlined dense class="col-12 col-sm-3" />
-                <q-select v-model="detalle.canastaId" :options="canastaOptions" label="Canasta" outlined dense emit-value map-options class="col-12 col-sm-4" />
-                <q-btn flat round icon="delete" color="negative" @click="removeDetalle(index)" />
+
+            <!-- Sección Productos -->
+            <div class="form-section">
+              <div class="section-title">
+                <q-icon name="inventory_2" />
+                Productos Comprados
+                <q-space />
+                <q-btn flat dense color="primary" icon="add" label="Agregar" @click="addDetalle()" size="sm" />
               </div>
-              <div class="detalle-subtotal">Subtotal: ${{ (detalle.cantidad * detalle.precioUnitario).toFixed(2) }}</div>
-            </div>
-            <q-btn flat label="Agregar Detalle" icon="add" @click="addDetalle()" />
-            <div class="total-box">Total: ${{ calcularTotal().toFixed(2) }}</div>
-            <div class="row justify-end q-gutter-sm">
-              <q-btn label="Cancelar" flat @click="closeDialog()" />
-              <q-btn label="Guardar" type="submit" color="primary" :loading="saving" />
+
+              <div class="detalles-container" style="max-height: 300px; overflow-y: auto">
+                <div v-for="(detalle, index) in form.detalles" :key="index" class="detalle-grid">
+                  <div class="detalle-field">
+                    <label>Canasta</label>
+                    <q-select v-model="detalle.canastaId" :options="canastaOptions" outlined dense emit-value map-options />
+                  </div>
+                  <div class="detalle-field">
+                    <label>Cant.</label>
+                    <q-input v-model.number="detalle.cantidad" type="number" outlined dense />
+                  </div>
+                  <div class="detalle-field">
+                    <label>Precio</label>
+                    <q-input v-model.number="detalle.precioUnitario" type="number" outlined dense prefix="$" />
+                  </div>
+                  <div class="detalle-field">
+                    <label>Subtotal</label>
+                    <div class="detalle-subtotal">${{ (detalle.cantidad * detalle.precioUnitario).toFixed(2) }}</div>
+                  </div>
+                  <div class="detalle-field" style="align-self: end">
+                    <q-btn flat round icon="delete" color="negative" @click="removeDetalle(index)" size="sm" />
+                  </div>
+                </div>
+              </div>
             </div>
           </q-form>
+        </q-card-section>
+
+        <q-card-section class="dialog-footer bg-grey-2">
+          <div class="total-display">
+            <span class="total-label">Total:</span>
+            <span class="total-value">${{ calcularTotal().toFixed(2) }}</span>
+          </div>
+          <div class="row q-gutter-sm">
+            <q-btn label="Cancelar" flat @click="closeDialog()" />
+            <q-btn label="Guardar" color="primary" :loading="saving" @click="saveCompra" />
+          </div>
         </q-card-section>
       </q-card>
     </q-dialog>
@@ -238,7 +313,6 @@ const getEstadoColor = (estado: string) => {
 
 const addDetalle = () => {
   form.value.detalles.push({
-    descripcion: '',
     cantidad: 1,
     precioUnitario: 0,
     canastaId: ''
@@ -455,6 +529,148 @@ onMounted(() => {
 .detalle-subtotal { font-size: 0.9rem; color: #2c3e50; font-weight: 600; margin-top: 0.5rem; }
 .total-box { font-size: 1.25rem; font-weight: 700; padding: 0.75rem; border-radius: 12px; background: #f8f9fa; }
 .kpi-icon .q-icon { color: #fff; }
-@media (max-width: 768px) { .modern-page { padding: 0.75rem; } .page-header { padding: 1rem; border-radius: 12px; } .header-content { flex-direction: column; text-align: center; } .page-title { font-size: 1.5rem; } .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
+
+/* Modern Dialog Styles */
+.modern-dialog {
+  border-radius: 16px;
+  overflow: hidden;
+}
+.modern-dialog .dialog-header {
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+.modern-dialog .dialog-body {
+  padding: 1.5rem;
+  overflow-y: auto;
+  background: #f8f9fa;
+}
+.modern-dialog .dialog-footer {
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid #e5e7eb;
+}
+
+/* Form Sections */
+.form-section {
+  background: white;
+  border-radius: 12px;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+}
+.section-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.section-title .q-icon {
+  color: #3498db;
+  font-size: 1.25rem;
+}
+
+/* Detalles Container */
+.detalles-container {
+  background: white;
+  border-radius: 12px;
+  padding: 1rem;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+}
+.detalles-container::-webkit-scrollbar {
+  width: 6px;
+}
+.detalles-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+.detalles-container::-webkit-scrollbar-thumb {
+  background: #cbd5e0;
+  border-radius: 3px;
+}
+.detalles-container::-webkit-scrollbar-thumb:hover {
+  background: #a0aec0;
+}
+
+/* Detalle Grid */
+.detalle-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1.2fr 1.2fr 0.5fr;
+  gap: 0.75rem;
+  align-items: end;
+  padding: 0.75rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  margin-bottom: 0.75rem;
+  border: 1px solid #e5e7eb;
+  transition: all 0.2s;
+}
+.detalle-grid:hover {
+  background: #f1f3f5;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+}
+.detalle-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.detalle-field label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #64748b;
+  margin-bottom: 0.25rem;
+}
+.detalle-item {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+}
+.detalle-subtotal {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #2563eb;
+  text-align: right;
+  padding: 0.5rem;
+  background: #eff6ff;
+  border-radius: 6px;
+  margin-top: 0.5rem;
+}
+
+/* Total Display */
+.total-display {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1.25rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+.total-label {
+  font-size: 1rem;
+  font-weight: 600;
+  color: white;
+  opacity: 0.95;
+}
+.total-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: white;
+}
+
+@media (max-width: 768px) { .modern-page { padding: 0.75rem; } .page-header { padding: 1rem; border-radius: 12px; } .header-content { flex-direction: column; text-align: center; } .page-title { font-size: 1.5rem; } .kpi-grid { grid-template-columns: repeat(2, 1fr); } .detalle-grid { grid-template-columns: 1fr; gap: 0.5rem; } }
 @media (max-width: 480px) { .kpi-grid { grid-template-columns: 1fr; } }
 </style>
