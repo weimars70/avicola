@@ -173,7 +173,7 @@
               <div v-if="salida.valor && salida.valor > 0" class="detail-item">
                 <q-icon name="attach_money" class="detail-icon" />
                 <div class="detail-info">
-                  <div class="detail-label">Valor</div>
+                  <div class="detail-label">Total</div>
                   <div class="detail-value">${{ typeof salida.valor === 'number' ? salida.valor.toFixed(2) : parseFloat(salida.valor || '0').toFixed(2) }}</div>
                 </div>
               </div>
@@ -343,7 +343,7 @@
 
             <q-input
               v-model.number="form.valor"
-              label="Valor (opcional)"
+              label="Precio por canasta (opcional)"
               outlined
               type="number"
               min="0"
@@ -515,7 +515,7 @@ const tableColumns = [
   {
     name: 'valor',
     required: false,
-    label: 'Valor ($)',
+    label: 'Total ($)',
     align: 'right' as const,
     field: 'valor',
     sortable: true
@@ -682,11 +682,18 @@ const openDialog = (salida: Salida | null = null) => {
   if (salida) {
     // Al editar, usar la fecha original de la salida
     const fechaOriginal = salida.fecha || salida.createdAt?.split('T')[0] || new Date().toISOString().split('T')[0];
+
+    // IMPORTANTE: El campo 'valor' en BD es el TOTAL, pero en el formulario debe mostrarse como PRECIO UNITARIO
+    // Por eso dividimos el total entre las unidades para que el usuario vea el precio por canasta
+    const precioUnitario = (salida.unidades > 0 && salida.valor)
+      ? (salida.valor / salida.unidades)
+      : 0;
+
     form.value = {
       tipoHuevoId: salida.tipoHuevoId,
-      canastaId: salida.canastaId || null, // Usar null en lugar de string vacío para consistencia
+      canastaId: salida.canastaId || null,
       unidades: salida.unidades,
-      valor: salida.valor || 0,
+      valor: precioUnitario, // Mostrar precio unitario, no total
       fecha: fechaOriginal || '',
       nombreComprador: salida.nombreComprador || ''
     };
@@ -695,7 +702,7 @@ const openDialog = (salida: Salida | null = null) => {
     const today = new Date().toISOString().split('T')[0];
     form.value = {
       tipoHuevoId: '',
-      canastaId: null, // Usar null en lugar de string vacío para consistencia
+      canastaId: null,
       unidades: 0,
       valor: 0,
       fecha: today || '',

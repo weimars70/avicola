@@ -269,43 +269,65 @@ export const useHistorialFinancieroStore = defineStore('historialFinanciero', ()
       } else if (id.startsWith('sal-')) {
         // Actualizar salida
         const realSalidaId = id.replace('sal-', '');
-        
-        // Preparar datos para actualizar
-        const salidaPayload: { valor?: number; nombreComprador?: string } = {};
-        
-        // Usar una interfaz extendida para acceder a unidades
+
+        // Usar una interfaz extendida para acceder a campos de salida
         interface SalidaData extends Partial<TransaccionFinanciera> {
           unidades?: number;
+          tipoHuevoId?: string;
+          canastaId?: string | null;
+          fechaSalida?: string;
         }
-        
+
         const salidaData = data as SalidaData;
-        
-        if (typeof salidaData.unidades === 'number') {
-          // Si se proveen unidades explícitas, no tocar aquí el monto.
+
+        // Preparar datos para actualizar
+        const salidaPayload: {
+          valor?: number;
+          nombreComprador?: string;
+          unidades?: number;
+          tipoHuevoId?: string;
+          canastaId?: string | null;
+          fecha?: string;
+        } = {};
+
+        // Si se proporciona monto (precio unitario) y unidades, calcular el total
+        if (typeof data.monto === 'number' && typeof salidaData.unidades === 'number') {
+          salidaPayload.valor = data.monto * salidaData.unidades; // Total = precio unitario * unidades
+        } else if (typeof data.monto === 'number') {
+          salidaPayload.valor = data.monto;
         }
-        
+
+        if (typeof salidaData.unidades === 'number') {
+          salidaPayload.unidades = salidaData.unidades;
+        }
+
+        if (typeof salidaData.tipoHuevoId === 'string') {
+          salidaPayload.tipoHuevoId = salidaData.tipoHuevoId;
+        }
+
+        if (salidaData.canastaId !== undefined) {
+          salidaPayload.canastaId = salidaData.canastaId;
+        }
+
+        if (typeof salidaData.fechaSalida === 'string') {
+          salidaPayload.fecha = salidaData.fechaSalida;
+        }
+
         if (typeof data.nombreComprador === 'string') {
           salidaPayload.nombreComprador = data.nombreComprador;
         }
-        
-        // Asegurarse de que no se envíen campos vacíos o undefined
+
+        // Asegurarse de que no se envíen campos vacíos o undefined (excepto canastaId que puede ser null)
         Object.keys(salidaPayload).forEach(key => {
           const k = key as keyof typeof salidaPayload;
           if (salidaPayload[k] === undefined || salidaPayload[k] === '') {
             delete salidaPayload[k];
           }
         });
-        
+
         console.log('Enviando datos de salida:', salidaPayload);
         console.log('URL:', `/salidas/${realSalidaId}`);
-        
-        if (typeof data.monto === 'number') {
-          salidaPayload.valor = data.monto;
-        }
-        
-        console.log('Enviando datos de salida:', salidaPayload);
-        console.log('URL:', `/salidas/${realSalidaId}`);
-        
+
         await api.patch(`/salidas/${realSalidaId}`, salidaPayload);
         
         // Actualizar también el store de salidas para mantener sincronización

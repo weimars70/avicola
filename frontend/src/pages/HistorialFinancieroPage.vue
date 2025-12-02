@@ -283,6 +283,27 @@
       </q-card-section>
     </q-card>
 
+    <!-- Resumen de Canastas -->
+    <q-card class="q-mb-lg" v-if="resumenCanastas.length > 0">
+      <q-card-section>
+        <div class="text-h6 q-mb-md">
+          <q-icon name="egg" class="q-mr-sm" />
+          Resumen de Canastas Vendidas
+        </div>
+        <div class="row q-col-gutter-md">
+          <div v-for="canasta in resumenCanastas" :key="canasta.nombreCanasta" class="col-md-3 col-sm-6 col-xs-12">
+            <q-card class="bg-blue-1 text-blue-9">
+              <q-card-section>
+                <div class="text-subtitle2">{{ canasta.nombreCanasta }}</div>
+                <div class="text-h5">{{ canasta.cantidadVendida }} <span class="text-caption">canastas</span></div>
+                <div class="text-subtitle2 q-mt-sm text-weight-bold">${{ formatCurrency(canasta.totalVenta) }}</div>
+              </q-card-section>
+            </q-card>
+          </div>
+        </div>
+      </q-card-section>
+    </q-card>
+
     <!-- Tabla de Historial -->
     <q-card>
       <q-card-section>
@@ -386,69 +407,151 @@
 
         <q-card-section>
           <q-form @submit="saveTransaction" class="q-gutter-md">
-            <q-select
-              v-model="form.tipo"
-              :options="tipoOptions"
-              label="Tipo de Transacción *"
-              outlined
-              emit-value
-              map-options
-              :rules="[val => !!val || 'El tipo es requerido']"
-            />
-            
-            <q-input
-              v-model="form.descripcion"
-              label="Descripción *"
-              outlined
-              :rules="[val => !!val || 'La descripción es requerida']"
-            />
-            
-            <q-input
-              v-model.number="form.monto"
-              label="Monto *"
-              type="number"
-              step="0.01"
-              outlined
-              prefix="$"
-              :rules="[val => !!val && val > 0 || 'El monto debe ser mayor a 0']"
-            />
-            
-            <q-input
-              v-model="form.fecha"
-              label="Fecha *"
-              type="date"
-              outlined
-              :rules="[val => !!val || 'La fecha es requerida']"
-            />
-            
-            <q-input
-              v-model="form.categoria"
-              label="Categoría"
-              outlined
-            />
-            
-            <q-input
-              v-model="form.referencia"
-              label="Referencia/Factura"
-              outlined
-            />
-            
-            <q-input
-              v-model="form.observaciones"
-              label="Observaciones"
-              type="textarea"
-              outlined
-              rows="3"
-            />
-            
-            <!-- Campo para nombre del comprador (solo para transacciones con salidaId) -->
-            <q-input
-              v-if="editingTransaction?.salidaId"
-              v-model="form.nombreComprador"
-              label="Nombre del Comprador"
-              outlined
-              hint="Nombre de la persona que realizó la compra"
-            />
+            <!-- Formulario ESPECÍFICO para salidas -->
+            <div v-if="editingTransaction?.salidaId">
+              <q-select
+                v-model="form.tipoHuevoId"
+                :options="tiposHuevoOptions"
+                label="Tipo de Huevo *"
+                outlined
+                emit-value
+                map-options
+                :rules="[val => !!val || 'El tipo de huevo es requerido']"
+              >
+                <template v-slot:prepend>
+                  <q-icon name="egg" />
+                </template>
+              </q-select>
+
+              <q-select
+                v-model="form.canastaId"
+                :options="canastasOptions"
+                label="Canasta"
+                outlined
+                emit-value
+                map-options
+                clearable
+              >
+                <template v-slot:prepend>
+                  <q-icon name="inventory" />
+                </template>
+              </q-select>
+
+              <q-input
+                v-model.number="form.unidades"
+                label="Unidades (Canastas) *"
+                type="number"
+                outlined
+                min="1"
+                :rules="[val => val > 0 || 'Las unidades deben ser mayor a 0']"
+              >
+                <template v-slot:prepend>
+                  <q-icon name="numbers" />
+                </template>
+              </q-input>
+
+              <q-input
+                v-model.number="form.monto"
+                label="Precio por canasta *"
+                type="number"
+                step="0.01"
+                outlined
+                prefix="$"
+                hint="Precio unitario por canasta (el total se calcula automáticamente)"
+                :rules="[val => !!val && val > 0 || 'El precio debe ser mayor a 0']"
+              >
+                <template v-slot:prepend>
+                  <q-icon name="attach_money" />
+                </template>
+              </q-input>
+
+              <div v-if="form.unidades && form.monto" class="q-mt-sm q-pa-md bg-blue-1 rounded-borders">
+                <div class="text-subtitle2 text-primary">
+                  Total: ${{ (form.unidades * form.monto).toFixed(2) }}
+                </div>
+              </div>
+
+              <q-input
+                v-model="form.fechaSalida"
+                label="Fecha de la Salida *"
+                type="date"
+                outlined
+                :rules="[val => !!val || 'La fecha es requerida']"
+              >
+                <template v-slot:prepend>
+                  <q-icon name="event" />
+                </template>
+              </q-input>
+
+              <q-input
+                v-model="form.nombreComprador"
+                label="Nombre del Comprador"
+                outlined
+                hint="Nombre de la persona que realizó la compra"
+              >
+                <template v-slot:prepend>
+                  <q-icon name="person" />
+                </template>
+              </q-input>
+            </div>
+
+            <!-- Formulario NORMAL para transacciones (gastos/ingresos) -->
+            <div v-else>
+              <q-select
+                v-model="form.tipo"
+                :options="tipoOptions"
+                label="Tipo de Transacción *"
+                outlined
+                emit-value
+                map-options
+                :rules="[val => !!val || 'El tipo es requerido']"
+              />
+
+              <q-input
+                v-model="form.descripcion"
+                label="Descripción *"
+                outlined
+                :rules="[val => !!val || 'La descripción es requerida']"
+              />
+
+              <q-input
+                v-model.number="form.monto"
+                label="Monto *"
+                type="number"
+                step="0.01"
+                outlined
+                prefix="$"
+                :rules="[val => !!val && val > 0 || 'El monto debe ser mayor a 0']"
+              />
+
+              <q-input
+                v-model="form.fecha"
+                label="Fecha *"
+                type="date"
+                outlined
+                :rules="[val => !!val || 'La fecha es requerida']"
+              />
+
+              <q-input
+                v-model="form.categoria"
+                label="Categoría"
+                outlined
+              />
+
+              <q-input
+                v-model="form.referencia"
+                label="Referencia/Factura"
+                outlined
+              />
+
+              <q-input
+                v-model="form.observaciones"
+                label="Observaciones"
+                type="textarea"
+                outlined
+                rows="3"
+              />
+            </div>
           </q-form>
         </q-card-section>
 
@@ -487,6 +590,9 @@ import { useFinanzas } from 'src/composables/useFinanzas';
 import CalendarioFinanciero from 'src/components/CalendarioFinanciero.vue';
 import { api } from 'src/boot/axios';
 import { useAuthStore } from "src/stores/auth";
+import { useTiposHuevoStore } from 'src/stores/tipos-huevo';
+import { useCanastasStore } from 'src/stores/canastas';
+import type { Salida } from 'src/stores/salidas';
 
 interface TransactionForm {
   tipo: 'ingreso' | 'gasto' | 'venta' | 'compra' | '';
@@ -497,12 +603,41 @@ interface TransactionForm {
   referencia: string;
   observaciones: string;
   nombreComprador: string;
+  // Campos adicionales para salidas
+  unidades?: number;
+  tipoHuevoId?: string;
+  canastaId?: string | null;
+  fechaSalida?: string;
+}
+
+interface UpdateTransactionData {
+  tipo: 'ingreso' | 'gasto' | 'venta' | 'compra';
+  descripcion: string;
+  monto: number;
+  fecha: string;
+  categoria?: string | undefined;
+  referencia?: string | undefined;
+  observaciones?: string | undefined;
+  nombreComprador?: string | undefined;
+  // Campos opcionales para salidas
+  unidades?: number | undefined;
+  tipoHuevoId?: string | undefined;
+  canastaId?: string | null | undefined;
+  fechaSalida?: string | undefined;
+}
+
+interface ResumenCanasta {
+  nombreCanasta: string;
+  cantidadVendida: number;
+  totalVenta: number;
 }
 
 const $q = useQuasar();
 const historialStore = useHistorialFinancieroStore();
 const inversionStore = useInversionInicialStore();
 const userStore = useAuthStore();
+const tiposHuevoStore = useTiposHuevoStore();
+const canastasStore = useCanastasStore();
 const { syncIngresosFromSalidas, loading: finanzasLoading, ensureDateFormat } = useFinanzas();
 
 // Estado local
@@ -511,6 +646,7 @@ const deleteDialog = ref(false);
 const editingTransaction = ref<TransaccionFinanciera | null>(null);
 const transactionToDelete = ref<TransaccionFinanciera | null>(null);
 const datosCalendario = ref<Record<string, { ingresos: number; produccion: number; gastos: number }>>({});
+const salidaCompleta = ref<Salida | null>(null); // Datos completos de la salida cuando se edita
 
 // Filtros
 const filtros = ref<FiltrosHistorial>({
@@ -640,6 +776,21 @@ const transaccionesFiltradas = computed(() => historialStore.transaccionesFiltra
 const loading = computed(() => historialStore.loading);
 // const categorias = computed(() => historialStore.categorias);
 
+// Opciones para formulario de salidas
+const tiposHuevoOptions = computed(() =>
+  tiposHuevoStore.tiposHuevo.map(t => ({
+    label: t.nombre,
+    value: t.id
+  }))
+);
+
+const canastasOptions = computed(() =>
+  canastasStore.canastas.map(c => ({
+    label: `${c.nombre} · ${c.tipoHuevo?.nombre || ''} · ${c.unidadesPorCanasta}u`,
+    value: c.id
+  }))
+);
+
 const resumen = computed(() => {
   const transaccionesFiltradas = historialStore.transacciones.filter((t: TransaccionFinanciera) => {
     let cumpleFiltros = true;
@@ -671,9 +822,28 @@ const resumen = computed(() => {
   }, { totalIngresos: 0, totalGastos: 0, balance: 0, cantidad: 0 });
 });
 
+const resumenCanastas = ref<ResumenCanasta[]>([]);
+
 // Métodos
+const loadResumenCanastas = async () => {
+  try {
+    // Usar fechas de filtros o defecto (mes actual si no hay filtro)
+    const hoy = new Date();
+    const fechaInicio = filtros.value.fechaInicio || new Date(hoy.getFullYear(), hoy.getMonth(), 1).toISOString().split('T')[0];
+    const fechaFin = filtros.value.fechaFin || new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0).toISOString().split('T')[0];
+    
+    const response = await api.get('/salidas/resumen-canastas', {
+      params: { fechaInicio, fechaFin }
+    });
+    resumenCanastas.value = response.data;
+  } catch (error) {
+    console.error('Error cargando resumen de canastas:', error);
+  }
+};
+
 const loadTransactions = async () => {
   await historialStore.loadHistorial(filtros.value);
+  await loadResumenCanastas();
 };
 
 const cargarDatosCalendario = async (mes?: number, año?: number) => {
@@ -725,21 +895,62 @@ const syncIngresos = async () => {
   }
 };
 
-const openTransactionDialog = (transaction?: TransaccionFinanciera) => {
+const openTransactionDialog = async (transaction?: TransaccionFinanciera) => {
   if (transaction) {
     editingTransaction.value = transaction;
-    form.value = {
-      tipo: transaction.tipo,
-      descripcion: transaction.descripcion,
-      monto: transaction.monto,
-      fecha: ensureDateFormat(transaction.fecha),
-      categoria: transaction.categoria || '',
-      referencia: transaction.referencia || '',
-      observaciones: transaction.observaciones || '',
-      nombreComprador: transaction.nombreComprador || ''
-    };
+
+    // Si es una salida, cargar los datos completos
+    if (transaction.salidaId) {
+      try {
+        const response = await api.get(`/salidas/${transaction.salidaId}`);
+        const salida = response.data as Salida;
+        salidaCompleta.value = salida;
+
+        // Calcular precio unitario (el valor en BD es total)
+        const precioUnitario = (salida.unidades > 0 && salida.valor)
+          ? (salida.valor / salida.unidades)
+          : 0;
+
+        form.value = {
+          tipo: transaction.tipo,
+          descripcion: transaction.descripcion,
+          monto: precioUnitario, // Mostrar precio unitario, no total
+          fecha: ensureDateFormat(transaction.fecha),
+          categoria: transaction.categoria || '',
+          referencia: transaction.referencia || '',
+          observaciones: transaction.observaciones || '',
+          nombreComprador: transaction.nombreComprador || salida.nombreComprador || '',
+          // Campos específicos de salida
+          unidades: salida.unidades,
+          tipoHuevoId: salida.tipoHuevoId,
+          canastaId: salida.canastaId || null,
+          fechaSalida: salida.fecha || ensureDateFormat(salida.createdAt)
+        };
+      } catch (error) {
+        console.error('Error al cargar datos de la salida:', error);
+        $q.notify({
+          type: 'negative',
+          message: 'Error al cargar los detalles de la salida'
+        });
+        salidaCompleta.value = null;
+      }
+    } else {
+      // Transacción normal (no es salida)
+      salidaCompleta.value = null;
+      form.value = {
+        tipo: transaction.tipo,
+        descripcion: transaction.descripcion,
+        monto: transaction.monto,
+        fecha: ensureDateFormat(transaction.fecha),
+        categoria: transaction.categoria || '',
+        referencia: transaction.referencia || '',
+        observaciones: transaction.observaciones || '',
+        nombreComprador: transaction.nombreComprador || ''
+      };
+    }
   } else {
     editingTransaction.value = null;
+    salidaCompleta.value = null;
     resetForm();
   }
   dialog.value = true;
@@ -765,6 +976,7 @@ const resetForm = () => {
 };
 
 const saveTransaction = async () => {
+  // Validaciones básicas
   if (!form.value.tipo || !form.value.descripcion || !form.value.monto || !form.value.fecha) {
     $q.notify({
       type: 'negative',
@@ -773,24 +985,83 @@ const saveTransaction = async () => {
     return;
   }
 
+  // Validaciones adicionales para salidas
+  if (editingTransaction.value?.salidaId) {
+    if (!form.value.unidades || form.value.unidades <= 0) {
+      $q.notify({
+        type: 'negative',
+        message: 'Las unidades deben ser mayor a 0'
+      });
+      return;
+    }
+    if (!form.value.tipoHuevoId) {
+      $q.notify({
+        type: 'negative',
+        message: 'Debe seleccionar un tipo de huevo'
+      });
+      return;
+    }
+    if (!form.value.fechaSalida) {
+      $q.notify({
+        type: 'negative',
+        message: 'Debe especificar la fecha de la salida'
+      });
+      return;
+    }
+  }
+
   try {
     if (editingTransaction.value) {
-      // Editar transacción existente
-      const result = await historialStore.updateTransaccion(editingTransaction.value.id, {
-        tipo: form.value.tipo,
+      // Asegurar que tipo no sea vacío (type narrowing)
+      const tipo = form.value.tipo;
+      if (!tipo) return;
+
+      // Calcular monto final
+      let montoFinal = form.value.monto || 0;
+
+      // Si es una salida y tenemos unidades, el monto en el formulario es unitario
+      // Debemos calcular el total para guardarlo
+      if (editingTransaction.value.salidaId && form.value.unidades) {
+        montoFinal = (form.value.monto || 0) * form.value.unidades;
+      }
+
+      // Preparar datos para actualizar
+      const updateData: UpdateTransactionData = {
+        tipo,
         descripcion: form.value.descripcion,
-        monto: form.value.monto || 0,
+        monto: montoFinal,
         fecha: ensureDateFormat(form.value.fecha),
         categoria: form.value.categoria,
         referencia: form.value.referencia,
         observaciones: form.value.observaciones,
         nombreComprador: form.value.nombreComprador
-      });
+      };
+
+      // Si es una salida, agregar campos específicos
+      if (editingTransaction.value.salidaId) {
+        if (form.value.unidades !== undefined) {
+          updateData.unidades = form.value.unidades;
+        }
+        if (form.value.tipoHuevoId !== undefined) {
+          updateData.tipoHuevoId = form.value.tipoHuevoId;
+        }
+        if (form.value.canastaId !== undefined) {
+          updateData.canastaId = form.value.canastaId || null;
+        }
+        if (form.value.fechaSalida !== undefined) {
+          updateData.fechaSalida = form.value.fechaSalida;
+        }
+      }
+
+      // Editar transacción existente
+      const result = await historialStore.updateTransaccion(editingTransaction.value.id, updateData as Partial<TransaccionFinanciera>);
 
       if (result.success) {
         $q.notify({
           type: 'positive',
-          message: 'Transacción actualizada exitosamente'
+          message: editingTransaction.value.salidaId
+            ? 'Salida actualizada exitosamente (el inventario se ajustó automáticamente)'
+            : 'Transacción actualizada exitosamente'
         });
         closeDialog();
       } else {
@@ -815,8 +1086,8 @@ const saveTransaction = async () => {
   }
 };
 
-const editTransaction = (transaction: TransaccionFinanciera) => {
-  openTransactionDialog(transaction);
+const editTransaction = async (transaction: TransaccionFinanciera) => {
+  await openTransactionDialog(transaction);
 };
 
 const confirmDelete = (transaction: TransaccionFinanciera) => {
@@ -947,9 +1218,12 @@ const formatCurrency = (amount: number) => {
 };
 
 // Lifecycle
-onMounted(() => {
+onMounted(async () => {
   void loadTransactions();
   void cargarDatosCalendario();
+  // Cargar datos necesarios para el formulario de salidas
+  await tiposHuevoStore.fetchTiposHuevo();
+  await canastasStore.fetchCanastas();
 });
 </script>
 

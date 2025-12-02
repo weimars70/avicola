@@ -9,6 +9,7 @@ import {
   ValidationPipe,
   UsePipes,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { SalidasService } from './salidas.service';
 import { CreateSalidaDto } from './dto/create-salida.dto';
@@ -35,6 +36,15 @@ export class SalidasController {
   @Get()
   findAll(@IdEmpresaHeader() id_empresa: number) {
     return this.salidasService.findAll(id_empresa);
+  }
+
+  @Get('resumen-canastas')
+  getResumenCanastas(
+    @Query('fechaInicio') fechaInicio: string,
+    @Query('fechaFin') fechaFin: string,
+    @IdEmpresaHeader() id_empresa: number
+  ) {
+    return this.salidasService.getResumenCanastas(fechaInicio, fechaFin, id_empresa);
   }
 
   @Get(':id')
