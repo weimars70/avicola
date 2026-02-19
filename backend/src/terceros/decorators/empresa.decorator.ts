@@ -1,34 +1,21 @@
-import { createParamDecorator, ExecutionContext } from '@nestjs/common';
+import { createParamDecorator, ExecutionContext, UnauthorizedException } from '@nestjs/common';
 
 export const IdEmpresa = createParamDecorator(
   (data: unknown, ctx: ExecutionContext): number => {
     const request = ctx.switchToHttp().getRequest();
-    
-    // Obtener id_empresa del usuario autenticado
-    // Ajusta según tu sistema de autenticación
-    const id_empresa = request.user?.id_empresa;
-    
+
+    // STRICT: Only trust the authenticated user's company ID
+    const id_empresa = request.user?.id_empresa || request.user?.idEmpresa;
+
     if (!id_empresa) {
-      throw new Error('No se pudo determinar la empresa del usuario');
+      throw new UnauthorizedException('No se pudo determinar la empresa del usuario. Token inválido o sin contexto de empresa.');
     }
-    
-    return id_empresa;
+
+    return Number(id_empresa);
   },
 );
 
-// Decorator alternativo si usas headers
-export const IdEmpresaHeader = createParamDecorator(
-  (data: unknown, ctx: ExecutionContext): number => {
-    const request = ctx.switchToHttp().getRequest();
-    const idEmpresaRaw =
-      request.headers['x-empresa-id'] ||
-      request.query.id_empresa ||
-      request.body?.id_empresa ||
-      request.user?.idEmpresa ||
-      request.user?.id_empresa ||
-      '2';
-
-    const idEmpresaNum = parseInt(String(idEmpresaRaw));
-    return isNaN(idEmpresaNum) ? 2 : idEmpresaNum;
-  },
-);
+// Deprecated: Alias to IdEmpresa to force migration to secure behavior
+// We keep the name but change behavior to be identical to IdEmpresa for backward compatibility in code, 
+// but securely ignoring headers.
+export const IdEmpresaHeader = IdEmpresa;

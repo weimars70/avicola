@@ -119,7 +119,7 @@ export class ComprasTercerosService {
 
     async findAll(idEmpresa: number) {
         return await this.comprasRepository.find({
-            where: { idEmpresa, tipoMovimiento: 2, activo: true },
+            where: { idEmpresa, tipoMovimiento: 2, activo: true, tercero: { idEmpresa } },
             relations: ['tercero', 'detalles'],
             order: { fecha: 'DESC' },
         });
@@ -140,7 +140,7 @@ export class ComprasTercerosService {
 
     async update(id: string, updateCompraDto: UpdateCompraDto, idEmpresa: number) {
         const compra = await this.comprasRepository.findOne({ where: { id, idEmpresa, activo: true }, relations: ['tercero'] });
-        
+
         if (!compra) {
             throw new NotFoundException(`Compra con ID ${id} no encontrada`);
         }
@@ -197,7 +197,7 @@ export class ComprasTercerosService {
                     });
                     await this.invTercerosRepo.save(movimiento);
                 }
-            } catch {}
+            } catch { }
         }
 
         // Actualizar la compra
@@ -216,7 +216,7 @@ export class ComprasTercerosService {
                 if (gastoRelacionado) {
                     await this.gastosService.remove(gastoRelacionado.id);
                 }
-            } catch {}
+            } catch { }
         } else {
             await this.syncGastoDesdeCompra(compraActualizada, idEmpresa, compraActualizada.idUsuarioInserta || '');
         }
@@ -237,7 +237,7 @@ export class ComprasTercerosService {
             if (gastoRelacionado) {
                 await this.gastosService.remove(gastoRelacionado.id);
             }
-        } catch {}
+        } catch { }
 
         // Marcar movimientos de inventario terceros como inactivos
         try {
@@ -250,7 +250,7 @@ export class ComprasTercerosService {
                     desc: `%${compra.numeroFactura || ''}%`
                 })
                 .execute();
-        } catch {}
+        } catch { }
 
         return { message: 'Compra eliminada correctamente' };
     }
@@ -322,7 +322,7 @@ export class ComprasTercerosService {
             } else {
                 await this.createGastoDesdeCompra(compra, idEmpresa, idUsuario);
             }
-        } catch {}
+        } catch { }
         // No ajustar inventario aquí; los movimientos quedan registrados por compra
     }
 
@@ -339,5 +339,95 @@ export class ComprasTercerosService {
             .andWhere("EXISTS (SELECT 1 FROM canastas c WHERE c.id::text = i.tipo_huevo_codigo)")
             .getRawOne();
         return Number(raw?.stock || 0);
+    }
+
+    async getInventarioCanastas(idEmpresa: number) {
+        const comprasRaw = await this.detallesRepository.createQueryBuilder('dc')
+            .innerJoin('dc.compra', 'co')
+            .innerJoin('dc.canasta', 'c')
+            .select([
+                'c.id AS "canastaId"',
+                'c.nombre AS "nombreCanasta"',
+                'SUM(dc.cantidad) AS "totalUnidades"',
+                'SUM(dc.cantidad * dc.precioUnitario) AS "valorTotal"',
+                'AVG(dc.precioUnitario) AS "precioPromedio"',
+                'MAX(co.fecha) AS "ultimaCompra"'
+            ])
+            .where('co.idEmpresa = :idEmpresa', { idEmpresa })
+            .andWhere('co.tipoMovimiento = 2')
+            .andWhere('co.activo = true')
+            .groupBy('c.id, c.nombre')
+            .orderBy('"valorTotal"', 'DESC')
+            .getRawMany();
+
+        const stockRaw = await this.invTercerosRepo.createQueryBuilder('i')
+            .select('i.tipo_huevo_codigo', 'canastaId')
+            .addSelect("COALESCE(SUM(CASE WHEN i.tipo_movimiento = 'entrada' THEN i.cantidad WHEN i.tipo_movimiento = 'salida' THEN -i.cantidad ELSE 0 END),0)", 'stock')
+            .where('i.id_empresa = :idEmpresa AND i.activo = true', { idEmpresa })
+            .groupBy('i.tipo_huevo_codigo')
+            .getRawMany();
+
+        const stockMap = new Map<string, number>();
+        stockRaw.forEach(item => {
+            stockMap.set(item.canastaId, Number(item.stock));
+        });
+
+        // Completar con canastas que tienen stock pero no compras recientes (opcional, pero buena práctica)
+        // Por ahora nos limitamos a los que tienen compras o aparecen en stock
+        // Iteramos stockMap para asegurar incluir items que tienen stock pero no compras
+        // Pero el requerimiento principal es "resumen de inventario"
+        const allCanastaIds = new Set([...comprasRaw.map(r => r.canastaId), ...stockMap.keys()]);
+
+        // Necesitamos nombres para los que solo estan en stock... 
+        // Simplificado: Usamos comprasRaw como base principal segun requerimiento y enriquecemos con stock.
+
+        const porCanasta = comprasRaw.map(r => {
+            const canastaId = r.canastaId;
+            const stock = stockMap.get(canastaId) || 0;
+            return {
+                canastaId,
+                nombreCanasta: r.nombreCanasta,
+                totalUnidades: Number(r.totalUnidades),
+                valorTotal: Number(r.valorTotal),
+                precioPromedio: Number(Number(r.precioPromedio).toFixed(2)),
+                ultimaCompra: r.ultimaCompra,
+                canastasDisponibles: stock,
+                stock: stock
+            };
+        });
+
+        const evolucion = await this.comprasRepository.createQueryBuilder('co')
+            .select([
+                "TO_CHAR(co.fecha, 'YYYY-MM') AS mes",
+                'COUNT(*) AS "numCompras"',
+                'SUM(co.total) AS "valorTotal"'
+            ])
+            .where('co.idEmpresa = :idEmpresa', { idEmpresa })
+            .andWhere('co.tipoMovimiento = 2')
+            .andWhere('co.activo = true')
+            .groupBy("TO_CHAR(co.fecha, 'YYYY-MM')")
+            .orderBy('mes', 'DESC')
+            .limit(12)
+            .getRawMany();
+
+        const totalCanastas = porCanasta.reduce((acc, curr) => acc + curr.totalUnidades, 0);
+        const valorTotalInvertido = porCanasta.reduce((acc, curr) => acc + curr.valorTotal, 0);
+        const canastasDisponiblesTotal = porCanasta.reduce((acc, curr) => acc + curr.canastasDisponibles, 0);
+        const valorPromedioGeneral = totalCanastas > 0 ? valorTotalInvertido / totalCanastas : 0;
+
+        return {
+            resumen: {
+                totalCanastas: totalCanastas,
+                valorTotal: valorTotalInvertido,
+                canastasDisponibles: canastasDisponiblesTotal,
+                valorPromedio: Number(valorPromedioGeneral.toFixed(2))
+            },
+            porCanasta,
+            evolucionMensual: evolucion.map(e => ({
+                mes: e.mes,
+                compras: Number(e.numCompras),
+                valor: Number(e.valorTotal)
+            }))
+        };
     }
 }

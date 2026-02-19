@@ -10,24 +10,28 @@ import {
   UsePipes,
   Query,
   ParseIntPipe,
+  UseGuards,
 } from '@nestjs/common';
 import { EntradasProduccionService } from './entradas-produccion.service';
 import { CreateEntradaProduccionDto } from './dto/create-entrada-produccion.dto';
 import { UpdateEntradaProduccionDto } from './dto/update-entrada-produccion.dto';
 import { CreateEntradasMasivasDto } from './dto/create-entradas-masivas.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { IdEmpresa } from '../terceros/decorators/empresa.decorator';
 
 @Controller('entradas-produccion')
+@UseGuards(JwtAuthGuard)
 export class EntradasProduccionController {
-  constructor(private readonly entradasProduccionService: EntradasProduccionService) {}
+  constructor(private readonly entradasProduccionService: EntradasProduccionService) { }
 
   @Post()
   @UsePipes(new ValidationPipe({ transform: true }))
   create(
     @Body() createEntradaProduccionDto: CreateEntradaProduccionDto,
-    @Query('id_empresa', new ParseIntPipe({ errorHttpStatusCode: 400 })) id_empresa: number,
+    @IdEmpresa() id_empresa: number,
     @Query('id_usuario_inserta') id_usuario_inserta: string
   ) {
-    // Aseguramos que id_empresa del DTO coincida con el query param
+    // Aseguramos que id_empresa del DTO coincida con el decorador
     createEntradaProduccionDto.id_empresa = id_empresa;
     // Asignamos el id_usuario_inserta
     createEntradaProduccionDto.id_usuario_inserta = id_usuario_inserta;
@@ -38,10 +42,10 @@ export class EntradasProduccionController {
   @UsePipes(new ValidationPipe({ transform: true }))
   createMasivas(
     @Body() createEntradasMasivasDto: CreateEntradasMasivasDto,
-    @Query('id_empresa', new ParseIntPipe({ errorHttpStatusCode: 400 })) id_empresa: number,
+    @IdEmpresa() id_empresa: number,
     @Query('id_usuario_inserta') id_usuario_inserta: string
   ) {
-    // Aseguramos que id_empresa del DTO coincida con el query param
+    // Aseguramos que id_empresa del DTO coincida con el decorador
     createEntradasMasivasDto.id_empresa = id_empresa;
     // Asignamos el id_usuario_inserta
     createEntradasMasivasDto.id_usuario_inserta = id_usuario_inserta;
@@ -49,7 +53,7 @@ export class EntradasProduccionController {
   }
 
   @Get()
-  findAll(@Query('id_empresa', new ParseIntPipe({ errorHttpStatusCode: 400 })) id_empresa: number) {
+  findAll(@IdEmpresa() id_empresa: number) {
     return this.entradasProduccionService.findAll(id_empresa);
   }
 
@@ -63,12 +67,16 @@ export class EntradasProduccionController {
   update(
     @Param('id') id: string,
     @Body() updateEntradaProduccionDto: UpdateEntradaProduccionDto,
+    @IdEmpresa() id_empresa: number
   ) {
-    return this.entradasProduccionService.update(id, updateEntradaProduccionDto);
+    return this.entradasProduccionService.update(id, updateEntradaProduccionDto, id_empresa);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.entradasProduccionService.remove(id);
+  remove(
+    @Param('id') id: string,
+    @IdEmpresa() id_empresa: number
+  ) {
+    return this.entradasProduccionService.remove(id, id_empresa);
   }
 }

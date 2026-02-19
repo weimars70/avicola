@@ -1,258 +1,453 @@
 <template>
   <q-page class="modern-page">
-    <div class="page-header">
-      <div class="header-content">
-        <div class="header-title">
-          <q-icon name="shopping_cart" class="header-icon" />
-          <div>
-            <h1 class="page-title">Compras a Terceros</h1>
-            <p class="page-subtitle">Registra y controla compras externas</p>
+    <div class="page-container">
+      <!-- Header Moderno -->
+      <div class="modern-header animate-fade-in-down">
+        <div class="header-backdrop"></div>
+        <div class="header-content">
+          <div class="header-info">
+            <div class="icon-wrapper">
+              <q-icon name="shopping_cart" class="header-icon" />
+            </div>
+            <div>
+              <h1 class="page-title">Compras a Terceros</h1>
+              <p class="page-subtitle">Gestión de adquisiciones externas y proveedores</p>
+            </div>
+          </div>
+          <div class="header-actions">
+            <!-- View Mode Toggle -->
+            <div class="view-toggle-container">
+              <q-btn-group unelevated class="view-toggle">
+                <q-btn
+                  :class="{'active-view': viewMode === 'cards'}"
+                  icon="grid_view"
+                  @click="viewMode = 'cards'"
+                  flat
+                  dense
+                  padding="sm"
+                >
+                  <q-tooltip>Vista Tarjetas</q-tooltip>
+                </q-btn>
+                <div class="divider"></div>
+                <q-btn
+                  :class="{'active-view': viewMode === 'table'}"
+                  icon="table_chart"
+                  @click="viewMode = 'table'"
+                  flat
+                  dense
+                  padding="sm"
+                >
+                  <q-tooltip>Vista Tabla</q-tooltip>
+                </q-btn>
+              </q-btn-group>
+            </div>
+
+            <q-btn
+              label="Nueva Compra"
+              icon="add"
+              class="btn-glass"
+              @click="openDialog()"
+            />
+            <q-btn
+              icon="refresh"
+              flat
+              round
+              color="white"
+              class="refresh-btn"
+              @click="fetchData()"
+            >
+              <q-tooltip>Actualizar datos</q-tooltip>
+            </q-btn>
           </div>
         </div>
-        <div class="row q-gutter-md items-center">
-          <q-btn class="add-btn" color="primary" icon="add" label="Nueva Compra" @click="openDialog()" />
-          <q-btn color="secondary" icon="refresh" label="Actualizar" @click="fetchData()" />
-        </div>
       </div>
-    </div>
 
-    <div class="kpi-section">
-      <div class="kpi-grid">
-        <q-card class="kpi-card kpi-primary">
-          <q-card-section class="kpi-content">
-            <div class="kpi-icon">
-              <q-icon name="shopping_cart" />
+      <!-- KPIs Section -->
+      <div class="kpi-section animate-fade-in-up">
+        <div class="kpi-grid">
+          <q-card class="kpi-card glass-effect kpi-primary">
+            <div class="kpi-content">
+              <div class="kpi-icon-circle">
+                <q-icon name="shopping_bag" />
+              </div>
+              <div class="kpi-data">
+                <div class="kpi-value">{{ totalCompras }}</div>
+                <div class="kpi-label">Total Compras</div>
+              </div>
             </div>
-            <div class="kpi-info">
-              <div class="kpi-value">{{ totalCompras }}</div>
-              <div class="kpi-label">Total Compras</div>
+            <div class="kpi-trend">
+              <q-icon name="trending_up" />
+              <span>Registros históricos</span>
             </div>
-          </q-card-section>
-        </q-card>
+          </q-card>
 
-        <q-card class="kpi-card kpi-warning">
-          <q-card-section class="kpi-content">
-            <div class="kpi-icon">
-              <q-icon name="hourglass_bottom" />
+          <q-card class="kpi-card glass-effect kpi-info">
+            <div class="kpi-content">
+              <div class="kpi-icon-circle">
+                <q-icon name="payments" />
+              </div>
+              <div class="kpi-data">
+                <div class="kpi-value">${{ formatNumber(totalGastado) }}</div>
+                <div class="kpi-label">Total Gastado</div>
+              </div>
             </div>
-            <div class="kpi-info">
-              <div class="kpi-value">{{ comprasPendientes }}</div>
-              <div class="kpi-label">Pendientes</div>
-            </div>
-          </q-card-section>
-        </q-card>
-
-        <q-card class="kpi-card kpi-success">
-          <q-card-section class="kpi-content">
-            <div class="kpi-icon">
-              <q-icon name="check_circle" />
-            </div>
-            <div class="kpi-info">
-              <div class="kpi-value">{{ comprasPagadas }}</div>
-              <div class="kpi-label">Pagadas</div>
-            </div>
-          </q-card-section>
-        </q-card>
-
-        <q-card class="kpi-card kpi-info">
-          <q-card-section class="kpi-content">
-            <div class="kpi-icon">
+            <div class="kpi-trend">
               <q-icon name="attach_money" />
+              <span>Inversión total</span>
             </div>
-            <div class="kpi-info">
-              <div class="kpi-value">${{ formatNumber(totalGastado) }}</div>
-              <div class="kpi-label">Total Gastado</div>
+          </q-card>
+
+          <q-card class="kpi-card glass-effect kpi-warning">
+            <div class="kpi-content">
+              <div class="kpi-icon-circle">
+                <q-icon name="hourglass_top" />
+              </div>
+              <div class="kpi-data">
+                <div class="kpi-value">{{ comprasPendientes }}</div>
+                <div class="kpi-label">Pendientes</div>
+              </div>
+            </div>
+            <div class="kpi-trend text-warning">
+              <q-icon name="warning" />
+              <span>Por pagar</span>
+            </div>
+          </q-card>
+
+          <q-card class="kpi-card glass-effect kpi-success">
+            <div class="kpi-content">
+              <div class="kpi-icon-circle">
+                <q-icon name="analytics" />
+              </div>
+              <div class="kpi-data">
+                <div class="kpi-value">${{ formatNumber(promedioCompra) }}</div>
+                <div class="kpi-label">Promedio / Compra</div>
+              </div>
+            </div>
+             <div class="kpi-trend">
+              <span>Media histórica</span>
+            </div>
+          </q-card>
+        </div>
+      </div>
+
+      <!-- Filtros y Búsqueda -->
+      <div class="filters-section animate-fade-in-up delay-100">
+        <q-card class="filter-card">
+          <q-card-section class="q-pa-sm">
+            <div class="filter-row">
+              <q-input
+                v-model="filter.search"
+                placeholder="Buscar por proveedor, factura..."
+                dense
+                outlined
+                class="search-input"
+              >
+                <template v-slot:prepend>
+                  <q-icon name="search" />
+                </template>
+              </q-input>
+              <q-select
+                v-model="filter.estado"
+                :options="estadoOptions"
+                label="Filtrar por Estado"
+                dense
+                outlined
+                emit-value
+                map-options
+                clearable
+                class="filter-select"
+              >
+                <template v-slot:prepend>
+                  <q-icon name="filter_list" />
+                </template>
+              </q-select>
+              <q-space class="gt-xs" />
+               <div class="text-caption text-grey-7 self-center gt-sm">
+                Mostrando {{ filteredCompras.length }} registros
+              </div>
             </div>
           </q-card-section>
         </q-card>
       </div>
+
+      <!-- Content Area -->
+      <div class="content-area animate-fade-in-up delay-200">
+        
+        <!-- CARD VIEW -->
+        <div v-if="viewMode === 'cards'" class="cards-grid">
+          <q-card
+            v-for="compra in filteredCompras"
+            :key="compra.id"
+            class="compra-card-view"
+          >
+            <!-- Badge de Estado -->
+             <div class="card-status-strip" :class="getEstadoColor(compra.estado || 'PENDIENTE')"></div>
+            
+            <q-card-section class="q-pb-none">
+              <div class="row items-center justify-between">
+                <div class="text-subtitle1 text-weight-bold text-primary">{{ compra.tercero?.nombre || 'Proveedor Desconocido' }}</div>
+                <q-chip
+                  :color="getEstadoColor(compra.estado || 'PENDIENTE')"
+                  text-color="white"
+                  size="sm"
+                  class="status-chip"
+                >
+                  {{ compra.estado || 'PENDIENTE' }}
+                </q-chip>
+              </div>
+              <div class="text-caption text-grey-6 flex items-center gap-1">
+                <q-icon name="tag" size="xs"/> 
+                Factura: {{ compra.numeroFactura || 'S/N' }}
+              </div>
+            </q-card-section>
+            
+            <q-card-section class="q-py-sm">
+              <div class="row items-center justify-between q-mb-sm">
+                <div class="text-caption text-grey">Fecha</div>
+                <div class="text-body2 font-medium">{{ formatDate(compra.fecha) }}</div>
+              </div>
+              <div class="row items-center justify-between">
+                <div class="text-caption text-grey">Total</div>
+                <div class="text-h6 text-primary force-dark-text">${{ formatNumber(Number(compra.total)) }}</div>
+              </div>
+              <div class="canastas-preview q-mt-sm">
+                <div class="text-xs text-grey-7 text-italic ellipsis-2-lines">
+                   <q-icon name="shopping_basket" size="xs" class="q-mr-xs"/>
+                   {{ canastaResumen(compra) || 'Sin detalles' }}
+                </div>
+              </div>
+            </q-card-section>
+
+            <q-separator />
+
+            <q-card-actions align="right" class="card-actions bg-grey-1">
+              <q-btn flat round color="grey-7" icon="edit" size="sm" @click="openDialog(compra)">
+                <q-tooltip>Editar</q-tooltip>
+              </q-btn>
+              <q-btn
+                v-if="compra.estado !== 'PAGADO'"
+                flat round color="positive" icon="monetization_on" size="sm"
+                @click="markCompraPagada(compra.id)"
+              >
+                <q-tooltip>Marcar Pagado</q-tooltip>
+              </q-btn>
+              <q-btn flat round color="negative" icon="delete_outline" size="sm" @click="deleteCompra(compra.id)">
+                <q-tooltip>Eliminar</q-tooltip>
+              </q-btn>
+            </q-card-actions>
+          </q-card>
+        </div>
+
+        <!-- TABLE VIEW -->
+        <q-card v-else class="modern-table-card">
+          <q-table
+            :rows="filteredCompras"
+            :columns="columns"
+            row-key="id"
+            flat
+            :pagination="{ rowsPerPage: 10 }"
+          >
+           <template v-slot:body-cell-fecha="props">
+              <q-td :props="props">
+                <div class="flex items-center gap-2">
+                   <q-icon name="event" class="text-grey-6" />
+                   {{ formatDate(props.row.fecha) }}
+                </div>
+              </q-td>
+            </template>
+            <template v-slot:body-cell-tercero="props">
+              <q-td :props="props">
+                <div class="text-weight-medium">{{ props.row.tercero?.nombre || 'N/A' }}</div>
+              </q-td>
+            </template>
+            <template v-slot:body-cell-detalles="props">
+              <q-td :props="props">
+                 <div class="text-caption text-grey-8" style="white-space: normal; min-width: 200px;">
+                  {{ canastaResumen(props.row) || '—' }}
+                </div>
+              </q-td>
+            </template>
+            <template v-slot:body-cell-total="props">
+              <q-td :props="props">
+                <div class="text-weight-bold text-primary">${{ formatNumber(Number(props.row.total)) }}</div>
+              </q-td>
+            </template>
+            <template v-slot:body-cell-estado="props">
+              <q-td :props="props">
+                <q-chip
+                  :color="getEstadoColor(getCompraEstado(props.row))"
+                  text-color="white"
+                  :label="getCompraEstado(props.row)"
+                  size="sm"
+                  class="cursor-pointer shadow-1"
+                >
+                  <q-popup-edit v-model="filter.estado" title="Cambiar estado" buttons v-slot="scope" @save="val => updateEstadoCompra(props.row.id, val as string)">
+                    <q-select v-model="scope.value" :options="['PENDIENTE','PAGADO','PARCIAL']" dense outlined />
+                  </q-popup-edit>
+                </q-chip>
+              </q-td>
+            </template>
+            <template v-slot:body-cell-acciones="props">
+              <q-td :props="props">
+                <div class="row justify-center q-gutter-xs">
+                  <q-btn flat round color="primary" icon="edit" size="sm" @click="openDialog(props.row)">
+                    <q-tooltip>Editar</q-tooltip>
+                  </q-btn>
+                   <q-btn v-if="props.row.estado !== 'PAGADO'" flat round color="positive" icon="check_circle" size="sm" @click="markCompraPagada(props.row.id)">
+                    <q-tooltip>Marcar como Pagado</q-tooltip>
+                  </q-btn>
+                  <q-btn flat round color="negative" icon="delete" size="sm" @click="deleteCompra(props.row.id)">
+                    <q-tooltip>Eliminar</q-tooltip>
+                  </q-btn>
+                </div>
+              </q-td>
+            </template>
+          </q-table>
+        </q-card>
+      </div>
+
+       <!-- Emtpy State -->
+      <div v-if="filteredCompras.length === 0" class="empty-state animate-fade-in-up">
+        <q-icon name="shopping_cart_off" size="5rem" class="text-grey-4" />
+        <h3 class="text-h6 text-grey-6 q-mt-md">No se encontraron compras</h3>
+        <p class="text-grey-5">Intenta ajustar los filtros o crea una nueva compra.</p>
+        <q-btn label="Nueva Compra" icon="add" color="primary" flat @click="openDialog()" />
+      </div>
+
     </div>
 
-    <q-card class="filter-card">
-      <q-card-section>
-        <div class="filter-content">
-          <q-input v-model="filter.search" placeholder="Buscar por proveedor o factura" outlined dense class="search-input">
-            <template v-slot:prepend>
-              <q-icon name="search" color="primary" />
-            </template>
-          </q-input>
-          <q-select v-model="filter.estado" :options="estadoOptions" label="Estado" outlined dense clearable emit-value map-options class="filter-select" />
-          <q-btn color="primary" icon="refresh" label="Actualizar" @click="fetchData" class="refresh-btn" />
+    <!-- DIALOG CON DISEÑO MEJORADO -->
+    <q-dialog v-model="dialog" persistent transition-show="scale" transition-hide="scale">
+      <q-card class="modern-dialog" :style="'width: 900px; max-width: 95vw; height: 90vh; display: flex; flex-direction: column;'">
+        <div class="dialog-header-bg">
+          <div class="dialog-header-content">
+             <div class="row items-center">
+                <div class="dialog-icon-box">
+                  <q-icon name="shopping_cart" />
+                </div>
+                <div>
+                  <div class="text-subtitle2 text-white opacity-80">{{ editing ? 'Edición de Registro' : 'Nuevo Registro' }}</div>
+                  <div class="text-h6 text-white text-weight-bold">{{ editing ? 'Editar Compra' : 'Nueva Compra' }}</div>
+                </div>
+             </div>
+             <q-btn icon="close" flat round dense class="text-white" v-close-popup @click="closeDialog" />
+          </div>
         </div>
-      </q-card-section>
-    </q-card>
 
-    <q-card class="q-mt-md">
-      <q-table
-        :rows="filteredCompras"
-        :columns="columns"
-        row-key="id"
-        flat
-        bordered
-        :loading="comprasStore.loading"
-        :pagination="{ rowsPerPage: 10 }"
-      >
-        <template v-slot:body-cell-tercero="props">
-          <q-td :props="props">
-            {{ props.row.tercero?.nombre || 'N/A' }}
-          </q-td>
-        </template>
-        <template v-slot:body-cell-detalles="props">
-          <q-td :props="props">
-            {{ canastaResumen(props.row) || '—' }}
-          </q-td>
-        </template>
-        <template v-slot:body-cell-total="props">
-          <q-td :props="props">
-            ${{ formatNumber(Number(props.row.total)) }}
-          </q-td>
-        </template>
-        <template v-slot:body-cell-estado="props">
-          <q-td :props="props">
-            <q-chip :color="getEstadoColor(getCompraEstado(props.row))" text-color="white" :label="getCompraEstado(props.row)" size="sm">
-              <q-popup-edit v-model="filter.estado" title="Cambiar estado" buttons v-slot="scope" @save="val => updateEstadoCompra(props.row.id, val as string)">
-                <q-select v-model="scope.value" :options="['PENDIENTE','PAGADO','PARCIAL']" dense outlined />
-              </q-popup-edit>
-            </q-chip>
-          </q-td>
-        </template>
-        <template v-slot:body-cell-acciones="props">
-          <q-td :props="props">
-            <q-btn flat round color="primary" icon="edit" size="sm" @click="openDialog(props.row)">
-              <q-tooltip>Editar</q-tooltip>
-            </q-btn>
-            <q-btn flat round color="negative" icon="delete" size="sm" @click="deleteCompra(props.row.id)">
-              <q-tooltip>Eliminar</q-tooltip>
-            </q-btn>
-            <q-btn v-if="props.row.estado !== 'PAGADO'" flat round color="positive" icon="check_circle" size="sm" @click="markCompraPagada(props.row.id)">
-              <q-tooltip>Marcar como Pagado</q-tooltip>
-            </q-btn>
-          </q-td>
-        </template>
-      </q-table>
-    </q-card>
+        <q-card-section class="dialog-body">
+          <q-form @submit="saveCompra" class="q-gutter-md">
+            
+            <div class="form-grid">
+              <!-- Columna Izquierda: Datos Generales -->
+              <div class="form-col">
+                <div class="section-label">Datos del Proveedor</div>
+                <q-select 
+                  v-model="form.idTercero" 
+                  :options="terceroOptions" 
+                  label="Proveedor *" 
+                  outlined 
+                  dense 
+                  emit-value 
+                  map-options
+                  class="input-modern"
+                >
+                    <template v-slot:prepend><q-icon name="store" color="primary"/></template>
+                </q-select>
 
-    <q-dialog v-model="dialog" persistent transition-show="slide-up" transition-hide="slide-down">
-      <q-card class="modern-dialog" :style="'width: 850px; max-width: 95vw; height: 90vh'">
-        <q-card-section class="dialog-header bg-primary text-white">
-          <q-icon name="shopping_cart" size="sm" />
-          <span>{{ editing ? 'Editar Compra' : 'Nueva Compra' }}</span>
-          <q-space />
-          <q-btn icon="close" flat round dense v-close-popup @click="closeDialog" />
-        </q-card-section>
+                 <div class="row q-col-gutter-sm">
+                   <div class="col-6">
+                      <q-input v-model="form.fecha" label="Fecha *" type="date" outlined dense class="input-modern" />
+                   </div>
+                   <div class="col-6">
+                      <q-input v-model="form.numeroFactura" label="N° Factura" outlined dense class="input-modern">
+                        <template v-slot:prepend><q-icon name="receipt" color="primary"/></template>
+                      </q-input>
+                   </div>
+                 </div>
 
-        <q-card-section class="dialog-body" style="height: calc(100% - 130px); overflow-y: auto">
-          <q-form @submit="saveCompra">
-            <!-- Sección Proveedor -->
-            <div class="form-section">
-              <div class="section-title">
-                <q-icon name="store" />
-                Información del Proveedor
+                 <div class="row q-col-gutter-sm q-mt-xs">
+                    <div class="col-6">
+                       <q-select v-model="form.estado" :options="['PENDIENTE','PAGADO','PARCIAL']" label="Estado *" outlined dense class="input-modern" />
+                    </div>
+                    <div class="col-6">
+                       <q-input v-model="form.formaPago" label="Forma Pago" outlined dense class="input-modern" />
+                    </div>
+                 </div>
+                 
+                 <q-input 
+                    v-model="form.observaciones" 
+                    label="Observaciones" 
+                    outlined 
+                    dense 
+                    type="textarea" 
+                    rows="2"
+                    class="input-modern q-mt-sm" 
+                 />
               </div>
-              <div class="row q-col-gutter-md">
-                <div class="col-12 col-md-6">
-                  <q-select v-model="form.idTercero" :options="terceroOptions" label="Proveedor" outlined dense emit-value map-options>
-                    <template v-slot:prepend>
-                      <q-icon name="person" />
-                    </template>
-                  </q-select>
+
+              <!-- Columna Derecha: Detalle -->
+              <div class="form-col">
+                <div class="row items-center justify-between q-mb-sm">
+                   <div class="section-label q-mb-none">Productos / Canastas</div>
+                   <q-btn label="Agregar Item" icon="add" color="primary" size="sm" unelevated rounded @click="addDetalle()" />
                 </div>
-                <div class="col-12 col-md-6">
-                  <q-input v-model="form.fecha" label="Fecha" type="date" outlined dense>
-                    <template v-slot:prepend>
-                      <q-icon name="event" />
-                    </template>
-                  </q-input>
+
+                <div class="detalles-scroll-area custom-scroll">
+                   <div v-if="form.detalles.length === 0" class="empty-detalles">
+                      <q-icon name="add_shopping_cart" size="md" />
+                      <div>Agrega productos a la compra</div>
+                   </div>
+
+                   <transition-group name="list" tag="div">
+                      <div v-for="(detalle, index) in form.detalles" :key="index" class="detalle-card animate-fade-in-right">
+                          <div class="detalle-header">
+                             <span class="detail-index">#{{ index + 1 }}</span>
+                             <q-btn icon="close" flat round dense color="grey-6" size="sm" @click="removeDetalle(index)" />
+                          </div>
+                          <div class="detalle-content">
+                             <q-select 
+                                v-model="detalle.canastaId" 
+                                :options="canastaOptions" 
+                                label="Canasta *" 
+                                outlined 
+                                dense 
+                                emit-value 
+                                map-options
+                                class="col-12 q-mb-sm input-white"
+                              />
+                             <div class="row q-col-gutter-sm">
+                                <div class="col-5">
+                                   <q-input v-model.number="detalle.cantidad" label="Cant" type="number" outlined dense class="input-white" />
+                                </div>
+                                <div class="col-7">
+                                  <q-input v-model.number="detalle.precioUnitario" label="Precio Unit." prefix="$" type="number" outlined dense class="input-white" />
+                                </div>
+                             </div>
+                             <div class="detalle-subtotalq">
+                                Total Item: <span>${{ formatNumber(detalle.cantidad * detalle.precioUnitario) }}</span>
+                             </div>
+                          </div>
+                      </div>
+                   </transition-group>
                 </div>
+                
+                <div class="total-summary q-mt-md">
+                   <div class="row justify-between items-center">
+                     <span class="text-grey-7">Total Compra:</span>
+                     <span class="text-primary text-h5 text-weight-bold">${{ formatNumber(calcularTotal()) }}</span>
+                   </div>
+                </div>
+
               </div>
             </div>
 
-            <!-- Sección Facturación -->
-            <div class="form-section">
-              <div class="section-title">
-                <q-icon name="receipt" />
-                Información de Facturación
-              </div>
-              <div class="row q-col-gutter-md">
-                <div class="col-12 col-md-6">
-                  <q-input v-model="form.numeroFactura" label="Número de Factura" outlined dense>
-                    <template v-slot:prepend>
-                      <q-icon name="tag" />
-                    </template>
-                  </q-input>
-                </div>
-                <div class="col-12 col-md-6">
-                  <q-select v-model="form.estado" :options="['PENDIENTE','PAGADO','PARCIAL']" label="Estado" outlined dense>
-                    <template v-slot:prepend>
-                      <q-icon name="info" />
-                    </template>
-                  </q-select>
-                </div>
-              </div>
-              <div class="row q-col-gutter-md q-mt-sm">
-                <div class="col-12 col-md-6">
-                  <q-input v-model="form.formaPago" label="Forma de Pago" outlined dense>
-                    <template v-slot:prepend>
-                      <q-icon name="payment" />
-                    </template>
-                  </q-input>
-                </div>
-                <div class="col-12 col-md-6">
-                  <q-input v-model="form.observaciones" label="Observaciones" outlined dense>
-                    <template v-slot:prepend>
-                      <q-icon name="note" />
-                    </template>
-                  </q-input>
-                </div>
-              </div>
-            </div>
-
-            <!-- Sección Productos -->
-            <div class="form-section">
-              <div class="section-title">
-                <q-icon name="inventory_2" />
-                Productos Comprados
-                <q-space />
-                <q-btn flat dense color="primary" icon="add" label="Agregar" @click="addDetalle()" size="sm" />
-              </div>
-
-              <div class="detalles-container" style="max-height: 300px; overflow-y: auto">
-                <div v-for="(detalle, index) in form.detalles" :key="index" class="detalle-grid">
-                  <div class="detalle-field">
-                    <label>Canasta</label>
-                    <q-select v-model="detalle.canastaId" :options="canastaOptions" outlined dense emit-value map-options />
-                  </div>
-                  <div class="detalle-field">
-                    <label>Cant.</label>
-                    <q-input v-model.number="detalle.cantidad" type="number" outlined dense />
-                  </div>
-                  <div class="detalle-field">
-                    <label>Precio</label>
-                    <q-input v-model.number="detalle.precioUnitario" type="number" outlined dense prefix="$" />
-                  </div>
-                  <div class="detalle-field">
-                    <label>Subtotal</label>
-                    <div class="detalle-subtotal">${{ (detalle.cantidad * detalle.precioUnitario).toFixed(2) }}</div>
-                  </div>
-                  <div class="detalle-field" style="align-self: end">
-                    <q-btn flat round icon="delete" color="negative" @click="removeDetalle(index)" size="sm" />
-                  </div>
-                </div>
-              </div>
-            </div>
           </q-form>
         </q-card-section>
 
-        <q-card-section class="dialog-footer bg-grey-2">
-          <div class="total-display">
-            <span class="total-label">Total:</span>
-            <span class="total-value">${{ calcularTotal().toFixed(2) }}</span>
-          </div>
-          <div class="row q-gutter-sm">
-            <q-btn label="Cancelar" flat @click="closeDialog()" />
-            <q-btn label="Guardar" color="primary" :loading="saving" @click="saveCompra" />
-          </div>
-        </q-card-section>
+        <q-card-actions class="dialog-footer">
+          <q-btn label="Cancelar" flat color="grey-8" @click="closeDialog" />
+          <q-btn label="Guardar Compra" icon="save" color="primary" unelevated padding="8px 20px" rounded @click="saveCompra" :loading="saving" />
+        </q-card-actions>
       </q-card>
     </q-dialog>
   </q-page>
@@ -263,7 +458,7 @@ import { ref, computed, onMounted } from 'vue';
 import { useComprasTercerosStore } from 'src/stores/compras-terceros';
 import { useTercerosStore } from 'src/stores/terceros';
 import { useCanastasStore } from 'src/stores/canastas';
-import { useQuasar } from 'quasar';
+import { useQuasar, date } from 'quasar';
 import type { Compra, CreateCompraDto, UpdateCompraDto, DetalleCompra } from 'src/types/compras-terceros';
 
 const $q = useQuasar();
@@ -271,6 +466,7 @@ const comprasStore = useComprasTercerosStore();
 const tercerosStore = useTercerosStore();
 const canastasStore = useCanastasStore();
 
+const viewMode = ref<'cards' | 'table'>('cards');
 const dialog = ref(false);
 const editing = ref(false);
 const editingId = ref<string | null>(null);
@@ -289,11 +485,11 @@ const form = ref<CreateCompraDto>({
 const columns = [
   { name: 'fecha', label: 'Fecha', field: 'fecha', align: 'left' as const, sortable: true },
   { name: 'tercero', label: 'Proveedor', field: 'tercero', align: 'left' as const },
-  { name: 'numeroFactura', label: 'Factura', field: 'numeroFactura', align: 'left' as const },
-  { name: 'total', label: 'Total', field: 'total', align: 'right' as const, format: (val: number) => `$${val.toFixed(2)}` },
-  { name: 'detalles', label: 'Canastas', field: 'detalles', align: 'left' as const },
-  { name: 'estado', label: 'Estado', field: 'estado', align: 'center' as const },
-  { name: 'acciones', label: 'Acciones', field: 'acciones', align: 'center' as const }
+  { name: 'numeroFactura', label: 'N° Factura', field: 'numeroFactura', align: 'left' as const },
+  { name: 'detalles', label: 'Detalle Canastas', field: 'detalles', align: 'left' as const },
+  { name: 'total', label: 'Total', field: 'total', align: 'right' as const, sortable: true },
+  { name: 'estado', label: 'Estado', field: 'estado', align: 'center' as const, sortable: true },
+  { name: 'acciones', label: '', field: 'acciones', align: 'center' as const }
 ];
 
 const terceroOptions = computed(() => 
@@ -301,6 +497,10 @@ const terceroOptions = computed(() =>
     .filter(t => t.proveedor && t.activo)
     .map(t => ({ label: t.nombre, value: t.codigo }))
 );
+
+const formatDate = (fechaISO: string) => {
+  return date.formatDate(fechaISO, 'DD/MM/YYYY');
+};
 
 const getEstadoColor = (estado: string) => {
   switch (estado) {
@@ -339,10 +539,11 @@ const canastaOptions = computed(() =>
   }))
 );
 
+// KPIs
 const totalCompras = computed(() => comprasStore.compras.length);
-const comprasPagadas = computed(() => comprasStore.compras.filter(c => getCompraEstado(c) === 'PAGADO').length);
 const comprasPendientes = computed(() => comprasStore.compras.filter(c => getCompraEstado(c) !== 'PAGADO').length);
 const totalGastado = computed(() => comprasStore.compras.reduce((s, c) => s + Number(c.total), 0));
+const promedioCompra = computed(() => totalCompras.value > 0 ? totalGastado.value / totalCompras.value : 0);
 
 const filter = ref<{ search: string; estado: string | null }>({ search: '', estado: null });
 const estadoOptions = [
@@ -363,7 +564,7 @@ const filteredCompras = computed(() => {
   if (filter.value.estado) {
     rows = rows.filter(c => getCompraEstado(c) === filter.value.estado);
   }
-  return rows;
+  return rows.sort((a,b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
 });
 
 const canastaResumen = (c: Compra): string => {
@@ -411,6 +612,7 @@ const openDialog = (compra?: Compra) => {
       observaciones: '',
       detalles: []
     };
+    addDetalle(); // Agregar uno por defecto
   }
   dialog.value = true;
 };
@@ -436,15 +638,15 @@ const saveCompra = async () => {
   try {
     if (editing.value && editingId.value) {
       await comprasStore.updateCompra(editingId.value, form.value as UpdateCompraDto);
-      $q.notify({ type: 'positive', message: 'Compra actualizada' });
+      $q.notify({ type: 'positive', message: 'Compra actualizada exitosamente' });
     } else {
       await comprasStore.createCompra(form.value);
-      $q.notify({ type: 'positive', message: 'Compra creada' });
-}
+      $q.notify({ type: 'positive', message: 'Compra creada exitosamente' });
+    }
     closeDialog();
     await fetchData();
   } catch {
-    $q.notify({ type: 'negative', message: 'Error al guardar' });
+    $q.notify({ type: 'negative', message: 'Error al guardar la operación' });
   } finally {
     saving.value = false;
   }
@@ -452,9 +654,10 @@ const saveCompra = async () => {
 
 const deleteCompra = (id: string) => {
   $q.dialog({
-    title: 'Confirmar',
-    message: '¿Eliminar esta compra?',
-    cancel: true
+    title: 'Confirmar Eliminación',
+    message: '¿Estás seguro de que deseas eliminar esta compra? Esta acción no se puede deshacer.',
+    cancel: true,
+    persistent: true
   }).onOk(() => {
     void (async () => {
       try {
@@ -474,7 +677,7 @@ const markCompraPagada = async (id: string) => {
     $q.notify({ type: 'positive', message: 'Compra marcada como pagada' });
     await fetchData();
   } catch {
-    $q.notify({ type: 'negative', message: 'Error al marcar como pagada' });
+    $q.notify({ type: 'negative', message: 'Error al actualizar estado' });
   }
 };
 
@@ -502,175 +705,304 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.modern-page { background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); min-height: 100vh; padding: 2rem; }
-.page-header { background: linear-gradient(135deg, #1B1F3B 0%, #2C3E50 100%); color: white; border-radius: 16px; padding: 2rem; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
-.header-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
-.header-title { display: flex; align-items: center; gap: 1rem; }
-.header-icon { font-size: 3rem; opacity: 0.9; }
-.page-title { margin: 0; font-size: 2rem; font-weight: 700; }
-.page-subtitle { margin: 0.25rem 0 0 0; opacity: 0.85; }
-.add-btn { border-radius: 12px; padding: 0.6rem 1.4rem; font-weight: 600; text-transform: none; }
-.kpi-section { margin: 1.5rem 0; }
-.kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; }
-.kpi-card { border-radius: 14px; box-shadow: 0 4px 18px rgba(0,0,0,0.08); color: #fff; }
-.kpi-content { display: flex; align-items: center; gap: 1rem; padding: 1rem 1.25rem; color: #fff; }
-.kpi-icon { font-size: 2rem; color: #fff; }
-.kpi-info { flex: 1; color: #fff; }
-.kpi-value { font-size: 1.8rem; font-weight: 700; color: #fff; }
-.kpi-label { font-weight: 500; opacity: 0.95; color: #fff; }
-.kpi-primary, .kpi-warning, .kpi-success, .kpi-info { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-.filter-card { border-radius: 14px; box-shadow: 0 4px 18px rgba(0,0,0,0.08); }
-.filter-content { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
-.search-input { flex: 1; min-width: 240px; }
-.filter-select { min-width: 180px; }
-.refresh-btn { border-radius: 10px; font-weight: 600; }
-.dialog-header { display: flex; align-items: center; }
-.detalle-box { border: 1px solid #e5e7eb; border-radius: 12px; padding: 1rem; background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.03); margin-bottom: 1rem; }
-.detalle-subtotal { font-size: 0.9rem; color: #2c3e50; font-weight: 600; margin-top: 0.5rem; }
-.total-box { font-size: 1.25rem; font-weight: 700; padding: 0.75rem; border-radius: 12px; background: #f8f9fa; }
-.kpi-icon .q-icon { color: #fff; }
-
-/* Modern Dialog Styles */
-.modern-dialog {
-  border-radius: 16px;
-  overflow: hidden;
+.modern-page {
+  background: #f0f4f8;
+  min-height: 100vh;
+  padding: 1.5rem;
 }
-.modern-dialog .dialog-header {
-  padding: 1.25rem 1.5rem;
+
+.page-container {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Header Styles */
+.modern-header {
+  position: relative;
+  border-radius: 20px;
+  overflow: hidden;
+  margin-bottom: 2rem;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+  height: 140px;
+}
+
+.header-backdrop {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  opacity: 0.9;
+  z-index: 0;
+}
+
+.header-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2rem 3rem;
+  height: 100%;
+}
+
+.header-info {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  font-size: 1.25rem;
+  gap: 1.5rem;
+  color: white;
+}
+
+.icon-wrapper {
+  background: rgba(255,255,255,0.2);
+  padding: 1rem;
+  border-radius: 16px;
+  backdrop-filter: blur(5px);
+}
+
+.header-icon {
+  font-size: 2.5rem;
+  color: white;
+}
+
+.page-title {
+  font-size: 2rem;
+  font-weight: 800;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.page-subtitle {
+  margin: 0;
+  font-size: 1rem;
+  opacity: 0.9;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.btn-glass {
+  background: rgba(255,255,255,0.2);
+  backdrop-filter: blur(10px);
+  color: white;
+  border: 1px solid rgba(255,255,255,0.3);
   font-weight: 600;
+  border-radius: 12px;
+  padding: 0.5rem 1.2rem;
+  transition: all 0.3s ease;
+}
+
+.btn-glass:hover {
+  background: rgba(255,255,255,0.3);
+  transform: translateY(-2px);
+}
+
+/* Toggle Styles */
+.view-toggle-container {
+  background: rgba(255,255,255,0.2);
+  padding: 4px;
+  border-radius: 12px;
+  backdrop-filter: blur(5px);
+}
+
+.view-toggle .q-btn {
+  border-radius: 8px;
+  color: #e0e0e0;
+}
+
+.view-toggle .active-view {
+  background: white;
+  color: #027be3;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
-.modern-dialog .dialog-body {
-  padding: 1.5rem;
-  overflow-y: auto;
-  background: #f8f9fa;
-}
-.modern-dialog .dialog-footer {
-  padding: 1rem 1.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-top: 1px solid #e5e7eb;
+
+.divider {
+  width: 1px;
+  height: 20px;
+  background: rgba(255,255,255,0.3);
+  margin: 0 4px;
 }
 
-/* Form Sections */
-.form-section {
-  background: white;
-  border-radius: 12px;
-  padding: 1.25rem;
-  margin-bottom: 1rem;
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+/* KPI Cards */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
 }
-.section-title {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #2c3e50;
+
+.kpi-card {
+  border-radius: 20px;
+  padding: 1.5rem;
+  border: none;
+  background: white;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.04);
+  transition: transform 0.3s ease;
+  overflow: hidden;
+  position: relative;
+}
+
+.kpi-card:hover {
+  transform: translateY(-5px);
+}
+
+.kpi-primary { border-left: 5px solid #4facfe; }
+.kpi-info { border-left: 5px solid #43e97b; }
+.kpi-warning { border-left: 5px solid #fa709a; }
+.kpi-success { border-left: 5px solid #a18cd1; }
+
+.kpi-content {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
   margin-bottom: 1rem;
+}
+
+.kpi-icon-circle {
+  width: 50px;
+  height: 50px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  background: #f5f7fa;
+  color: #555;
+}
+
+.kpi-primary .kpi-icon-circle { background: #e6f4ff; color: #4facfe; }
+.kpi-info .kpi-icon-circle { background: #e0f9ea; color: #43e97b; }
+.kpi-warning .kpi-icon-circle { background: #fff0f3; color: #fa709a; }
+.kpi-success .kpi-icon-circle { background: #f3eefc; color: #a18cd1; }
+
+.kpi-data {
+  flex: 1;
+}
+
+.kpi-value {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #2c3e50;
+  line-height: 1.2;
+}
+
+.kpi-label {
+  font-size: 0.9rem;
+  color: #8898aa;
+  font-weight: 600;
+}
+
+.kpi-trend {
+  font-size: 0.8rem;
+  color: #8898aa;
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
-.section-title .q-icon {
-  color: #3498db;
-  font-size: 1.25rem;
-}
 
-/* Detalles Container */
-.detalles-container {
-  background: white;
-  border-radius: 12px;
-  padding: 1rem;
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
-}
-.detalles-container::-webkit-scrollbar {
-  width: 6px;
-}
-.detalles-container::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 3px;
-}
-.detalles-container::-webkit-scrollbar-thumb {
-  background: #cbd5e0;
-  border-radius: 3px;
-}
-.detalles-container::-webkit-scrollbar-thumb:hover {
-  background: #a0aec0;
-}
+/* Filters */
+.filters-section { margin-bottom: 1.5rem; }
+.filter-card { border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); border: 1px solid #f0f0f0; }
+.filter-row { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
+.search-input { min-width: 300px; }
+.filter-select { min-width: 200px; }
 
-/* Detalle Grid */
-.detalle-grid {
+/* Cards Grid View */
+.cards-grid {
   display: grid;
-  grid-template-columns: 2fr 1fr 1.2fr 1.2fr 0.5fr;
-  gap: 0.75rem;
-  align-items: end;
-  padding: 0.75rem;
-  background: #f8f9fa;
-  border-radius: 8px;
-  margin-bottom: 0.75rem;
-  border: 1px solid #e5e7eb;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.compra-card-view {
+  border-radius: 16px;
+  border: none;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+  transition: all 0.3s;
+  overflow: hidden;
+  position: relative;
+}
+
+.compra-card-view:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+}
+
+.card-status-strip { height: 4px; width: 100%; position: absolute; top: 0; left: 0; }
+.bg-positive { background: #2dce89 !important; }
+.bg-warning { background: #fb6340 !important; }
+.bg-info { background: #11cdef !important; }
+
+/* Table View */
+.modern-table-card {
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+/* Dialog Styles */
+.modern-dialog { border-radius: 20px; overflow: hidden; }
+.dialog-header-bg {
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  padding: 1.5rem;
+}
+.dialog-header-content { display: flex; justify-content: space-between; align-items: flex-start; }
+.dialog-icon-box {
+  background: rgba(255,255,255,0.2);
+  width: 45px; height: 45px;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.5rem;
+  color: white;
+  margin-right: 1rem;
+}
+.dialog-body { background: #f8f9fa; flex: 1; overflow-y: auto; padding: 2rem; }
+.form-grid { display: grid; grid-template-columns: 1fr 1.2fr; gap: 2rem; height: 100%; }
+.form-col { display: flex; flex-direction: column; height: 100%; }
+.section-label { font-size: 0.9rem; font-weight: 700; color: #5e72e4; margin-bottom: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; }
+
+.input-modern :deep(.q-field__control) {
+  background: white; border-radius: 10px; border: 1px solid #e9ecef; box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+.input-modern :deep(.q-field__control:hover) { border-color: #5e72e4; }
+
+.detalles-scroll-area {
+  flex: 1; overflow-y: auto; padding-right: 0.5rem; border: 1px solid #e9ecef; border-radius: 12px; background: #fff; padding: 1rem; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+  min-height: 200px;
+}
+.detalle-card {
+  background: #f8f9fa; border-radius: 10px; padding: 0.8rem; margin-bottom: 0.8rem; border: 1px solid #e9ecef; position: relative;
   transition: all 0.2s;
 }
-.detalle-grid:hover {
-  background: #f1f3f5;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
-}
-.detalle-field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-.detalle-field label {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: #64748b;
-  margin-bottom: 0.25rem;
-}
-.detalle-item {
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 1rem;
-  margin-bottom: 0.75rem;
-}
-.detalle-subtotal {
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: #2563eb;
-  text-align: right;
-  padding: 0.5rem;
-  background: #eff6ff;
-  border-radius: 6px;
-  margin-top: 0.5rem;
-}
+.detalle-card:hover { border-color: #cbd5e0; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+.detalle-header { display: flex; justify-content: space-between; margin-bottom: 0.5rem; align-items: center; }
+.detail-index { font-weight: bold; color: #adb5bd; font-size: 0.8rem; }
+.input-white :deep(.q-field__control) { background: white; }
+.detalle-subtotalq { text-align: right; font-size: 0.9rem; color: #525f7f; font-weight: 500; margin-top: 0.5rem; }
+.detalle-subtotalq span { font-weight: 800; color: #2dce89; font-size: 1rem; margin-left: 0.5rem; }
 
-/* Total Display */
-.total-display {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem 1.25rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-}
-.total-label {
-  font-size: 1rem;
-  font-weight: 600;
-  color: white;
-  opacity: 0.95;
-}
-.total-value {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: white;
-}
+.dialog-footer { background: white; border-top: 1px solid #e9ecef; padding: 1rem 1.5rem; justify-content: flex-end; }
 
-@media (max-width: 768px) { .modern-page { padding: 0.75rem; } .page-header { padding: 1rem; border-radius: 12px; } .header-content { flex-direction: column; text-align: center; } .page-title { font-size: 1.5rem; } .kpi-grid { grid-template-columns: repeat(2, 1fr); } .detalle-grid { grid-template-columns: 1fr; gap: 0.5rem; } }
-@media (max-width: 480px) { .kpi-grid { grid-template-columns: 1fr; } }
+.empty-detalles { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #adb5bd; gap: 0.5rem; }
+
+/* Scrollbar */
+.custom-scroll::-webkit-scrollbar { width: 6px; }
+.custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e0; border-radius: 3px; }
+.custom-scroll::-webkit-scrollbar-track { background: #f1f1f1; }
+
+.animate-fade-in-down { animation: fadeInDown 0.5s ease-out; }
+.animate-fade-in-up { animation: fadeInUp 0.5s ease-out; }
+.animate-fade-in-right { animation: fadeInRight 0.3s ease-out; }
+
+@keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fadeInRight { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+
+@media (max-width: 900px) {
+  .form-grid { grid-template-columns: 1fr; gap: 1rem; }
+  .modern-header { height: auto; text-align: center; }
+  .header-content { flex-direction: column; gap: 1rem; padding: 1.5rem; }
+  .header-info { flex-direction: column; text-align: center; }
+}
 </style>

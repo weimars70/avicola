@@ -20,19 +20,20 @@ export class ResumenService {
     private invTercerosRepository: Repository<InventarioTerceros>,
     @InjectRepository(Canasta)
     private canastasRepository: Repository<Canasta>,
-  ) {}
+  ) { }
 
   async getInventarioResumen(galponId?: string, tipoHuevoId?: string, id_empresa?: number) {
     if (!id_empresa) {
       throw new Error('No hay empresa asociada al usuario logueado');
     }
-    
+
     // Construir query para entradas
     const entradasQuery = this.entradasRepository
       .createQueryBuilder('entrada')
       .leftJoinAndSelect('entrada.galpon', 'galpon')
       .leftJoinAndSelect('entrada.tipoHuevo', 'tipoHuevo')
-      .where('entrada.id_empresa = :id_empresa', { id_empresa });
+      .where('entrada.id_empresa = :id_empresa', { id_empresa })
+      .andWhere('tipoHuevo.id_empresa = :id_empresa', { id_empresa });
 
     if (galponId) {
       entradasQuery.andWhere('entrada.galponId = :galponId', { galponId });
@@ -45,7 +46,8 @@ export class ResumenService {
     const salidasQuery = this.salidasRepository
       .createQueryBuilder('salida')
       .leftJoinAndSelect('salida.tipoHuevo', 'tipoHuevo')
-      .where('salida.id_empresa = :id_empresa', { id_empresa });
+      .where('salida.id_empresa = :id_empresa', { id_empresa })
+      .andWhere('tipoHuevo.id_empresa = :id_empresa', { id_empresa });
 
     if (tipoHuevoId) {
       salidasQuery.andWhere('salida.tipoHuevoId = :tipoHuevoId', { tipoHuevoId });
@@ -55,7 +57,8 @@ export class ResumenService {
     const inventarioQuery = this.inventarioRepository
       .createQueryBuilder('inventario')
       .leftJoinAndSelect('inventario.tipoHuevo', 'tipoHuevo')
-      .where('inventario.id_empresa = :id_empresa', { id_empresa });
+      .where('inventario.id_empresa = :id_empresa', { id_empresa })
+      .andWhere('tipoHuevo.id_empresa = :id_empresa', { id_empresa });
 
     if (tipoHuevoId) {
       inventarioQuery.andWhere('inventario.tipoHuevoId = :tipoHuevoId', { tipoHuevoId });
@@ -74,7 +77,7 @@ export class ResumenService {
     // Procesar entradas
     entradas.forEach(entrada => {
       const key = galponId ? `${entrada.galponId}-${entrada.tipoHuevoId}` : entrada.tipoHuevoId;
-      
+
       if (!resumen[key]) {
         resumen[key] = {
           galponId: entrada.galponId,
@@ -87,14 +90,14 @@ export class ResumenService {
           valorTotal: 0,
         };
       }
-      
+
       resumen[key].totalEntradas += entrada.unidades;
     });
 
     // Procesar salidas
     salidas.forEach(salida => {
       const key = galponId ? `${galponId}-${salida.tipoHuevoId}` : salida.tipoHuevoId;
-      
+
       if (!resumen[key]) {
         resumen[key] = {
           galponId: galponId || null,
@@ -107,14 +110,14 @@ export class ResumenService {
           valorTotal: 0,
         };
       }
-      
+
       resumen[key].totalSalidas += salida.unidades;
     });
 
     // Procesar inventario actual
     inventarioActual.forEach(inv => {
       const key = galponId ? `${galponId}-${inv.tipoHuevoId}` : inv.tipoHuevoId;
-      
+
       if (!resumen[key]) {
         resumen[key] = {
           galponId: galponId || null,
@@ -127,20 +130,20 @@ export class ResumenService {
           valorTotal: 0,
         };
       }
-      
+
       resumen[key].stockActual = inv.unidades;
     });
 
     // Convertir a array y calcular valores
     const resultado = Object.values(resumen).map((item: any) => {
       // Calcular stock basado en entradas - salidas si no hay inventario actual
-      if (item.stockActual === 0) {
-        item.stockActual = item.totalEntradas - item.totalSalidas;
-      }
-      
+      // if (item.stockActual === 0) {
+      //   item.stockActual = item.totalEntradas - item.totalSalidas;
+      // }
+
       // Calcular valor total: stock actual * valor unitario del tipo de huevo
       item.valorTotal = item.stockActual * (item.tipoHuevo?.valorUnidad || 0);
-      
+
       return item;
     });
 

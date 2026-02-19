@@ -9,26 +9,25 @@ import {
   UseGuards,
   ParseUUIDPipe,
   Logger,
-  Query,
-  ParseIntPipe,
 } from '@nestjs/common';
 import { GalponesService } from './galpones.service';
 import { CreateGalponDto } from './dto/create-galpon.dto';
 import { UpdateGalponDto } from './dto/update-galpon.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { IdEmpresa } from '../terceros/decorators/empresa.decorator';
 
 @Controller('galpones')
 @UseGuards(JwtAuthGuard)
 export class GalponesController {
   private readonly logger = new Logger(GalponesController.name);
-  
-  constructor(private readonly galponesService: GalponesService) {}
+
+  constructor(private readonly galponesService: GalponesService) { }
 
   @Post()
   async create(@Body() createGalponDto: CreateGalponDto) {
     this.logger.log('=== INICIO CREACIÓN GALPÓN ===');
     this.logger.log('Datos recibidos:', JSON.stringify(createGalponDto));
-    
+
     try {
       const resultado = await this.galponesService.create(createGalponDto);
       this.logger.log('Galpón creado exitosamente:', JSON.stringify(resultado));
@@ -43,31 +42,32 @@ export class GalponesController {
   }
 
   @Get()
-  findAll(@Query('id_empresa', new ParseIntPipe({ errorHttpStatusCode: 400 })) id_empresa: number) {
+  findAll(@IdEmpresa() id_empresa: number) {
     return this.galponesService.findAll(id_empresa);
   }
 
   @Get('all')
-  findAllIncludingInactive() {
-    return this.galponesService.findAllIncludingInactive();
+  findAllIncludingInactive(@IdEmpresa() id_empresa: number) {
+    return this.galponesService.findAllIncludingInactive(id_empresa);
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseUUIDPipe) id: string) {
-    return this.galponesService.findOne(id);
+  findOne(@Param('id', ParseUUIDPipe) id: string, @IdEmpresa() id_empresa: number) {
+    return this.galponesService.findOne(id, id_empresa);
   }
 
   @Patch(':id')
   async update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateGalponDto: UpdateGalponDto,
+    @IdEmpresa() id_empresa: number,
   ) {
     this.logger.log('=== INICIO ACTUALIZACIÓN GALPÓN ===');
     this.logger.log('ID recibido en controlador:', id);
     this.logger.log('DTO recibido en controlador:', JSON.stringify(updateGalponDto));
-    
+
     try {
-      const resultado = await this.galponesService.update(id, updateGalponDto);
+      const resultado = await this.galponesService.update(id, updateGalponDto, id_empresa);
       this.logger.log('Galpón actualizado exitosamente:', JSON.stringify(resultado));
       this.logger.log('=== FIN ACTUALIZACIÓN GALPÓN (ÉXITO) ===');
       return resultado;
@@ -80,12 +80,12 @@ export class GalponesController {
   }
 
   @Patch(':id/inactivar')
-  async inactivate(@Param('id', ParseUUIDPipe) id: string) {
+  async inactivate(@Param('id', ParseUUIDPipe) id: string, @IdEmpresa() id_empresa: number) {
     this.logger.log('=== INICIO INACTIVACIÓN GALPÓN ===');
     this.logger.log('ID recibido:', id);
-    
+
     try {
-      await this.galponesService.remove(id);
+      await this.galponesService.remove(id, id_empresa);
       this.logger.log('Galpón inactivado exitosamente');
       this.logger.log('=== FIN INACTIVACIÓN GALPÓN (ÉXITO) ===');
       return { message: 'Galpón inactivado exitosamente' };
@@ -98,12 +98,12 @@ export class GalponesController {
   }
 
   @Patch(':id/reactivar')
-  async reactivate(@Param('id', ParseUUIDPipe) id: string) {
+  async reactivate(@Param('id', ParseUUIDPipe) id: string, @IdEmpresa() id_empresa: number) {
     this.logger.log('=== INICIO REACTIVACIÓN GALPÓN ===');
     this.logger.log('ID recibido:', id);
-    
+
     try {
-      await this.galponesService.reactivate(id);
+      await this.galponesService.reactivate(id, id_empresa);
       this.logger.log('Galpón reactivado exitosamente');
       this.logger.log('=== FIN REACTIVACIÓN GALPÓN (ÉXITO) ===');
       return { message: 'Galpón reactivado exitosamente' };

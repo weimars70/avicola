@@ -10,7 +10,7 @@ export class TiposHuevoService {
   constructor(
     @InjectRepository(TipoHuevo)
     private tiposHuevoRepository: Repository<TipoHuevo>,
-  ) {}
+  ) { }
 
   async create(createTipoHuevoDto: CreateTipoHuevoDto): Promise<TipoHuevo> {
     const tipoHuevo = this.tiposHuevoRepository.create(createTipoHuevoDto);
@@ -26,12 +26,12 @@ export class TiposHuevoService {
 
   async findOne(id: string, id_empresa?: number): Promise<TipoHuevo> {
     const whereCondition: any = { id, activo: true };
-    
+
     // Si se proporciona id_empresa, añadirlo a la condición de búsqueda
     if (id_empresa !== undefined) {
       whereCondition.id_empresa = id_empresa;
     }
-    
+
     const tipoHuevo = await this.tiposHuevoRepository.findOne({
       where: whereCondition,
     });
@@ -45,24 +45,25 @@ export class TiposHuevoService {
 
   async update(id: string, updateTipoHuevoDto: UpdateTipoHuevoDto): Promise<TipoHuevo> {
     const tipoHuevo = await this.findOne(id);
-    
+
     Object.assign(tipoHuevo, updateTipoHuevoDto);
     tipoHuevo.updatedAt = new Date();
-    
+
     return await this.tiposHuevoRepository.save(tipoHuevo);
   }
 
   async remove(id: string): Promise<void> {
     const tipoHuevo = await this.findOne(id);
-    
+
     tipoHuevo.activo = false;
     tipoHuevo.updatedAt = new Date();
-    
+
     await this.tiposHuevoRepository.save(tipoHuevo);
   }
 
-  async findAllIncludingInactive(): Promise<TipoHuevo[]> {
+  async findAllIncludingInactive(id_empresa: number): Promise<TipoHuevo[]> {
     return await this.tiposHuevoRepository.find({
+      where: { id_empresa },
       order: { nombre: 'ASC' },
     });
   }

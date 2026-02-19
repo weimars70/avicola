@@ -10,7 +10,7 @@ export class InventarioStockService {
   constructor(
     @InjectRepository(Inventario)
     private inventarioRepository: Repository<Inventario>,
-  ) {}
+  ) { }
 
   async create(createInventarioDto: CreateInventarioDto): Promise<Inventario> {
     const inventario = this.inventarioRepository.create(createInventarioDto);
@@ -19,7 +19,7 @@ export class InventarioStockService {
 
   async findAll(id_empresa: number): Promise<Inventario[]> {
     return await this.inventarioRepository.find({
-      where: { id_empresa },
+      where: { id_empresa, tipoHuevo: { id_empresa } },
       relations: ['tipoHuevo'],
       order: { tipoHuevo: { nombre: 'ASC' } },
     });
@@ -27,7 +27,7 @@ export class InventarioStockService {
 
   async findByTipoHuevo(tipoHuevoId: string, id_empresa: number): Promise<Inventario | null> {
     return await this.inventarioRepository.findOne({
-      where: { tipoHuevoId, id_empresa },
+      where: { tipoHuevoId, id_empresa, tipoHuevo: { id_empresa } },
       relations: ['tipoHuevo'],
     });
   }
@@ -109,7 +109,7 @@ export class InventarioStockService {
   async getVistaInventario(id_empresa: number): Promise<any[]> {
     const inventarios = await this.inventarioRepository.find({
       relations: ['tipoHuevo'],
-      where: { id_empresa },
+      where: { id_empresa, tipoHuevo: { id_empresa } },
       order: { unidades: 'DESC' }
     });
 

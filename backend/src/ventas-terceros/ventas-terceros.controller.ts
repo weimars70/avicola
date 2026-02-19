@@ -3,7 +3,7 @@ import { VentasTercerosService } from './ventas-terceros.service';
 import { CreateVentaDto } from './dto/create-venta.dto';
 import { UpdateVentaDto } from './dto/update-venta.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { IdEmpresaHeader } from '../terceros/decorators/empresa.decorator';
+import { IdEmpresa } from '../terceros/decorators/empresa.decorator';
 
 @Controller('ventas-terceros')
 @UseGuards(JwtAuthGuard)
@@ -12,33 +12,36 @@ export class VentasTercerosController {
 
     @Post()
     create(@Body() createVentaDto: CreateVentaDto, @Request() req: any) {
-        const idEmpresa = req.user?.idEmpresa ?? req.user?.id_empresa ?? Number(req.headers['x-empresa-id']) ?? 0;
+        // STRICT: Extract from authenticated user
+        const idEmpresa = req.user?.id_empresa || req.user?.idEmpresa;
+        if (!idEmpresa) throw new Error('Company ID missing in user context');
+
         const idUsuario = req.query?.id_usuario_inserta || req.user?.userId || req.user?.id_usuario || '';
-        return this.ventasTercerosService.create(createVentaDto, idEmpresa, idUsuario);
+        return this.ventasTercerosService.create(createVentaDto, Number(idEmpresa), idUsuario);
     }
 
     @Get()
-    findAll(@IdEmpresaHeader() idEmpresa: number) {
+    findAll(@IdEmpresa() idEmpresa: number) {
         return this.ventasTercerosService.findAll(idEmpresa);
     }
 
     @Get('estadisticas')
-    getEstadisticas(@IdEmpresaHeader() idEmpresa: number) {
+    getEstadisticas(@IdEmpresa() idEmpresa: number) {
         return this.ventasTercerosService.getEstadisticas(idEmpresa);
     }
 
     @Get(':id')
-    findOne(@Param('id') id: string, @IdEmpresaHeader() idEmpresa: number) {
+    findOne(@Param('id') id: string, @IdEmpresa() idEmpresa: number) {
         return this.ventasTercerosService.findOne(id, idEmpresa);
     }
 
     @Patch(':id')
-    update(@Param('id') id: string, @Body() updateVentaDto: UpdateVentaDto, @IdEmpresaHeader() idEmpresa: number) {
+    update(@Param('id') id: string, @Body() updateVentaDto: UpdateVentaDto, @IdEmpresa() idEmpresa: number) {
         return this.ventasTercerosService.update(id, updateVentaDto, idEmpresa);
     }
 
     @Delete(':id')
-    remove(@Param('id') id: string, @IdEmpresaHeader() idEmpresa: number) {
+    remove(@Param('id') id: string, @IdEmpresa() idEmpresa: number) {
         return this.ventasTercerosService.remove(id, idEmpresa);
     }
 }

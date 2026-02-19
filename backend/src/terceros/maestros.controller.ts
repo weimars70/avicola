@@ -1,6 +1,6 @@
 import { Controller, Get, UseGuards, Query, Param } from '@nestjs/common';
 import { MaestrosService } from './maestros.service';
-import { IdEmpresa, IdEmpresaHeader } from './decorators/empresa.decorator';
+import { IdEmpresa } from './decorators/empresa.decorator';
 import { EmpresaGuard } from './guards/empresa.guard';
 import { ApiTags, ApiOperation, ApiParam } from '@nestjs/swagger';
 
@@ -8,7 +8,7 @@ import { ApiTags, ApiOperation, ApiParam } from '@nestjs/swagger';
 @Controller('maestros-terceros')
 @UseGuards(EmpresaGuard)
 export class MaestrosController {
-  constructor(private readonly maestrosService: MaestrosService) {}
+  constructor(private readonly maestrosService: MaestrosService) { }
 
   @Get('ciudades')
   @ApiOperation({ summary: 'Obtener todas las ciudades' })
@@ -18,7 +18,7 @@ export class MaestrosController {
 
   @Get('estratos')
   @ApiOperation({ summary: 'Obtener todos los estratos' })
-  findAllEstratos(@IdEmpresaHeader() id_empresa: number, @Query('activo') activo?: boolean) {
+  findAllEstratos(@IdEmpresa() id_empresa: number, @Query('activo') activo?: boolean) {
     return this.maestrosService.findAllEstratos(activo, id_empresa);
   }
 

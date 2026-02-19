@@ -20,7 +20,7 @@ export class AjustesInventarioService {
     private inventarioStockService: InventarioStockService,
     private tiposHuevoService: TiposHuevoService,
     private usersService: UsersService,
-  ) {}
+  ) { }
 
   async create(createAjusteDto: CreateAjusteInventarioDto, id_empresa: number = 1): Promise<AjusteInventario> {
     // Validar que el tipo de huevo existe
@@ -82,14 +82,14 @@ export class AjustesInventarioService {
   async findAll(id_empresa: number): Promise<AjusteInventario[]> {
     return await this.ajustesRepository.find({
       relations: ['tipoHuevo', 'usuario'],
-      where: { tipoHuevo: { id_empresa } },
+      where: { id_empresa },
       order: { createdAt: 'DESC' },
     });
   }
 
   async findByTipoHuevo(tipoHuevoId: string, id_empresa: number): Promise<AjusteInventario[]> {
     return await this.ajustesRepository.find({
-      where: { tipoHuevoId, tipoHuevo: { id_empresa } },
+      where: { tipoHuevoId, id_empresa },
       relations: ['tipoHuevo', 'usuario'],
       order: { createdAt: 'DESC' },
     });
@@ -196,7 +196,7 @@ export class AjustesInventarioService {
   async findAllLotes(id_empresa: number): Promise<AjusteLote[]> {
     return await this.ajustesLoteRepository.find({
       relations: ['usuario', 'ajustes', 'ajustes.tipoHuevo'],
-      where: { ajustes: { tipoHuevo: { id_empresa } } },
+      where: { id_empresa },
       order: { createdAt: 'DESC' },
     });
   }
@@ -216,19 +216,19 @@ export class AjustesInventarioService {
 
   async updateLote(id: string, updateAjusteLoteDto: UpdateAjusteLoteDto): Promise<AjusteLote> {
     const lote = await this.findOneLote(id);
-    
+
     // Actualizar solo la descripción general
     if (updateAjusteLoteDto.descripcionGeneral) {
       lote.descripcionGeneral = updateAjusteLoteDto.descripcionGeneral;
     }
-    
+
     await this.ajustesLoteRepository.save(lote);
     return await this.findOneLote(id);
   }
 
   async removeLote(id: string): Promise<void> {
     const lote = await this.findOneLote(id);
-    
+
     // Primero revertir todos los ajustes de inventario
     if (lote.ajustes && lote.ajustes.length > 0) {
       for (const ajuste of lote.ajustes) {
@@ -245,18 +245,18 @@ export class AjustesInventarioService {
           );
         }
       }
-      
+
       // Luego eliminar todos los ajustes asociados
       await this.ajustesRepository.remove(lote.ajustes);
     }
-    
+
     // Finalmente eliminar el lote
     await this.ajustesLoteRepository.remove(lote);
   }
 
   async update(id: string, updateAjusteDto: CreateAjusteInventarioDto): Promise<AjusteInventario> {
     const ajuste = await this.findOne(id);
-    
+
     // Revertir el ajuste anterior en el inventario
     if (ajuste.tipoAjuste === 'suma') {
       await this.inventarioStockService.reducirStock(
@@ -269,11 +269,11 @@ export class AjustesInventarioService {
         ajuste.cantidadAjuste
       );
     }
-    
+
     // Obtener la cantidad actual del inventario
     const inventarioActual = await this.inventarioStockService.findByTipoHuevo(updateAjusteDto.tipoHuevoId, 1);
     const cantidadAnterior = inventarioActual ? inventarioActual.unidades : 0;
-    
+
     let cantidadNueva: number;
     if (updateAjusteDto.tipoAjuste === 'suma') {
       cantidadNueva = cantidadAnterior + updateAjusteDto.cantidadAjuste;
@@ -283,16 +283,16 @@ export class AjustesInventarioService {
         throw new BadRequestException('No hay suficiente stock para realizar este ajuste');
       }
     }
-    
+
     // Actualizar el ajuste
     Object.assign(ajuste, {
       ...updateAjusteDto,
       cantidadAnterior,
       cantidadNueva,
     });
-    
+
     const savedAjuste = await this.ajustesRepository.save(ajuste);
-    
+
     // Aplicar el nuevo ajuste al inventario
     if (updateAjusteDto.tipoAjuste === 'suma') {
       await this.inventarioStockService.aumentarStock(
@@ -305,13 +305,13 @@ export class AjustesInventarioService {
         updateAjusteDto.cantidadAjuste
       );
     }
-    
+
     return await this.findOne(savedAjuste.id);
   }
 
   async remove(id: string): Promise<void> {
     const ajuste = await this.findOne(id);
-    
+
     // Revertir el ajuste en el inventario
     if (ajuste.tipoAjuste === 'suma') {
       await this.inventarioStockService.reducirStock(
@@ -324,7 +324,7 @@ export class AjustesInventarioService {
         ajuste.cantidadAjuste
       );
     }
-    
+
     await this.ajustesRepository.remove(ajuste);
   }
 }

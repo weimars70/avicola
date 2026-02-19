@@ -21,32 +21,32 @@ export class SalidasService {
     @Inject(forwardRef(() => IngresosService))
     private ingresosService: IngresosService,
     private dataSource: DataSource,
-  ) {}
+  ) { }
 
   async create(createSalidaDto: CreateSalidaDto, id_empresa: number): Promise<Salida> {
     // Validar que el tipo de huevo existe
     const tipoHuevo = await this.tiposHuevoService.findOne(createSalidaDto.tipoHuevoId);
-    
+
     let canasta = null;
     let unidadesTotales = createSalidaDto.unidades;
-    
+
     // Validar que la canasta existe solo si se proporciona
     if (createSalidaDto.canastaId) {
       canasta = await this.canastasService.findOne(createSalidaDto.canastaId, id_empresa);
       // Calcular unidades totales (canastas * unidades por canasta)
       unidadesTotales = createSalidaDto.unidades * canasta.unidadesPorCanasta;
     }
-    
+
     // Reducir del inventario antes de crear la salida
     await this.inventarioStockService.reducirInventario(
       createSalidaDto.tipoHuevoId,
       unidadesTotales,
       id_empresa
     );
-    
+
     // Asegurar que siempre haya una fecha definida
     const fechaFinal = createSalidaDto.fecha || new Date().toISOString().split('T')[0];
-    
+
     // Determinar monto final considerando posibles descuentos enviados desde el frontend
     let monto = 0;
     let descripcion = '';
@@ -66,7 +66,7 @@ export class SalidasService {
       valor: monto,
     });
     const savedSalida = await this.salidasRepository.save(salida);
-    
+
     // Crear automáticamente un ingreso por la venta
     try {
       if (!descripcion) {
@@ -89,13 +89,13 @@ export class SalidasService {
       // Log del error pero no fallar la creación de la salida
       console.error('Error al crear ingreso automático:', error);
     }
-    
+
     return savedSalida;
   }
 
   async findAll(id_empresa: number): Promise<Salida[]> {
     return this.salidasRepository.find({
-      where: { id_empresa },
+      where: { id_empresa, tipoHuevo: { id_empresa } },
       relations: ['tipoHuevo', 'canasta'],
       order: { createdAt: 'DESC' }
     });
@@ -106,11 +106,11 @@ export class SalidasService {
       where: { id, id_empresa },
       relations: ['tipoHuevo', 'canasta']
     });
-    
+
     if (!salida) {
       throw new NotFoundException(`Salida con ID ${id} no encontrada`);
     }
-    
+
     return salida;
   }
 
@@ -118,17 +118,17 @@ export class SalidasService {
     const salida = await this.findOne(id, id_empresa);
     const unidadesOriginales = salida.unidades;
     const tipoHuevoOriginal = salida.tipoHuevoId;
-    
+
     // Validar tipo de huevo si se está actualizando
     if (updateSalidaDto.tipoHuevoId) {
       await this.tiposHuevoService.findOne(updateSalidaDto.tipoHuevoId);
     }
-    
+
     // Validar canasta si se está actualizando
     if (updateSalidaDto.canastaId && updateSalidaDto.id_empresa) {
       await this.canastasService.findOne(updateSalidaDto.canastaId, updateSalidaDto.id_empresa);
     }
-    
+
     // Si cambian las unidades, tipo de huevo o canasta, ajustar inventario
     if (updateSalidaDto.unidades !== undefined || updateSalidaDto.tipoHuevoId || updateSalidaDto.canastaId !== undefined) {
       const nuevoTipoHuevo = updateSalidaDto.tipoHuevoId || tipoHuevoOriginal;
@@ -156,36 +156,36 @@ export class SalidasService {
       // Reducir inventario con nuevos valores (restar los huevos actualizados)
       await this.inventarioStockService.reducirStock(nuevoTipoHuevo, unidadesTotalesNuevas);
     }
-    
+
     // Calcular valor automáticamente si cambiaron unidades o canasta, y no se envía un valor explícito
     if ((updateSalidaDto.unidades !== undefined || updateSalidaDto.canastaId !== undefined) && !updateSalidaDto.valor) {
       // Obtener el valor de la canasta actual (nueva o existente)
       let valorCanasta = 0;
       const canastaIdParaCalculo = updateSalidaDto.canastaId !== undefined ? updateSalidaDto.canastaId : salida.canastaId;
-      
+
       if (canastaIdParaCalculo) {
         const canasta = await this.canastasService.findOne(canastaIdParaCalculo, id_empresa);
         valorCanasta = canasta.valorCanasta;
       }
-      
+
       // Actualizar el valor basado en las unidades (nuevas o existentes)
       const unidadesParaCalculo = updateSalidaDto.unidades !== undefined ? updateSalidaDto.unidades : salida.unidades;
-      
+
       if (valorCanasta > 0) {
         updateSalidaDto.valor = unidadesParaCalculo * valorCanasta;
       }
     }
-    
+
     Object.assign(salida, updateSalidaDto);
     const salidaActualizada = await this.salidasRepository.save(salida);
-    
+
     // Actualizar el ingreso relacionado si existe
     try {
       const ingresosRepo = this.dataSource.getRepository(Ingreso);
       const ingresos = await ingresosRepo.find({
         where: { salidaId: id, id_empresa }
       });
-      
+
       if (ingresos && ingresos.length > 0) {
         const ingreso = ingresos[0];
         // Actualizar el monto del ingreso para que coincida con el valor de la salida
@@ -200,7 +200,7 @@ export class SalidasService {
     } catch (error) {
       console.error('Error al actualizar el ingreso relacionado:', error);
     }
-    
+
     return salidaActualizada;
   }
 
@@ -246,12 +246,13 @@ export class SalidasService {
         ) as salidas
       FROM salidas salida
       LEFT JOIN canastas canasta ON salida."canastaId" = canasta.id
+      LEFT JOIN tipos_huevo th ON salida."tipoHuevoId" = th.id
       WHERE salida.fecha BETWEEN $1 AND $2
-      ${id_empresa ? 'AND salida.id_empresa = $3' : ''}
+      ${id_empresa ? 'AND salida.id_empresa = $3 AND th.id_empresa = $3' : ''}
       GROUP BY salida.fecha
       ORDER BY fecha ASC
     `;
-    
+
     return this.salidasRepository.query(query, id_empresa ? [fechaInicio, fechaFin, id_empresa] : [fechaInicio, fechaFin]);
   }
 
@@ -266,7 +267,7 @@ export class SalidasService {
       GROUP BY salida.fecha
       ORDER BY fecha ASC
     `;
-    
+
     return this.salidasRepository.query(query, id_empresa ? [fechaInicio, fechaFin, id_empresa] : [fechaInicio, fechaFin]);
   }
 
@@ -283,7 +284,7 @@ export class SalidasService {
       GROUP BY canasta.id, canasta.nombre
       ORDER BY "cantidadVendida" DESC
     `;
-    
+
     return this.salidasRepository.query(query, id_empresa ? [fechaInicio, fechaFin, id_empresa] : [fechaInicio, fechaFin]);
   }
 }

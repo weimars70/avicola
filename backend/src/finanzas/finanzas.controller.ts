@@ -1,4 +1,4 @@
-import { Controller, Get, Query, Post, Body, ParseIntPipe, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Query, Post, Body, ParseIntPipe, BadRequestException, UseGuards } from '@nestjs/common';
 import { GastosService } from './gastos.service';
 import { IngresosService } from './ingresos.service';
 import { ResumenService } from './resumen.service';
@@ -6,9 +6,11 @@ import { GalponesService } from '../galpones/galpones.service';
 import { EntradasProduccionService } from '../entradas-produccion/entradas-produccion.service';
 import { SalidasService } from '../salidas/salidas.service';
 import { ResumenService as InventarioResumenService } from '../inventario/resumen.service';
-import { IdEmpresaHeader } from '../terceros/decorators/empresa.decorator';
+import { IdEmpresa } from '../terceros/decorators/empresa.decorator';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('finanzas')
+@UseGuards(JwtAuthGuard)
 export class FinanzasController {
   constructor(
     private readonly gastosService: GastosService,
@@ -18,11 +20,11 @@ export class FinanzasController {
     private readonly entradasProduccionService: EntradasProduccionService,
     private readonly salidasService: SalidasService,
     private readonly inventarioResumenService: InventarioResumenService,
-  ) {}
+  ) { }
 
   @Get('resumen')
   async getResumenFinanciero(
-    @IdEmpresaHeader() id_empresa_num: number,
+    @IdEmpresa() id_empresa_num: number,
     @Query('fechaInicio') fechaInicio?: string,
     @Query('fechaFin') fechaFin?: string,
     @Query('origen') origen?: string,
@@ -56,10 +58,10 @@ export class FinanzasController {
 
     // Obtener inversión inicial total (no por rango de fechas)
     totalInversionInicial = await this.gastosService.getTotalInversionInicial(id_empresa_num);
-    
+
     gastosPorCategoria = esTerceros ? [] : await this.gastosService.getTotalGastosByCategoria(id_empresa_num);
     ingresosPorTipo = esTerceros ? [] : await this.ingresosService.getTotalIngresosByTipo(id_empresa_num);
-    
+
     // Cálculos financieros
     const utilidadOperativa = totalIngresos - totalGastosOperativos;
     const utilidadNeta = totalIngresos - totalGastos;
@@ -87,36 +89,36 @@ export class FinanzasController {
 
   @Get('comparativo-mensual')
   async getComparativoMensual(
-    @IdEmpresaHeader() id_empresa_num: number,
+    @IdEmpresa() id_empresa_num: number,
     @Query('anio') anio?: string,
   ) {
     try {
       const anioActual = anio ? parseInt(anio) : new Date().getFullYear();
-      
+
       // Obtener datos de inversión inicial
       const totalInversionInicial = await this.gastosService.getTotalInversionInicial(id_empresa_num);
-      
+
       // Inicializar arrays para almacenar datos mensuales
       const meses = [];
       const ingresosMensuales = [];
       const gastosMensuales = [];
       const utilidadesMensuales = [];
-      
+
       // Calcular datos para cada mes
       for (let mes = 0; mes < 12; mes++) {
         const fechaInicio = new Date(anioActual, mes, 1).toISOString().split('T')[0];
         const fechaFin = new Date(anioActual, mes + 1, 0).toISOString().split('T')[0];
-        
+
         // Obtener ingresos y gastos del mes
         const ingresos = await this.ingresosService.getTotalIngresosByDateRange(fechaInicio, fechaFin, id_empresa_num);
         const gastosTotal = await this.gastosService.getTotalGastosByDateRange(fechaInicio, fechaFin, id_empresa_num);
         const gastosOperativos = await this.gastosService.getTotalGastosByDateRangeExcluyendoInversion(fechaInicio, fechaFin, id_empresa_num);
-        
+
         // Calcular utilidades y margen
         const utilidadOperativa = ingresos - gastosOperativos;
         const utilidadNeta = ingresos - gastosTotal;
         const margenUtilidad = ingresos > 0 ? (utilidadOperativa / ingresos) * 100 : 0;
-        
+
         meses.push({
           mes,
           nombreMes: new Date(anioActual, mes).toLocaleString('es', { month: 'long' }),
@@ -142,37 +144,37 @@ export class FinanzasController {
 
   @Get('kpis')
   async getKPIsFinancieros(
-    @IdEmpresaHeader() id_empresa_num: number,
+    @IdEmpresa() id_empresa_num: number,
     @Query('fechaInicio') fechaInicio?: string,
     @Query('fechaFin') fechaFin?: string,
   ) {
     const resumen = await this.getResumenFinanciero(id_empresa_num, fechaInicio, fechaFin);
-    
+
     // Calcular KPIs adicionales
-    const promedioGastoDiario = fechaInicio && fechaFin ? 
+    const promedioGastoDiario = fechaInicio && fechaFin ?
       this.calcularPromedioGastoDiario(resumen.totalGastos, fechaInicio, fechaFin) : 0;
-    
-    const promedioIngresoDiario = fechaInicio && fechaFin ? 
+
+    const promedioIngresoDiario = fechaInicio && fechaFin ?
       this.calcularPromedioIngresoDiario(resumen.totalIngresos, fechaInicio, fechaFin) : 0;
 
     return {
       ...resumen,
       promedioGastoDiario: parseFloat(promedioGastoDiario.toFixed(2)),
       promedioIngresoDiario: parseFloat(promedioIngresoDiario.toFixed(2)),
-      ratioIngresoGasto: resumen.totalGastos > 0 ? 
+      ratioIngresoGasto: resumen.totalGastos > 0 ?
         parseFloat((resumen.totalIngresos / resumen.totalGastos).toFixed(2)) : 0,
     };
   }
 
   @Get('dashboard-kpis')
-  async getDashboardKpis(@IdEmpresaHeader() id_empresa_num: number) {
+  async getDashboardKpis(@IdEmpresa() id_empresa_num: number) {
     try {
-      
+
       // Obtener fecha actual para calcular datos del mes
       const now = new Date();
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
       const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-      
+
       const fechaInicio = startOfMonth.toISOString().split('T')[0];
       const fechaFin = endOfMonth.toISOString().split('T')[0];
 
@@ -185,7 +187,7 @@ export class FinanzasController {
 
       // Obtener inventario actual total
       const resumenInventario = await this.inventarioResumenService.getInventarioResumen(null, null, id_empresa_num);
-      
+
       // Filtramos explícitamente por id_empresa desde el tipoHuevo
       const inventarioActual = Object.values(resumenInventario)
         .filter((item: any) => item.tipoHuevo && item.tipoHuevo.id_empresa === id_empresa_num)
@@ -197,7 +199,7 @@ export class FinanzasController {
       const galpones = await this.galponesService.findAll(id_empresa_num);
       const galponesActivos = galpones.filter(g => g.activo).length;
       const totalGalpones = galpones.length;
-      
+
       // Calcular gallinas totales y activas (basado en capacidad de galpones)
       // Para gallinas totales, contamos las de todos los galpones (activos e inactivos)
       const gallinasTotal = galpones
@@ -282,7 +284,7 @@ export class FinanzasController {
       if (!id_empresa || !id_usuario_inserta) {
         throw new BadRequestException('id_empresa e id_usuario_inserta son obligatorios');
       }
-      
+
       // Crear o actualizar el gasto de inversión inicial
       const resultado = await this.gastosService.createOrUpdateInversionInicial(
         inversionData.montoTotal,
@@ -291,7 +293,7 @@ export class FinanzasController {
         id_empresa,
         id_usuario_inserta
       );
-      
+
       return {
         success: true,
         message: 'Inversión inicial registrada exitosamente',
@@ -305,34 +307,34 @@ export class FinanzasController {
 
   @Get('datos-diarios')
   async getDatosDiarios(
-    @IdEmpresaHeader() id_empresa_num: number,
+    @IdEmpresa() id_empresa_num: number,
     @Query('fechaInicio') fechaInicio?: string,
     @Query('fechaFin') fechaFin?: string,
   ) {
     try {
       let inicio = fechaInicio;
       let fin = fechaFin;
-      
+
       // Si no se proporcionan fechas, usar los últimos 7 días para mejorar rendimiento
       if (!inicio || !fin) {
         const ahora = new Date();
         const hace7Dias = new Date(ahora);
         hace7Dias.setDate(ahora.getDate() - 7);
-        
+
         inicio = hace7Dias.toISOString().split('T')[0];
         fin = ahora.toISOString().split('T')[0];
       }
-      
+
       // Obtener datos diarios
       const ingresosDiarios = await this.ingresosService.getIngresosDiarios(inicio, fin, id_empresa_num);
       const produccionDiaria = await this.entradasProduccionService.getProduccionDiaria(inicio, fin, id_empresa_num);
       const salidasDiarias = await this.salidasService.getSalidasDiarias(inicio, fin, id_empresa_num);
       const canastasDiarias = await this.salidasService.getCanastasDiarias(inicio, fin, id_empresa_num);
       const gastosDiarios = await this.gastosService.getGastosDiarios(inicio, fin, id_empresa_num);
-      
+
       // Combinar datos por fecha
       const datosCombinados: Record<string, any> = {};
-      
+
       // Procesar ingresos
       ingresosDiarios.forEach((ingreso: any) => {
         // Formatear fecha a YYYY-MM-DD
@@ -342,7 +344,7 @@ export class FinanzasController {
         }
         datosCombinados[fecha].ingresos = parseFloat(ingreso.total) || 0;
       });
-      
+
       // Procesar producción
       produccionDiaria.forEach((produccion: any) => {
         // Formatear fecha a YYYY-MM-DD
@@ -352,7 +354,7 @@ export class FinanzasController {
         }
         datosCombinados[fecha].produccion = parseInt(produccion.total) || 0;
       });
-      
+
       // Procesar salidas
       salidasDiarias.forEach((salida: any) => {
         // Formatear fecha a YYYY-MM-DD
@@ -362,7 +364,7 @@ export class FinanzasController {
         }
         datosCombinados[fecha].salidas = parseInt(salida.salidas) || 0;
       });
-      
+
       // Procesar canastas
       canastasDiarias.forEach((canasta: any) => {
         // Formatear fecha a YYYY-MM-DD
@@ -372,7 +374,7 @@ export class FinanzasController {
         }
         datosCombinados[fecha].canastas = parseInt(canasta.canastas) || 0;
       });
-      
+
       // Procesar gastos
       gastosDiarios.forEach((gasto: any) => {
         // Formatear fecha a YYYY-MM-DD
@@ -382,7 +384,7 @@ export class FinanzasController {
         }
         datosCombinados[fecha].gastos = parseFloat(gasto.total) || 0;
       });
-      
+
       return datosCombinados;
     } catch (error) {
       console.error('Error getting datos diarios:', error);

@@ -18,18 +18,18 @@ import { CreateGastoDto } from './dto/create-gasto.dto';
 import { UpdateGastoDto } from './dto/update-gasto.dto';
 import { CreateConsumoPropioDto } from './dto/create-consumo-propio.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { IdEmpresaHeader } from '../terceros/decorators/empresa.decorator';
+import { IdEmpresa } from '../terceros/decorators/empresa.decorator';
 
 @Controller('gastos')
 @UseGuards(JwtAuthGuard)
 export class GastosController {
-  constructor(private readonly gastosService: GastosService) {}
+  constructor(private readonly gastosService: GastosService) { }
 
   @Post()
   @UsePipes(new ValidationPipe({ transform: true }))
   create(
     @Body() createGastoDto: CreateGastoDto,
-    @IdEmpresaHeader() id_empresa: number,
+    @IdEmpresa() id_empresa: number,
     @Query('id_usuario_inserta') id_usuario_inserta: string | string[],
     @Query('esInversionInicial') esInversionInicial?: string
   ) {
@@ -37,13 +37,13 @@ export class GastosController {
     if (!id_empresa || !id_usuario_inserta) {
       throw new BadRequestException('id_empresa e id_usuario_inserta son obligatorios');
     }
-    
+
     // Asignar al DTO
     createGastoDto.id_empresa = id_empresa;
     createGastoDto.id_usuario_inserta = Array.isArray(id_usuario_inserta)
       ? id_usuario_inserta[0]
       : id_usuario_inserta;
-    
+
     // Si es inversión inicial, usar el servicio especializado
     if (esInversionInicial === 'true') {
       return this.gastosService.createOrUpdateInversionInicial(
@@ -54,7 +54,7 @@ export class GastosController {
         createGastoDto.id_usuario_inserta
       );
     }
-      
+
     return this.gastosService.create(createGastoDto);
   }
 
@@ -62,25 +62,25 @@ export class GastosController {
   @UsePipes(new ValidationPipe({ transform: true }))
   createConsumoPropio(
     @Body() createConsumoPropioDto: CreateConsumoPropioDto,
-    @IdEmpresaHeader() id_empresa: number,
+    @IdEmpresa() id_empresa: number,
     @Query('id_usuario_inserta') id_usuario_inserta: string | string[]
   ) {
     // Validar que existan
     if (!id_empresa || !id_usuario_inserta) {
       throw new BadRequestException('id_empresa e id_usuario_inserta son obligatorios');
     }
-    
+
     // Asignar al DTO (manejar duplicación)
     createConsumoPropioDto.id_empresa = id_empresa;
     createConsumoPropioDto.id_usuario_inserta = Array.isArray(id_usuario_inserta)
       ? id_usuario_inserta[0]
       : id_usuario_inserta;
-      
+
     return this.gastosService.createConsumoPropio(createConsumoPropioDto);
   }
 
   @Get()
-  findAll(@IdEmpresaHeader() id_empresa: number) {
+  findAll(@IdEmpresa() id_empresa: number) {
     return this.gastosService.findAll(id_empresa);
   }
 
@@ -103,7 +103,7 @@ export class GastosController {
   }
 
   @Get('total')
-  getTotalGastos(@IdEmpresaHeader() id_empresa: number) {
+  getTotalGastos(@IdEmpresa() id_empresa: number) {
     return this.gastosService.getTotalGastos(id_empresa);
   }
 
@@ -111,13 +111,13 @@ export class GastosController {
   getTotalGastosByDateRange(
     @Query('fechaInicio') fechaInicio: string,
     @Query('fechaFin') fechaFin: string,
-    @IdEmpresaHeader() id_empresa: number,
+    @IdEmpresa() id_empresa: number,
   ) {
     return this.gastosService.getTotalGastosByDateRange(fechaInicio, fechaFin, id_empresa);
   }
 
   @Get('total-by-categoria')
-  getTotalGastosByCategoria(@IdEmpresaHeader() id_empresa: number) {
+  getTotalGastosByCategoria(@IdEmpresa() id_empresa: number) {
     return this.gastosService.getTotalGastosByCategoria(id_empresa);
   }
 
@@ -142,7 +142,7 @@ export class GastosController {
       observaciones: typeof updateGastoDto.observaciones,
       categoriaId: typeof updateGastoDto.categoriaId
     });
-    
+
     try {
       const result = this.gastosService.update(id, updateGastoDto);
       console.log('=== CONTROLADOR GASTOS: ÉXITO ===');

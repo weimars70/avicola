@@ -15,12 +15,12 @@ import { IngresosService } from './ingresos.service';
 import { CreateIngresoDto } from './dto/create-ingreso.dto';
 import { UpdateIngresoDto } from './dto/update-ingreso.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { IdEmpresaHeader } from '../terceros/decorators/empresa.decorator';
+import { IdEmpresa } from '../terceros/decorators/empresa.decorator';
 
 @Controller('ingresos')
 @UseGuards(JwtAuthGuard)
 export class IngresosController {
-  constructor(private readonly ingresosService: IngresosService) {}
+  constructor(private readonly ingresosService: IngresosService) { }
 
   @Post()
   @UsePipes(new ValidationPipe({ transform: true }))
@@ -29,18 +29,18 @@ export class IngresosController {
   }
 
   @Get()
-  findAll(@IdEmpresaHeader() id_empresa: number) {
+  findAll(@IdEmpresa() id_empresa: number) {
     return this.ingresosService.findAll(id_empresa);
   }
 
   @Get('all-including-inactive')
-  findAllIncludingInactive(@IdEmpresaHeader() id_empresa: number) {
+  findAllIncludingInactive(@IdEmpresa() id_empresa: number) {
     return this.ingresosService.findAllIncludingInactive(id_empresa);
   }
 
   @Get('by-date-range')
   findByDateRange(
-    @IdEmpresaHeader() id_empresa: number,
+    @IdEmpresa() id_empresa: number,
   ) {
     // Para este endpoint, necesitaremos obtener fechaInicio y fechaFin de otra manera
     // Por ahora, devolvemos todos los ingresos
@@ -50,19 +50,19 @@ export class IngresosController {
   @Get('by-tipo/:tipo')
   findByTipo(
     @Param('tipo') tipo: string,
-    @IdEmpresaHeader() id_empresa: number
+    @IdEmpresa() id_empresa: number
   ) {
     return this.ingresosService.findByTipo(tipo, id_empresa);
   }
 
   @Get('total')
-  getTotalIngresos(@IdEmpresaHeader() id_empresa: number) {
+  getTotalIngresos(@IdEmpresa() id_empresa: number) {
     return this.ingresosService.getTotalIngresos(id_empresa);
   }
 
   @Get('total-by-date-range')
   getTotalIngresosByDateRange(
-    @IdEmpresaHeader() id_empresa: number,
+    @IdEmpresa() id_empresa: number,
   ) {
     // Para este endpoint, necesitaremos obtener fechaInicio y fechaFin de otra manera
     // Por ahora, devolvemos el total de ingresos
@@ -70,12 +70,12 @@ export class IngresosController {
   }
 
   @Get('total-by-tipo')
-  getTotalIngresosByTipo(@IdEmpresaHeader() id_empresa: number) {
+  getTotalIngresosByTipo(@IdEmpresa() id_empresa: number) {
     return this.ingresosService.getTotalIngresosByTipo(id_empresa);
   }
 
   @Post('sync-from-salidas')
-  syncIngresosFromSalidas(@IdEmpresaHeader() id_empresa: number) {
+  syncIngresosFromSalidas(@IdEmpresa() id_empresa: number) {
     return this.ingresosService.syncIngresosFromSalidas(id_empresa);
   }
 

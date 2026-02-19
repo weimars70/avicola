@@ -232,6 +232,7 @@ export class VentasTercerosService {
                 idEmpresa,
                 tipoMovimiento: 2, // Solo ventas de terceros
                 activo: true,
+                tercero: { idEmpresa },
             },
             relations: ['tercero', 'detalles', 'detalles.canasta'],
             order: {
@@ -400,7 +401,7 @@ export class VentasTercerosService {
             if (ingresoRelacionado) {
                 await this.ingresosService.remove(ingresoRelacionado.id);
             }
-        } catch {}
+        } catch { }
         // Marcar movimientos de inventario terceros como inactivos
         try {
             await this.invTercerosRepo.createQueryBuilder()
@@ -412,7 +413,7 @@ export class VentasTercerosService {
                     desc: `%${venta.numeroFactura || ''}%`
                 })
                 .execute();
-        } catch {}
+        } catch { }
         return { message: 'Venta eliminada correctamente' };
     }
 
@@ -480,7 +481,7 @@ export class VentasTercerosService {
             } else {
                 await this.createIngresoDesdeVenta(venta, idEmpresa, idUsuario);
             }
-        } catch {}
+        } catch { }
     }
 
     private async getStockActualTerceros(idEmpresa: number, idTercero: number, tipoHuevoCodigo: string): Promise<number> {

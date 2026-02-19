@@ -15,12 +15,12 @@ import { InventarioStockService } from './inventario-stock.service';
 import { CreateInventarioDto } from './dto/create-inventario.dto';
 import { UpdateInventarioDto } from './dto/update-inventario.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { IdEmpresaHeader } from '../terceros/decorators/empresa.decorator';
+import { IdEmpresa } from '../terceros/decorators/empresa.decorator';
 
 @Controller('inventario-stock')
 @UseGuards(JwtAuthGuard)
 export class InventarioStockController {
-  constructor(private readonly inventarioStockService: InventarioStockService) {}
+  constructor(private readonly inventarioStockService: InventarioStockService) { }
 
   @Post()
   create(@Body() createInventarioDto: CreateInventarioDto) {
@@ -28,19 +28,19 @@ export class InventarioStockController {
   }
 
   @Get()
-  findAll(@IdEmpresaHeader() id_empresa: number) {
+  findAll(@IdEmpresa() id_empresa: number) {
     return this.inventarioStockService.findAll(id_empresa);
   }
 
   @Get('vista/inventario')
-  getVistaInventario(@IdEmpresaHeader() id_empresa: number) {
+  getVistaInventario(@IdEmpresa() id_empresa: number) {
     return this.inventarioStockService.getVistaInventario(id_empresa);
   }
 
   @Get('tipo-huevo/:tipoHuevoId')
   findByTipoHuevo(
     @Param('tipoHuevoId', ParseUUIDPipe) tipoHuevoId: string,
-    @IdEmpresaHeader() id_empresa: number,
+    @IdEmpresa() id_empresa: number,
   ) {
     return this.inventarioStockService.findByTipoHuevo(tipoHuevoId, id_empresa);
   }
