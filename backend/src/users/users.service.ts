@@ -11,25 +11,45 @@ export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-  ) {}
+  ) { }
 
   async create(createUserDto: CreateUserDto): Promise<User> {
+    console.log(`👤 Intentando crear usuario: ${createUserDto.email}`);
     const existingUser = await this.userRepository.findOne({
       where: { email: createUserDto.email },
     });
 
     if (existingUser) {
+      console.warn(`⚠️ Email ya existe: ${createUserDto.email} `);
       throw new ConflictException('El email ya está registrado');
     }
 
     const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
-    
+
+    let id_empresa = createUserDto.id_empresa;
+
+    // Si no se proporciona id_empresa (registro público), generamos uno nuevo
+    if (!id_empresa) {
+      console.log('🏢 Generando id_empresa automático para registro nuevo...');
+      const result = await this.userRepository
+        .createQueryBuilder('user')
+        .select('MAX(user.id_empresa)', 'max')
+        .getRawOne();
+
+      const maxId = result?.max || 0;
+      id_empresa = maxId + 1;
+      console.log(`🆕 Nuevo id_empresa asignado: ${id_empresa} `);
+    }
+
     const user = this.userRepository.create({
       ...createUserDto,
       password: hashedPassword,
+      id_empresa,
     });
 
-    return this.userRepository.save(user);
+    const savedUser = await this.userRepository.save(user);
+    console.log(`✅ Usuario creado exitosamente: ${savedUser.email} (empresa: ${savedUser.id_empresa})`);
+    return savedUser;
   }
 
   async findAll(): Promise<User[]> {

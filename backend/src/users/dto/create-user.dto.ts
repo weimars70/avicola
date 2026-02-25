@@ -22,8 +22,8 @@ export class CreateUserDto {
   @IsOptional()
   activo?: boolean;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsInt()
   @Type(() => Number)
-  id_empresa: number;
+  id_empresa?: number;
 }

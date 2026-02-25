@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-const { exec } = require('child_process');
+const { execSync } = require('child_process');
 const os = require('os');
 
 const portArg = process.argv[2];
@@ -14,48 +14,57 @@ if (!Number.isInteger(port)) {
   process.exit(0);
 }
 
-if (os.platform() === 'win32') {
-  // Windows: usar netstat para hallar PIDs y taskkill para cerrarlos
-  exec(`netstat -ano | findstr :${port}`, { shell: 'cmd.exe' }, (err, stdout, stderr) => {
-    if (err) {
-      log('No se pudo obtener procesos (netstat). Continuando.');
-      return;
+try {
+  if (os.platform() === 'win32') {
+    log(`Intentando liberar el puerto ${port} en Windows...`);
+    // Obtener PIDs usando netstat
+    let stdout;
+    try {
+      stdout = execSync(`netstat -ano | findstr :${port}`, { shell: 'cmd.exe', encoding: 'utf8' });
+    } catch (e) {
+      log(`No hay procesos activos en el puerto ${port}.`);
+      process.exit(0);
     }
+
     const lines = stdout.split(/\r?\n/).filter(Boolean);
     const pids = new Set();
     for (const line of lines) {
+      if (!line.includes(`:${port}`)) continue;
       const parts = line.trim().split(/\s+/);
       const pid = parts[parts.length - 1];
-      if (pid && /^\d+$/.test(pid)) pids.add(pid);
+      if (pid && /^\d+$/.test(pid) && pid !== '0') pids.add(pid);
     }
+
     if (pids.size === 0) {
-      log(`No hay procesos usando el puerto ${port}.`);
-      return;
+      log(`No hay procesos reales usando el puerto ${port}.`);
+    } else {
+      for (const pid of pids) {
+        try {
+          execSync(`taskkill /F /PID ${pid}`, { shell: 'cmd.exe' });
+          log(`Terminado PID ${pid}.`);
+        } catch (e) {
+          log(`No se pudo terminar PID ${pid} (tal vez ya se cerró).`);
+        }
+      }
+      // Pequeña espera para que el SO libere el puerto
+      log('Esperando 500ms para que el SO libere el puerto...');
+      execSync('timeout /t 1 /nobreak', { shell: 'cmd.exe', stdio: 'ignore' });
     }
-    for (const pid of pids) {
-      exec(`taskkill /F /PID ${pid}`, { shell: 'cmd.exe' }, (e) => {
-        if (e) log(`No se pudo terminar PID ${pid}.`);
-        else log(`Terminado PID ${pid}.`);
-      });
+  } else {
+    // Unix/Mac: lsof y kill -9
+    log(`Intentando liberar el puerto ${port} en Unix...`);
+    try {
+      const pids = execSync(`lsof -ti:${port}`, { encoding: 'utf8' }).split(/\r?\n/).filter(Boolean);
+      for (const pid of pids) {
+        execSync(`kill -9 ${pid}`);
+        log(`Terminado PID ${pid}.`);
+      }
+    } catch (e) {
+      log(`No hay procesos activos en el puerto ${port}.`);
     }
-  });
-} else {
-  // Unix/Mac: lsof y kill -9
-  exec(`lsof -ti:${port}`, (err, stdout) => {
-    if (err) {
-      log('lsof no disponible o sin procesos. Continuando.');
-      return;
-    }
-    const pids = stdout.split(/\r?\n/).filter(Boolean);
-    if (pids.length === 0) {
-      log(`No hay procesos usando el puerto ${port}.`);
-      return;
-    }
-    for (const pid of pids) {
-      exec(`kill -9 ${pid}`, (e) => {
-        if (e) log(`No se pudo terminar PID ${pid}.`);
-        else log(`Terminado PID ${pid}.`);
-      });
-    }
-  });
+  }
+} catch (error) {
+  log('Error al intentar liberar el puerto. Continuando de todas formas.');
 }
+
+process.exit(0);

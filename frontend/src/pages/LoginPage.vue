@@ -145,11 +145,13 @@ const forgotPassword = () => {
 };
 
 const goToRegister = () => {
-  $q.notify({
-    type: 'info',
-    message: 'Funcionalidad en desarrollo',
-    position: 'top'
-  });
+  console.log('🔘 Botón Registrarse clickeado');
+  try {
+    void router.push('/register');
+    console.log('✅ Intento de navegación a /register ejecutado');
+  } catch (err) {
+    console.error('❌ Error al intentar navegar a /register:', err);
+  }
 };
 </script>
 

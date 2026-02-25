@@ -15,7 +15,7 @@ declare module 'vue' {
 // good idea to move this instance creation inside of the
 // "export default () => {}" function below (which runs individually
 // for each client)
-const api = axios.create({ 
+const api = axios.create({
   baseURL: apiConfig.baseURL,
   timeout: apiConfig.timeout
 });
@@ -36,49 +36,53 @@ api.interceptors.request.use(
 
     // IMPORTANTE: Obtener id_empresa directamente del localStorage, no del objeto user
     const idEmpresa = localStorage.getItem('id_empresa') || '2';
-    
-    config.headers['x-empresa-id'] = idEmpresa;
-    
-    console.log('Request con empresa:', idEmpresa, config.url);
-    
+    const isAuthRoute = config.url?.includes('/auth/');
+
+    if (!isAuthRoute) {
+      config.headers['x-empresa-id'] = idEmpresa;
+      console.log(`📡 API Request [${config.method?.toUpperCase()}]: ${config.url} (Empresa: ${idEmpresa})`);
+    } else {
+      console.log(`🔐 Auth Request [${config.method?.toUpperCase()}]: ${config.url} (Sin empresa)`);
+    }
+
     const id_usuario = localStorage.getItem('id_usuario');
-    
+
     // No añadir id_empresa como query parameter para endpoints específicos
     // que ya lo incluyen en el cuerpo de la solicitud
     // Añadir id_usuario_inserta o id_usuario_actualiza según el método
     // Excluir rutas de autenticación para no añadir campos adicionales
-    const isAuthRoute = config.url?.includes('/auth/');
-    
+
+
     // Verificar si la URL ya contiene id_usuario_inserta como parámetro
     const urlHasIdUsuarioInserta = config.url?.includes('id_usuario_inserta=');
     const paramsHasIdUsuarioInserta = config.params && 'id_usuario_inserta' in config.params;
-    
+
     // Excluir rutas específicas que ya manejan id_usuario_inserta
     const skipIdUsuarioInsertaRoutes = [
       '/gastos',
       '/gastos/consumo-propio'
     ];
-    
-    const shouldSkipIdUsuarioInserta = skipIdUsuarioInsertaRoutes.some(endpoint => 
+
+    const shouldSkipIdUsuarioInserta = skipIdUsuarioInsertaRoutes.some(endpoint =>
       config.url && config.url.includes(endpoint)
     );
-    
+
     if (config.method?.toLowerCase() === 'post' && id_usuario && !isAuthRoute && !urlHasIdUsuarioInserta && !paramsHasIdUsuarioInserta && !shouldSkipIdUsuarioInserta) {
       // Añadir id_usuario_inserta como parámetro de consulta solo si no existe ya y no es una ruta excluida
       config.params = { ...config.params, id_usuario_inserta: id_usuario };
-      
+
       // Para la ruta específica de terceros, asegurarse de que id_usuario_inserta esté presente
       if (config.url && config.url.includes('/terceros')) {
         console.log('Añadiendo id_usuario_inserta a la solicitud de terceros:', id_usuario);
         config.params = { ...config.params, id_usuario_inserta: id_usuario };
       }
     }
-    
+
     if ((config.method?.toLowerCase() === 'put' || config.method?.toLowerCase() === 'patch') && id_usuario && !isAuthRoute) {
       // Añadir id_usuario_actualiza como parámetro de consulta
       config.params = { ...config.params, id_usuario_actualiza: id_usuario };
     }
-    
+
     return config;
   },
   (error) => {

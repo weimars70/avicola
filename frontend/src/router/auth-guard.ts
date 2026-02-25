@@ -9,7 +9,7 @@ export const authGuard = (
   const authStore = useAuthStore();
 
   // Rutas públicas que no requieren autenticación
-  const publicRoutes = ['/login'];
+  const publicRoutes = ['/login', '/register'];
 
   // Si la ruta es pública, permitir acceso
   if (publicRoutes.includes(to.path)) {

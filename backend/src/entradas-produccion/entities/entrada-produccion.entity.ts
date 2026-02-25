@@ -8,7 +8,7 @@ export class EntradaProduccion {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column()
+  @Column({ nullable: true })
   galponId: string;
 
   @Column({ type: 'date' })

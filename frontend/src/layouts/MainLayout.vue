@@ -17,6 +17,8 @@
           <span style="font-family: 'Poppins', sans-serif; font-size: 1.2rem;">Sistema Avícola</span>
         </q-toolbar-title>
 
+        <HelpTutorial />
+
         <q-btn
           flat
           round
@@ -154,6 +156,7 @@ import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from 'src/stores/auth';
 import { useQuasar } from 'quasar';
+import HelpTutorial from 'src/components/common/HelpTutorial.vue';
 
 const router = useRouter();
 const authStore = useAuthStore();

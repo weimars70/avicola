@@ -5,6 +5,8 @@ import { User } from '../users/entities/user.entity';
 import { Galpon } from '../galpones/entities/galpon.entity';
 import { TipoHuevo } from '../tipos-huevo/entities/tipo-huevo.entity';
 import { Canasta } from '../canastas/entities/canasta.entity';
+import { DetalleGalpon } from '../galpones/entities/detalle-galpon.entity';
+
 
 import { EntradaProduccion } from '../entradas-produccion/entities/entrada-produccion.entity';
 import { Salida } from '../salidas/entities/salida.entity';
@@ -42,14 +44,16 @@ import { InventarioTerceros } from '../inventario-terceros/entities/inventario-t
         password: configService.get<string>('DB_PASSWORD', 'password'),
         database: configService.get<string>('DB_NAME', 'galpones_db'),
         entities: [
-          User, Galpon, TipoHuevo, Canasta, EntradaProduccion, 
-          Salida, Inventario, AjusteInventario, AjusteLote, 
+          User, Galpon, TipoHuevo, Canasta, EntradaProduccion,
+          Salida, Inventario, AjusteInventario, AjusteLote,
           CategoriaGasto, Gasto, Ingreso, Rendimiento,
           // Entidades de terceros
           Tercero, Ciudad, Estrato, TipoRegimen, TipoIdent, TipoImpuesto,
           // Compras/Ventas de terceros
-          Compra, DetalleCompra, Venta, DetalleVenta, InventarioTerceros
+          Compra, DetalleCompra, Venta, DetalleVenta, InventarioTerceros,
+          DetalleGalpon
         ],
+
         synchronize: false, // Desactivado para evitar crash por metadata
         logging: configService.get('NODE_ENV') === 'development',
       }),
@@ -57,4 +61,4 @@ import { InventarioTerceros } from '../inventario-terceros/entities/inventario-t
     }),
   ],
 })
-export class DatabaseModule {}
+export class DatabaseModule { }

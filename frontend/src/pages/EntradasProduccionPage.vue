@@ -143,7 +143,7 @@
             <div class="entrada-info">
               <div class="entrada-title">
                 <q-icon name="input" class="entrada-icon" />
-                {{ entrada.galpon?.nombre || 'Galpón' }}
+                {{ entrada.galpon?.nombre || 'Todos los galpones' }}
               </div>
               <div class="entrada-date">
                 {{ formatDate(entrada.fecha) }}
@@ -209,7 +209,7 @@
         >
           <template v-slot:body-cell-galpon="props">
             <q-td :props="props">
-              {{ props.row.galpon?.nombre || 'N/A' }}
+              {{ props.row.galpon?.nombre || 'Todos los galpones' }}
             </q-td>
           </template>
           
@@ -290,14 +290,12 @@
               :options="galponOptions"
               option-value="value"
               option-label="label"
-              label="Galpón *"
+              label="Galpón"
               outlined
               dense
               emit-value
               map-options
-              :rules="[
-                (val: string) => !!val || 'El galpón es requerido'
-              ]"
+              hint="Opcional: Seleccione para filtrar por galpón específico"
             />
 
             <q-input
@@ -485,12 +483,17 @@ const tableColumns = [
 ];
 
 const galponOptions = computed(() => {
-  return galponesStore.galpones
+  const options = galponesStore.galpones
     .filter(g => g.activo)
     .map(galpon => ({
       label: galpon.nombre,
       value: galpon.id
     }));
+    
+  return [
+    { label: 'Todos los galpones (Producción Global)', value: '' },
+    ...options
+  ];
 });
 
 // Removed tipoHuevoOptions as it's no longer used in the new form structure

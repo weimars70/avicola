@@ -101,9 +101,10 @@
             class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2"
           >
             <q-card 
-              :class="['galpon-card cursor-pointer fade-in', { 'galpon-inactive': !galpon.activo }]" 
-              @click="openDialog(galpon)"
+              :class="['galpon-card cursor-pointer fade-in', { 'galpon-card-selected': selectedGalpon?.id === galpon.id, 'galpon-inactive': !galpon.activo }]" 
+              @click="selectGalpon(galpon)"
             >
+
               <q-card-section>
                 <div class="row items-center justify-between q-mb-sm">
                   <div class="text-h6 text-primary">
@@ -176,6 +177,19 @@
                 <q-btn
                   flat
                   round
+                  color="blue"
+                  icon="analytics"
+                  size="sm"
+                  @click.stop="selectGalpon(galpon)"
+                >
+                  <q-tooltip>Ver Detalles/Actividades</q-tooltip>
+                </q-btn>
+
+
+
+                <q-btn
+                  flat
+                  round
                   color="primary"
                   icon="edit"
                   size="sm"
@@ -183,6 +197,7 @@
                 >
                   <q-tooltip>Editar</q-tooltip>
                 </q-btn>
+
                 <q-btn
                   v-if="galpon.activo"
                   flat
@@ -266,6 +281,19 @@
                 <q-btn
                   flat
                   round
+                  color="blue"
+                  icon="analytics"
+                  size="sm"
+                  @click="selectGalpon(props.row)"
+                >
+                  <q-tooltip>Ver Detalles</q-tooltip>
+                </q-btn>
+
+
+
+                <q-btn
+                  flat
+                  round
                   color="primary"
                   icon="edit"
                   size="sm"
@@ -273,6 +301,7 @@
                 >
                   <q-tooltip>Editar</q-tooltip>
                 </q-btn>
+
                 <q-btn
                   v-if="props.row.activo"
                   flat
@@ -390,6 +419,14 @@
           </div>
         </q-card>
       </div>
+
+      <!-- Sección de Novedades -->
+      <div class="col-12" v-if="selectedGalpon">
+        <NovedadesGalponSection 
+          :galpon-id="selectedGalpon.id" 
+          :galpon-nombre="selectedGalpon.nombre"
+        />
+      </div>
     </div>
 
     <!-- Dialog -->
@@ -461,6 +498,8 @@ import { useAuthStore } from 'src/stores/auth';
 import { useQuasar, date } from 'quasar';
 import { useViewMode } from 'src/composables/useViewMode';
 import ViewModeToggle from 'src/components/ViewModeToggle.vue';
+import NovedadesGalponSection from 'src/components/galpones/NovedadesGalponSection.vue';
+
 
 interface Galpon {
   id: string;
@@ -490,6 +529,8 @@ const loading = ref(false);
 const saving = ref(false);
 const dialog = ref(false);
 const editingGalpon = ref<Galpon | null>(null);
+const selectedGalpon = ref<Galpon | null>(null);
+
 
 const filter = ref({
   search: '',
@@ -621,9 +662,19 @@ const fetchGalpones = async () => {
   }
 };
 
+const selectGalpon = (galpon: Galpon) => {
+  selectedGalpon.value = galpon;
+  // Desplazar suavemente a la sección de novedades
+  setTimeout(() => {
+    const el = document.querySelector('.novedades-section');
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+  }, 100);
+};
+
 const openDialog = (galpon: Galpon | null = null) => {
   editingGalpon.value = galpon;
   if (galpon) {
+    selectedGalpon.value = galpon;
     form.value = {
       nombre: galpon.nombre,
       descripcion: galpon.descripcion || '',
@@ -631,6 +682,7 @@ const openDialog = (galpon: Galpon | null = null) => {
       activo: galpon.activo
     };
   } else {
+
     form.value = {
       nombre: '',
       descripcion: '',
@@ -783,7 +835,14 @@ onMounted(() => {
   overflow: hidden;
 }
 
+.galpon-card-selected {
+  border: 2px solid #667eea !important;
+  box-shadow: 0 8px 30px rgba(102, 126, 234, 0.2) !important;
+  transform: translateY(-5px);
+}
+
 .galpon-inactive {
+
   opacity: 0.6;
   filter: grayscale(0.3);
   border: 2px dashed #ccc !important;

@@ -11,8 +11,9 @@ export class EntradaProduccionItem {
 }
 
 export class CreateEntradasMasivasDto {
+  @IsOptional()
   @IsString()
-  galponId: string;
+  galponId?: string;
 
   @IsDateString()
   fecha: string;
@@ -21,11 +22,11 @@ export class CreateEntradasMasivasDto {
   @ValidateNested({ each: true })
   @Type(() => EntradaProduccionItem)
   entradas: EntradaProduccionItem[];
-  
+
   @IsNumber()
   @IsOptional()
   id_empresa?: number;
-  
+
   @IsString()
   @IsOptional()
   id_usuario_inserta?: string;
