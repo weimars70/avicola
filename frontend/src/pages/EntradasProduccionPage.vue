@@ -415,9 +415,16 @@ const filter = ref({
 // Variables para el calendario
 const datosCalendarioFormateados = ref<Record<string, { produccion: number }>>({});
 
+const getTodayColombia = () => {
+  // Use Intl.DateTimeFormat to get the date in Colombia (UTC-5)
+  const options = { timeZone: 'America/Bogota', year: 'numeric', month: '2-digit', day: '2-digit' } as const;
+  const formatter = new Intl.DateTimeFormat('en-CA', options); // 'en-CA' gives YYYY-MM-DD format
+  return formatter.format(new Date());
+};
+
 const form = ref({
   galponId: '',
-  fecha: new Date().toISOString().split('T')[0],
+  fecha: getTodayColombia(),
   entradas: [] as { tipoHuevoId: string; unidades: number }[]
 });
 
@@ -602,7 +609,7 @@ const openDialog = (entrada: EntradaProduccion | null = null) => {
   
   if (entrada) {
     form.value.galponId = entrada.galponId;
-    form.value.fecha = entrada.fecha.split('T')[0];
+    form.value.fecha = entrada.fecha.split('T')[0] || '';
     // Para edición individual, solo establecer las unidades del tipo específico
      const entradaIndex = form.value.entradas.findIndex(e => e.tipoHuevoId === entrada.tipoHuevoId);
      if (entradaIndex !== -1) {
@@ -610,7 +617,7 @@ const openDialog = (entrada: EntradaProduccion | null = null) => {
      }
   } else {
     form.value.galponId = '';
-    form.value.fecha = new Date().toISOString().split('T')[0];
+    form.value.fecha = getTodayColombia();
   }
   dialog.value = true;
 };
@@ -620,7 +627,7 @@ const closeDialog = () => {
   editingEntrada.value = null;
   form.value = {
     galponId: '',
-    fecha: new Date().toISOString().split('T')[0],
+    fecha: getTodayColombia(),
     entradas: []
   };
 };

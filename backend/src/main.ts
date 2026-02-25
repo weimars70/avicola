@@ -1,4 +1,5 @@
 import { NestFactory } from '@nestjs/core';
+process.env.TZ = 'America/Bogota';
 import { AppModule } from './app.module';
 import { ValidationPipe, ExceptionFilter, Catch, ArgumentsHost, HttpException } from '@nestjs/common';
 
@@ -10,7 +11,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse();
     const request = ctx.getRequest();
-    
+
     console.log('📍 Request que causó el error:', {
       method: request.method,
       url: request.url,
@@ -18,25 +19,25 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       query: request.query,
       headers: request.headers
     });
-    
+
     const status = exception instanceof HttpException ? exception.getStatus() : 500;
-    response.status(status).json({ 
+    response.status(status).json({
       error: exception.message,
       timestamp: new Date().toISOString(),
-      path: request.url 
+      path: request.url
     });
   }
 }
 
 async function bootstrap() {
   console.log('🚀 1. Iniciando aplicación NestJS...');
-  
+
   const app = await NestFactory.create(AppModule, {
     logger: ['error', 'warn', 'log', 'debug', 'verbose'],
   });
-  
+
   console.log('✅ 2. Aplicación NestJS creada exitosamente');
-  
+
   // Middleware global para loggear todas las requests
   app.use((req, res, next) => {
     console.log(`📥 3. REQUEST RECIBIDO: ${req.method} ${req.url}`);
@@ -45,16 +46,16 @@ async function bootstrap() {
     console.log('📦 Body:', req.body);
     next();
   });
-  
+
   console.log('✅ 4. Middleware de logging configurado');
-  
+
   // Añadir filtro global de excepciones para diagnóstico
   app.useGlobalFilters(new GlobalExceptionFilter());
   console.log('✅ 5. Filtro global de excepciones configurado');
-  
+
   // Configurar CORS
   console.log('🔧 6. Configurando CORS...');
- app.enableCors({
+  app.enableCors({
     origin: (origin, callback) => {
       console.log(`🌐 CORS: Verificando origen: ${origin}`);
       // Permitir requests sin 'origin' (ej: desde apps móviles nativas con Capacitor)
@@ -73,7 +74,7 @@ async function bootstrap() {
         'capacitor://localhost',
         'capacitor://2.58.80.90',
         'capacitor://',   // 👈 agregar este
-        null ,             // 👈 permitir requests sin origin
+        null,             // 👈 permitir requests sin origin
         'https://zp1v56uxy8rdx5ypatb0ockcb9tr6a-oci3--5173--4d9fd228.local-credentialless.webcontainer-api.io/',
       ];
 
@@ -96,9 +97,9 @@ async function bootstrap() {
     credentials: true,
     optionsSuccessStatus: 200,
   });
-  
+
   console.log('✅ 7. CORS configurado exitosamente');
-  
+
   // Configurar validación global
   console.log('🔧 8. Configurando ValidationPipe...');
   app.useGlobalPipes(new ValidationPipe({
@@ -106,12 +107,12 @@ async function bootstrap() {
     forbidNonWhitelisted: true,
     transform: true,
   }));
-  
+
   console.log('✅ 9. ValidationPipe configurado');
-  
+
   const port = process.env.PORT || 3012;
   console.log(`🔧 10. Iniciando servidor en puerto ${port}...`);
-  
+
   await app.listen(port);
   console.log(`🎉 11. Servidor ejecutándose exitosamente en http://localhost:${port}`);
   console.log('🔍 12. Esperando requests...');

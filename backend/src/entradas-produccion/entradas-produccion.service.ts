@@ -41,7 +41,10 @@ export class EntradasProduccionService {
       throw new NotFoundException(`Tipo de huevo con ID ${createEntradaProduccionDto.tipoHuevoId} no encontrado`);
     }
 
-    const entradaProduccion = this.entradasProduccionRepository.create(createEntradaProduccionDto);
+    const entradaProduccion = this.entradasProduccionRepository.create({
+      ...createEntradaProduccionDto,
+      galponId: createEntradaProduccionDto.galponId || null
+    });
     const savedEntrada = await this.entradasProduccionRepository.save(entradaProduccion);
 
     // Actualizar inventario automáticamente
@@ -86,7 +89,7 @@ export class EntradasProduccionService {
     // Crear las entradas de producción
     const entradasProduccion = entradasValidas.map(entrada =>
       this.entradasProduccionRepository.create({
-        galponId: createEntradasMasivasDto.galponId,
+        galponId: createEntradasMasivasDto.galponId || null,
         fecha: createEntradasMasivasDto.fecha,
         tipoHuevoId: entrada.tipoHuevoId,
         unidades: entrada.unidades,
@@ -147,8 +150,10 @@ export class EntradasProduccionService {
     return entradaProduccion;
   }
 
-  async update(id: string, updateEntradaProduccionDto: UpdateEntradaProduccionDto, id_empresa?: number): Promise<EntradaProduccion> {
+  async update(id: string, updateEntradaProduccionDto: UpdateEntradaProduccionDto, id_empresa: number): Promise<EntradaProduccion> {
     const entradaProduccion = await this.findOne(id, id_empresa);
+    const oldUnidades = entradaProduccion.unidades;
+    const oldTipoHuevoId = entradaProduccion.tipoHuevoId;
 
     // Validar galpón si se está actualizando
     if (updateEntradaProduccionDto.galponId) {
@@ -166,12 +171,53 @@ export class EntradasProduccionService {
       }
     }
 
+    if (updateEntradaProduccionDto.galponId === '') {
+      updateEntradaProduccionDto.galponId = undefined; // Let it be null via entity definition if needed, or set to null
+      entradaProduccion.galponId = null;
+    }
+
     Object.assign(entradaProduccion, updateEntradaProduccionDto);
-    return this.entradasProduccionRepository.save(entradaProduccion);
+    const updatedEntrada = await this.entradasProduccionRepository.save(entradaProduccion);
+
+    // Actualizar inventario
+    if (updateEntradaProduccionDto.unidades !== undefined || updateEntradaProduccionDto.tipoHuevoId !== undefined) {
+      if (oldTipoHuevoId === updatedEntrada.tipoHuevoId) {
+        const diferencia = updatedEntrada.unidades - oldUnidades;
+        if (diferencia !== 0) {
+          await this.inventarioStockService.actualizarInventario(
+            updatedEntrada.tipoHuevoId,
+            diferencia,
+            id_empresa
+          );
+        }
+      } else {
+        // Si cambió el tipo de huevo, revertir el anterior y agregar el nuevo
+        await this.inventarioStockService.actualizarInventario(
+          oldTipoHuevoId,
+          -oldUnidades,
+          id_empresa
+        );
+        await this.inventarioStockService.actualizarInventario(
+          updatedEntrada.tipoHuevoId,
+          updatedEntrada.unidades,
+          id_empresa
+        );
+      }
+    }
+
+    return updatedEntrada;
   }
 
-  async remove(id: string, id_empresa?: number): Promise<void> {
+  async remove(id: string, id_empresa: number): Promise<void> {
     const entradaProduccion = await this.findOne(id, id_empresa);
+
+    // Antes de eliminar, descontar del inventario
+    await this.inventarioStockService.actualizarInventario(
+      entradaProduccion.tipoHuevoId,
+      -entradaProduccion.unidades,
+      id_empresa
+    );
+
     await this.entradasProduccionRepository.remove(entradaProduccion);
   }
 
