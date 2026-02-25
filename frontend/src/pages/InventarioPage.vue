@@ -59,8 +59,8 @@
                   <div class="kpi-icon">
                     <q-icon name="attach_money" size="2rem" />
                   </div>
-                  <div class="kpi-info">
-                    <div class="kpi-value">${{ formatCurrency(totalValue) }}</div>
+                  <div class="kpi-info-content">
+                    <div class="kpi-value">{{ formatCurrency(totalValue) }}</div>
                     <div class="kpi-label">Valor Total</div>
                   </div>
                 </q-card-section>
@@ -71,8 +71,8 @@
                   <div class="kpi-icon">
                     <q-icon name="analytics" size="2rem" />
                   </div>
-                  <div class="kpi-info">
-                    <div class="kpi-value">${{ formatCurrency(promedioValor) }}</div>
+                  <div class="kpi-info-content">
+                    <div class="kpi-value">{{ formatCurrency(promedioValor) }}</div>
                     <div class="kpi-label">Valor Promedio</div>
                   </div>
                 </q-card-section>
@@ -149,7 +149,7 @@
                     <q-icon name="attach_money" class="detail-icon" />
                     <div class="detail-info">
                       <div class="detail-label">Valor Unitario</div>
-                      <div class="detail-value price-value">${{ formatCurrency(item.tipoHuevo.valorUnidad) }}</div>
+                      <div class="detail-value price-value">{{ formatCurrency(item.tipoHuevo.valorUnidad) }}</div>
                     </div>
                   </div>
                   
@@ -165,7 +165,7 @@
                     <q-icon name="calculate" class="detail-icon" />
                     <div class="detail-info">
                       <div class="detail-label">Valor Total</div>
-                      <div class="detail-value total-value">${{ formatCurrency(item.valorTotal) }}</div>
+                      <div class="detail-value total-value">{{ formatCurrency(item.valorTotal) }}</div>
                     </div>
                   </div>
                 </div>
@@ -253,8 +253,8 @@
                     <div class="kpi-icon">
                       <q-icon name="monetization_on" size="2rem" />
                     </div>
-                    <div class="kpi-info">
-                      <div class="kpi-value">${{ formatCurrency(backendTercerosData.resumen?.valorTotal || 0) }}</div>
+                    <div class="kpi-info-content">
+                      <div class="kpi-value">{{ formatCurrency(backendTercerosData.resumen?.valorTotal || 0) }}</div>
                       <div class="kpi-label">Inversión Total</div>
                     </div>
                   </q-card-section>
@@ -265,8 +265,8 @@
                     <div class="kpi-icon">
                       <q-icon name="functions" size="2rem" />
                     </div>
-                    <div class="kpi-info">
-                      <div class="kpi-value">${{ formatCurrency(backendTercerosData.resumen?.valorPromedio || 0) }}</div>
+                    <div class="kpi-info-content">
+                      <div class="kpi-value">{{ formatCurrency(backendTercerosData.resumen?.valorPromedio || 0) }}</div>
                       <div class="kpi-label">Costo Promedio</div>
                     </div>
                   </q-card-section>
@@ -519,7 +519,8 @@ onMounted(() => {
 .kpi-info { border-left: 4px solid #9b59b6; }
 .kpi-content { display: flex; align-items: center; gap: 1rem; }
 .kpi-icon { width: 50px; height: 50px; border-radius: 12px; background: #f8f9fa; display: flex; align-items: center; justify-content: center; }
-.kpi-value { font-size: 1.8rem; font-weight: 700; color: #2c3e50; }
+.kpi-info-content { display: flex; flex-direction: column; }
+.kpi-value { font-size: 1.8rem; font-weight: 700; color: #2c3e50; line-height: 1.2; }
 .kpi-label { font-size: 0.9rem; color: #7f8c8d; }
 
 /* Cards Grid */

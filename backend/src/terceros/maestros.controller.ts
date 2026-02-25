@@ -1,12 +1,14 @@
-import { Controller, Get, UseGuards, Query, Param } from '@nestjs/common';
+import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { MaestrosService } from './maestros.service';
 import { IdEmpresa } from './decorators/empresa.decorator';
 import { EmpresaGuard } from './guards/empresa.guard';
-import { ApiTags, ApiOperation, ApiParam } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @ApiTags('maestros-terceros')
 @Controller('maestros-terceros')
-@UseGuards(EmpresaGuard)
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard, EmpresaGuard)
 export class MaestrosController {
   constructor(private readonly maestrosService: MaestrosService) { }
 

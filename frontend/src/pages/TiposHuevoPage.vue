@@ -74,7 +74,7 @@
             <div class="kpi-icon">
               <q-icon name="attach_money" :size="$q.screen.xs ? '1.5rem' : '2rem'" />
             </div>
-            <div class="kpi-value text-h5 text-md-h4">${{ averagePrice }}</div>
+            <div class="kpi-value text-h5 text-md-h4">{{ averagePrice }}</div>
             <div class="kpi-label text-caption text-md-body2">Precio Promedio</div>
           </q-card-section>
         </q-card>
@@ -148,7 +148,7 @@
           <q-card-section class="card-content">
             <div class="price-section">
               <div class="price-label">Valor por Unidad</div>
-              <div class="price-value">${{ formatCurrency(tipo.valorUnidad) }}</div>
+              <div class="price-value">{{ formatCurrency(tipo.valorUnidad) }}</div>
             </div>
             
             <div class="details-grid">
@@ -218,7 +218,7 @@
         
         <template v-slot:body-cell-valorUnidad="props">
           <q-td :props="props">
-            ${{ formatCurrency(props.row.valorUnidad) }}
+            {{ formatCurrency(props.row.valorUnidad) }}
           </q-td>
         </template>
         
@@ -270,7 +270,7 @@
                 <div class="row q-gutter-sm q-mb-md">
                   <div class="col-6">
                     <div class="text-caption text-grey-6">Valor por Unidad</div>
-                    <div class="text-h6 text-positive">${{ formatCurrency(props.row.valorUnidad) }}</div>
+                    <div class="text-h6 text-positive">{{ formatCurrency(props.row.valorUnidad) }}</div>
                   </div>
                   <div class="col-6">
                     <div class="text-caption text-grey-6">Creado</div>
