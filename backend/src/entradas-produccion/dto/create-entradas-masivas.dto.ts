@@ -2,6 +2,7 @@ import { IsString, IsDateString, IsArray, ValidateNested, IsNumber, Min, IsOptio
 import { Type } from 'class-transformer';
 
 export class EntradaProduccionItem {
+  @IsOptional()
   @IsString()
   tipoHuevoId: string;
 
@@ -13,7 +14,7 @@ export class EntradaProduccionItem {
 export class CreateEntradasMasivasDto {
   @IsOptional()
   @IsString()
-  galponId?: string;
+  galponId?: string | null;
 
   @IsDateString()
   fecha: string;

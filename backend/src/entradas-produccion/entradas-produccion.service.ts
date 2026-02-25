@@ -41,9 +41,19 @@ export class EntradasProduccionService {
       throw new NotFoundException(`Tipo de huevo con ID ${createEntradaProduccionDto.tipoHuevoId} no encontrado`);
     }
 
+    console.log('📝 Creando entrada individual:', {
+      galponId: createEntradaProduccionDto.galponId,
+      tipoHuevoId: createEntradaProduccionDto.tipoHuevoId,
+      unidades: createEntradaProduccionDto.unidades
+    });
+
+    const finalGalponId = (createEntradaProduccionDto.galponId === '' || !createEntradaProduccionDto.galponId)
+      ? null
+      : createEntradaProduccionDto.galponId;
+
     const entradaProduccion = this.entradasProduccionRepository.create({
       ...createEntradaProduccionDto,
-      galponId: createEntradaProduccionDto.galponId || null
+      galponId: finalGalponId
     });
     const savedEntrada = await this.entradasProduccionRepository.save(entradaProduccion);
 
@@ -86,10 +96,19 @@ export class EntradasProduccionService {
       throw new BadRequestException('Debe especificar al menos una entrada con unidades mayor a 0');
     }
 
+    console.log('📝 Creando entradas masivas:', {
+      galponId: createEntradasMasivasDto.galponId,
+      totalEntradas: entradasValidas.length
+    });
+
+    const finalGalponId = (createEntradasMasivasDto.galponId === '' || !createEntradasMasivasDto.galponId)
+      ? null
+      : createEntradasMasivasDto.galponId;
+
     // Crear las entradas de producción
     const entradasProduccion = entradasValidas.map(entrada =>
       this.entradasProduccionRepository.create({
-        galponId: createEntradasMasivasDto.galponId || null,
+        galponId: finalGalponId,
         fecha: createEntradasMasivasDto.fecha,
         tipoHuevoId: entrada.tipoHuevoId,
         unidades: entrada.unidades,

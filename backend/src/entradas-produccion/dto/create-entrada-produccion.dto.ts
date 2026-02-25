@@ -3,7 +3,7 @@ import { IsNotEmpty, IsString, IsInt, IsDateString, Min, IsOptional } from 'clas
 export class CreateEntradaProduccionDto {
   @IsOptional()
   @IsString()
-  galponId?: string;
+  galponId?: string | null;
 
   @IsNotEmpty()
   @IsDateString()

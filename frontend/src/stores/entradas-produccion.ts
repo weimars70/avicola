@@ -25,21 +25,21 @@ interface EntradaProduccion {
 }
 
 interface CreateEntradaProduccionDto {
-  galponId: string;
+  galponId: string | null;
   fecha: string;
   tipoHuevoId: string;
   unidades: number;
 }
 
 interface UpdateEntradaProduccionDto {
-  galponId?: string;
+  galponId?: string | null;
   fecha?: string;
   tipoHuevoId?: string;
   unidades?: number;
 }
 
 interface CreateEntradasMasivasDto {
-  galponId: string;
+  galponId: string | null;
   fecha: string;
   entradas: { tipoHuevoId: string; unidades: number }[];
 }
@@ -58,34 +58,34 @@ export const useEntradasProduccionStore = defineStore('entradas-produccion', () 
       const params = new URLSearchParams();
       params.append('page', page.toString());
       params.append('limit', limit.toString());
-      
+
       // Obtener id_empresa del localStorage y añadirlo a los parámetros
       const id_empresa = localStorage.getItem('id_empresa');
       if (id_empresa) {
         params.append('id_empresa', id_empresa);
       }
-      
+
       if (filters) {
         if (filters.galponId) params.append('galponId', filters.galponId);
         if (filters.tipoHuevoId) params.append('tipoHuevoId', filters.tipoHuevoId);
         if (filters.fechaInicio) params.append('fechaInicio', filters.fechaInicio);
         if (filters.fechaFin) params.append('fechaFin', filters.fechaFin);
       }
-      
+
       const response = await api.get(`/entradas-produccion?${params.toString()}`);
-      
+
       if (page === 1) {
         entradasProduccion.value = response.data.items || response.data;
       } else {
         entradasProduccion.value.push(...(response.data.items || response.data));
       }
-      
+
       pagination.value = {
         page,
         limit,
         total: response.data.total || entradasProduccion.value.length
       };
-      
+
       lastFetch.value = Date.now();
     } catch (err) {
       error.value = 'Error al cargar las entradas de producción';
@@ -102,14 +102,14 @@ export const useEntradasProduccionStore = defineStore('entradas-produccion', () 
       // Obtener id_empresa y id_usuario_inserta del localStorage
       const id_empresa = localStorage.getItem('id_empresa');
       const id_usuario_inserta = localStorage.getItem('id_usuario');
-      
+
       // Crear objeto con todos los datos necesarios
       const dataToSend = {
         ...entradaData,
         id_empresa: Number(id_empresa),
         id_usuario_inserta: id_usuario_inserta || ''
       };
-      
+
       // Enviar datos en el cuerpo y evitar que se añadan como query params
       const response = await api.post('/entradas-produccion', dataToSend, {
         params: {} // Parámetros vacíos para evitar que el interceptor añada id_empresa como query param
@@ -163,16 +163,16 @@ export const useEntradasProduccionStore = defineStore('entradas-produccion', () 
       // Obtener id_empresa y id_usuario_inserta del localStorage
       const id_empresa = localStorage.getItem('id_empresa');
       const id_usuario_inserta = localStorage.getItem('id_usuario');
-      
+
       // Usar el objeto params para evitar duplicación de parámetros
       const params = {
         id_empresa: id_empresa as string,
         id_usuario_inserta: id_usuario_inserta || ''
       };
-      
+
       // Enviar los datos en el cuerpo y los parámetros por separado
       const response = await api.post('/entradas-produccion/masivas', entradaData, { params });
-      
+
       // Agregar las nuevas entradas al inicio del array
       entradasProduccion.value.unshift(...response.data);
       return response.data;

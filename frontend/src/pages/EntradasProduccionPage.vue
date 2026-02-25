@@ -649,7 +649,7 @@ const saveEntrada = async () => {
       }
       
       const formData = {
-        galponId: form.value.galponId,
+        galponId: form.value.galponId || null,
         fecha: fecha as string,
         tipoHuevoId: entradaConUnidades.tipoHuevoId,
         unidades: entradaConUnidades.unidades
@@ -673,7 +673,7 @@ const saveEntrada = async () => {
       }
       
       const formData = {
-        galponId: form.value.galponId,
+        galponId: form.value.galponId || null,
         fecha: fecha as string,
         entradas: entradasValidas
       };
