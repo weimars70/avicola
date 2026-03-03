@@ -18,6 +18,8 @@ const entradas_produccion_service_1 = require("./entradas-produccion.service");
 const create_entrada_produccion_dto_1 = require("./dto/create-entrada-produccion.dto");
 const update_entrada_produccion_dto_1 = require("./dto/update-entrada-produccion.dto");
 const create_entradas_masivas_dto_1 = require("./dto/create-entradas-masivas.dto");
+const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
+const empresa_decorator_1 = require("../terceros/decorators/empresa.decorator");
 let EntradasProduccionController = class EntradasProduccionController {
     constructor(entradasProduccionService) {
         this.entradasProduccionService = entradasProduccionService;
@@ -38,11 +40,11 @@ let EntradasProduccionController = class EntradasProduccionController {
     findOne(id) {
         return this.entradasProduccionService.findOne(id);
     }
-    update(id, updateEntradaProduccionDto) {
-        return this.entradasProduccionService.update(id, updateEntradaProduccionDto);
+    update(id, updateEntradaProduccionDto, id_empresa) {
+        return this.entradasProduccionService.update(id, updateEntradaProduccionDto, id_empresa);
     }
-    remove(id) {
-        return this.entradasProduccionService.remove(id);
+    remove(id, id_empresa) {
+        return this.entradasProduccionService.remove(id, id_empresa);
     }
 };
 exports.EntradasProduccionController = EntradasProduccionController;
@@ -50,7 +52,7 @@ __decorate([
     (0, common_1.Post)(),
     (0, common_1.UsePipes)(new common_1.ValidationPipe({ transform: true })),
     __param(0, (0, common_1.Body)()),
-    __param(1, (0, common_1.Query)('id_empresa', new common_1.ParseIntPipe({ errorHttpStatusCode: 400 }))),
+    __param(1, (0, empresa_decorator_1.IdEmpresa)()),
     __param(2, (0, common_1.Query)('id_usuario_inserta')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [create_entrada_produccion_dto_1.CreateEntradaProduccionDto, Number, String]),
@@ -60,7 +62,7 @@ __decorate([
     (0, common_1.Post)('masivas'),
     (0, common_1.UsePipes)(new common_1.ValidationPipe({ transform: true })),
     __param(0, (0, common_1.Body)()),
-    __param(1, (0, common_1.Query)('id_empresa', new common_1.ParseIntPipe({ errorHttpStatusCode: 400 }))),
+    __param(1, (0, empresa_decorator_1.IdEmpresa)()),
     __param(2, (0, common_1.Query)('id_usuario_inserta')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [create_entradas_masivas_dto_1.CreateEntradasMasivasDto, Number, String]),
@@ -68,7 +70,7 @@ __decorate([
 ], EntradasProduccionController.prototype, "createMasivas", null);
 __decorate([
     (0, common_1.Get)(),
-    __param(0, (0, common_1.Query)('id_empresa', new common_1.ParseIntPipe({ errorHttpStatusCode: 400 }))),
+    __param(0, (0, empresa_decorator_1.IdEmpresa)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
@@ -85,19 +87,22 @@ __decorate([
     (0, common_1.UsePipes)(new common_1.ValidationPipe({ transform: true })),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
+    __param(2, (0, empresa_decorator_1.IdEmpresa)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, update_entrada_produccion_dto_1.UpdateEntradaProduccionDto]),
+    __metadata("design:paramtypes", [String, update_entrada_produccion_dto_1.UpdateEntradaProduccionDto, Number]),
     __metadata("design:returntype", void 0)
 ], EntradasProduccionController.prototype, "update", null);
 __decorate([
     (0, common_1.Delete)(':id'),
     __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, empresa_decorator_1.IdEmpresa)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, Number]),
     __metadata("design:returntype", void 0)
 ], EntradasProduccionController.prototype, "remove", null);
 exports.EntradasProduccionController = EntradasProduccionController = __decorate([
     (0, common_1.Controller)('entradas-produccion'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     __metadata("design:paramtypes", [entradas_produccion_service_1.EntradasProduccionService])
 ], EntradasProduccionController);
 //# sourceMappingURL=entradas-produccion.controller.js.map

@@ -22,6 +22,7 @@ const entradas_produccion_service_1 = require("../entradas-produccion/entradas-p
 const salidas_service_1 = require("../salidas/salidas.service");
 const resumen_service_2 = require("../inventario/resumen.service");
 const empresa_decorator_1 = require("../terceros/decorators/empresa.decorator");
+const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
 let FinanzasController = class FinanzasController {
     constructor(gastosService, ingresosService, resumenService, galponesService, entradasProduccionService, salidasService, inventarioResumenService) {
         this.gastosService = gastosService;
@@ -294,7 +295,7 @@ let FinanzasController = class FinanzasController {
 exports.FinanzasController = FinanzasController;
 __decorate([
     (0, common_1.Get)('resumen'),
-    __param(0, (0, empresa_decorator_1.IdEmpresaHeader)()),
+    __param(0, (0, empresa_decorator_1.IdEmpresa)()),
     __param(1, (0, common_1.Query)('fechaInicio')),
     __param(2, (0, common_1.Query)('fechaFin')),
     __param(3, (0, common_1.Query)('origen')),
@@ -304,7 +305,7 @@ __decorate([
 ], FinanzasController.prototype, "getResumenFinanciero", null);
 __decorate([
     (0, common_1.Get)('comparativo-mensual'),
-    __param(0, (0, empresa_decorator_1.IdEmpresaHeader)()),
+    __param(0, (0, empresa_decorator_1.IdEmpresa)()),
     __param(1, (0, common_1.Query)('anio')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number, String]),
@@ -312,7 +313,7 @@ __decorate([
 ], FinanzasController.prototype, "getComparativoMensual", null);
 __decorate([
     (0, common_1.Get)('kpis'),
-    __param(0, (0, empresa_decorator_1.IdEmpresaHeader)()),
+    __param(0, (0, empresa_decorator_1.IdEmpresa)()),
     __param(1, (0, common_1.Query)('fechaInicio')),
     __param(2, (0, common_1.Query)('fechaFin')),
     __metadata("design:type", Function),
@@ -321,7 +322,7 @@ __decorate([
 ], FinanzasController.prototype, "getKPIsFinancieros", null);
 __decorate([
     (0, common_1.Get)('dashboard-kpis'),
-    __param(0, (0, empresa_decorator_1.IdEmpresaHeader)()),
+    __param(0, (0, empresa_decorator_1.IdEmpresa)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", Promise)
@@ -337,7 +338,7 @@ __decorate([
 ], FinanzasController.prototype, "setInversionInicial", null);
 __decorate([
     (0, common_1.Get)('datos-diarios'),
-    __param(0, (0, empresa_decorator_1.IdEmpresaHeader)()),
+    __param(0, (0, empresa_decorator_1.IdEmpresa)()),
     __param(1, (0, common_1.Query)('fechaInicio')),
     __param(2, (0, common_1.Query)('fechaFin')),
     __metadata("design:type", Function),
@@ -346,6 +347,7 @@ __decorate([
 ], FinanzasController.prototype, "getDatosDiarios", null);
 exports.FinanzasController = FinanzasController = __decorate([
     (0, common_1.Controller)('finanzas'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     __metadata("design:paramtypes", [gastos_service_1.GastosService,
         ingresos_service_1.IngresosService,
         resumen_service_1.ResumenService,

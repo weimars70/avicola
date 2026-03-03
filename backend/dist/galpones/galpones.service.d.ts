@@ -8,9 +8,9 @@ export declare class GalponesService {
     constructor(galponesRepository: Repository<Galpon>);
     create(createGalponDto: CreateGalponDto): Promise<Galpon>;
     findAll(id_empresa: number): Promise<Galpon[]>;
-    findOne(id: string): Promise<Galpon>;
-    update(id: string, updateGalponDto: UpdateGalponDto): Promise<Galpon>;
-    remove(id: string): Promise<void>;
-    reactivate(id: string): Promise<void>;
-    findAllIncludingInactive(): Promise<Galpon[]>;
+    findOne(id: string, id_empresa: number): Promise<Galpon>;
+    update(id: string, updateGalponDto: UpdateGalponDto, id_empresa: number): Promise<Galpon>;
+    remove(id: string, id_empresa: number): Promise<void>;
+    reactivate(id: string, id_empresa: number): Promise<void>;
+    findAllIncludingInactive(id_empresa: number): Promise<Galpon[]>;
 }

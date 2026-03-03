@@ -18,6 +18,8 @@ const ajustes_inventario_service_1 = require("./ajustes-inventario.service");
 const create_ajuste_inventario_dto_1 = require("./dto/create-ajuste-inventario.dto");
 const create_ajuste_lote_dto_1 = require("./dto/create-ajuste-lote.dto");
 const update_ajuste_lote_dto_1 = require("./dto/update-ajuste-lote.dto");
+const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
+const empresa_decorator_1 = require("../terceros/decorators/empresa.decorator");
 let AjustesInventarioController = class AjustesInventarioController {
     constructor(ajustesInventarioService) {
         this.ajustesInventarioService = ajustesInventarioService;
@@ -60,14 +62,14 @@ exports.AjustesInventarioController = AjustesInventarioController;
 __decorate([
     (0, common_1.Post)(),
     __param(0, (0, common_1.Body)()),
-    __param(1, (0, common_1.Query)('id_empresa', new common_1.ParseIntPipe())),
+    __param(1, (0, empresa_decorator_1.IdEmpresa)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [create_ajuste_inventario_dto_1.CreateAjusteInventarioDto, Number]),
     __metadata("design:returntype", void 0)
 ], AjustesInventarioController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
-    __param(0, (0, common_1.Query)('id_empresa', new common_1.ParseIntPipe())),
+    __param(0, (0, empresa_decorator_1.IdEmpresa)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
@@ -75,7 +77,7 @@ __decorate([
 __decorate([
     (0, common_1.Get)('tipo-huevo/:tipoHuevoId'),
     __param(0, (0, common_1.Param)('tipoHuevoId', common_1.ParseUUIDPipe)),
-    __param(1, (0, common_1.Query)('id_empresa', new common_1.ParseIntPipe({ optional: true }))),
+    __param(1, (0, empresa_decorator_1.IdEmpresa)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, Number]),
     __metadata("design:returntype", void 0)
@@ -90,14 +92,14 @@ __decorate([
 __decorate([
     (0, common_1.Post)('lotes'),
     __param(0, (0, common_1.Body)()),
-    __param(1, (0, common_1.Query)('id_empresa', new common_1.ParseIntPipe({ optional: true }))),
+    __param(1, (0, empresa_decorator_1.IdEmpresa)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [create_ajuste_lote_dto_1.CreateAjusteLoteDto, Number]),
     __metadata("design:returntype", void 0)
 ], AjustesInventarioController.prototype, "createLote", null);
 __decorate([
     (0, common_1.Get)('lotes/all'),
-    __param(0, (0, common_1.Query)('id_empresa', new common_1.ParseIntPipe({ optional: true }))),
+    __param(0, (0, empresa_decorator_1.IdEmpresa)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
@@ -141,6 +143,7 @@ __decorate([
 ], AjustesInventarioController.prototype, "remove", null);
 exports.AjustesInventarioController = AjustesInventarioController = __decorate([
     (0, common_1.Controller)('ajustes-inventario'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     __metadata("design:paramtypes", [ajustes_inventario_service_1.AjustesInventarioService])
 ], AjustesInventarioController);
 //# sourceMappingURL=ajustes-inventario.controller.js.map

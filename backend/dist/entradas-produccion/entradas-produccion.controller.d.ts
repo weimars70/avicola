@@ -9,6 +9,6 @@ export declare class EntradasProduccionController {
     createMasivas(createEntradasMasivasDto: CreateEntradasMasivasDto, id_empresa: number, id_usuario_inserta: string): Promise<import("./entities/entrada-produccion.entity").EntradaProduccion[]>;
     findAll(id_empresa: number): Promise<import("./entities/entrada-produccion.entity").EntradaProduccion[]>;
     findOne(id: string): Promise<import("./entities/entrada-produccion.entity").EntradaProduccion>;
-    update(id: string, updateEntradaProduccionDto: UpdateEntradaProduccionDto): Promise<import("./entities/entrada-produccion.entity").EntradaProduccion>;
-    remove(id: string): Promise<void>;
+    update(id: string, updateEntradaProduccionDto: UpdateEntradaProduccionDto, id_empresa: number): Promise<import("./entities/entrada-produccion.entity").EntradaProduccion>;
+    remove(id: string, id_empresa: number): Promise<void>;
 }

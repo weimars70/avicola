@@ -33,6 +33,12 @@ export class IngresosController {
     return this.ingresosService.findAll(id_empresa);
   }
 
+  /** Ingresos generales: excluye los de origen Ventas-Terceros (ya se ven en Finanzas Terceros) */
+  @Get('general')
+  findAllGeneral(@IdEmpresa() id_empresa: number) {
+    return this.ingresosService.findAllExcludingTerceros(id_empresa);
+  }
+
   @Get('all-including-inactive')
   findAllIncludingInactive(@IdEmpresa() id_empresa: number) {
     return this.ingresosService.findAllIncludingInactive(id_empresa);

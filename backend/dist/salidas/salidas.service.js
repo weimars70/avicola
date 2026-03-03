@@ -78,7 +78,7 @@ let SalidasService = class SalidasService {
     }
     async findAll(id_empresa) {
         return this.salidasRepository.find({
-            where: { id_empresa },
+            where: { id_empresa, tipoHuevo: { id_empresa } },
             relations: ['tipoHuevo', 'canasta'],
             order: { createdAt: 'DESC' }
         });
@@ -104,24 +104,34 @@ let SalidasService = class SalidasService {
         if (updateSalidaDto.canastaId && updateSalidaDto.id_empresa) {
             await this.canastasService.findOne(updateSalidaDto.canastaId, updateSalidaDto.id_empresa);
         }
-        if (updateSalidaDto.unidades !== undefined || updateSalidaDto.tipoHuevoId) {
+        if (updateSalidaDto.unidades !== undefined || updateSalidaDto.tipoHuevoId || updateSalidaDto.canastaId !== undefined) {
             const nuevoTipoHuevo = updateSalidaDto.tipoHuevoId || tipoHuevoOriginal;
             const nuevasUnidades = updateSalidaDto.unidades !== undefined ? updateSalidaDto.unidades : unidadesOriginales;
-            await this.inventarioStockService.aumentarStock(tipoHuevoOriginal, unidadesOriginales);
-            await this.inventarioStockService.reducirStock(nuevoTipoHuevo, nuevasUnidades);
+            const canastaOriginalId = salida.canastaId;
+            const nuevaCanastaId = updateSalidaDto.canastaId !== undefined ? updateSalidaDto.canastaId : canastaOriginalId;
+            let unidadesTotalesOriginales = unidadesOriginales;
+            if (canastaOriginalId) {
+                const canastaOriginal = await this.canastasService.findOne(canastaOriginalId, id_empresa);
+                unidadesTotalesOriginales = unidadesOriginales * canastaOriginal.unidadesPorCanasta;
+            }
+            let unidadesTotalesNuevas = nuevasUnidades;
+            if (nuevaCanastaId) {
+                const canastaNueva = await this.canastasService.findOne(nuevaCanastaId, id_empresa);
+                unidadesTotalesNuevas = nuevasUnidades * canastaNueva.unidadesPorCanasta;
+            }
+            await this.inventarioStockService.aumentarStock(tipoHuevoOriginal, unidadesTotalesOriginales);
+            await this.inventarioStockService.reducirStock(nuevoTipoHuevo, unidadesTotalesNuevas);
         }
-        if (updateSalidaDto.unidades !== undefined && !updateSalidaDto.valor) {
+        if ((updateSalidaDto.unidades !== undefined || updateSalidaDto.canastaId !== undefined) && !updateSalidaDto.valor) {
             let valorCanasta = 0;
-            if (updateSalidaDto.canastaId) {
-                const canasta = await this.canastasService.findOne(updateSalidaDto.canastaId, id_empresa);
+            const canastaIdParaCalculo = updateSalidaDto.canastaId !== undefined ? updateSalidaDto.canastaId : salida.canastaId;
+            if (canastaIdParaCalculo) {
+                const canasta = await this.canastasService.findOne(canastaIdParaCalculo, id_empresa);
                 valorCanasta = canasta.valorCanasta;
             }
-            else if (salida.canastaId) {
-                const canasta = await this.canastasService.findOne(salida.canastaId, id_empresa);
-                valorCanasta = canasta.valorCanasta;
-            }
+            const unidadesParaCalculo = updateSalidaDto.unidades !== undefined ? updateSalidaDto.unidades : salida.unidades;
             if (valorCanasta > 0) {
-                updateSalidaDto.valor = updateSalidaDto.unidades * valorCanasta;
+                updateSalidaDto.valor = unidadesParaCalculo * valorCanasta;
             }
         }
         Object.assign(salida, updateSalidaDto);
@@ -146,7 +156,25 @@ let SalidasService = class SalidasService {
     }
     async remove(id, id_empresa) {
         const salida = await this.findOne(id, id_empresa);
+        let unidadesTotales = salida.unidades;
+        if (salida.canastaId) {
+            const canasta = await this.canastasService.findOne(salida.canastaId, id_empresa);
+            unidadesTotales = salida.unidades * canasta.unidadesPorCanasta;
+        }
+        await this.inventarioStockService.aumentarStock(salida.tipoHuevoId, unidadesTotales);
         await this.salidasRepository.remove(salida);
+        try {
+            const ingresosRepo = this.dataSource.getRepository(ingreso_entity_1.Ingreso);
+            const ingresos = await ingresosRepo.find({
+                where: { salidaId: id, id_empresa }
+            });
+            if (ingresos && ingresos.length > 0) {
+                await ingresosRepo.remove(ingresos);
+            }
+        }
+        catch (error) {
+            console.error('Error al eliminar el ingreso relacionado:', error);
+        }
     }
     async getSalidasDiarias(fechaInicio, fechaFin, id_empresa) {
         const query = `
@@ -160,8 +188,9 @@ let SalidasService = class SalidasService {
         ) as salidas
       FROM salidas salida
       LEFT JOIN canastas canasta ON salida."canastaId" = canasta.id
+      LEFT JOIN tipos_huevo th ON salida."tipoHuevoId" = th.id
       WHERE salida.fecha BETWEEN $1 AND $2
-      ${id_empresa ? 'AND salida.id_empresa = $3' : ''}
+      ${id_empresa ? 'AND salida.id_empresa = $3 AND th.id_empresa = $3' : ''}
       GROUP BY salida.fecha
       ORDER BY fecha ASC
     `;
@@ -177,6 +206,21 @@ let SalidasService = class SalidasService {
       ${id_empresa ? 'AND salida.id_empresa = $3' : ''}
       GROUP BY salida.fecha
       ORDER BY fecha ASC
+    `;
+        return this.salidasRepository.query(query, id_empresa ? [fechaInicio, fechaFin, id_empresa] : [fechaInicio, fechaFin]);
+    }
+    async getResumenCanastas(fechaInicio, fechaFin, id_empresa) {
+        const query = `
+      SELECT 
+        canasta.nombre as "nombreCanasta",
+        SUM(salida.unidades) as "cantidadVendida",
+        SUM(salida.valor) as "totalVenta"
+      FROM salidas salida
+      INNER JOIN canastas canasta ON salida."canastaId" = canasta.id
+      WHERE salida.fecha BETWEEN $1 AND $2
+      ${id_empresa ? 'AND salida.id_empresa = $3' : ''}
+      GROUP BY canasta.id, canasta.nombre
+      ORDER BY "cantidadVendida" DESC
     `;
         return this.salidasRepository.query(query, id_empresa ? [fechaInicio, fechaFin, id_empresa] : [fechaInicio, fechaFin]);
     }

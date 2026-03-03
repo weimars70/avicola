@@ -23,8 +23,12 @@ let CanastasController = class CanastasController {
     constructor(canastasService) {
         this.canastasService = canastasService;
     }
-    create(createCanastaDto) {
-        return this.canastasService.create(createCanastaDto);
+    create(createCanastaDto, id_empresa, id_usuario_inserta) {
+        console.log('📥 [CONTROLLER] CREATE Hit');
+        console.log('📦 Body received:', JSON.stringify(createCanastaDto, null, 2));
+        console.log('🏢 Empresa:', id_empresa);
+        console.log('👤 Usuario:', id_usuario_inserta);
+        return this.canastasService.create(createCanastaDto, id_empresa, id_usuario_inserta);
     }
     findAll(id_empresa) {
         return this.canastasService.findAllByEmpresa(id_empresa);
@@ -35,8 +39,12 @@ let CanastasController = class CanastasController {
     findOne(id, id_empresa) {
         return this.canastasService.findOne(id, id_empresa);
     }
-    update(id, id_empresa, updateCanastaDto) {
-        return this.canastasService.update(id, id_empresa, updateCanastaDto);
+    update(id, id_empresa, updateCanastaDto, id_usuario_actualiza) {
+        console.log('🚀 UPDATE CANASTA - ID:', id);
+        console.log('🚀 UPDATE CANASTA - Body:', updateCanastaDto);
+        console.log('🚀 UPDATE CANASTA - id_empresa:', id_empresa);
+        console.log('🚀 UPDATE CANASTA - id_usuario_actualiza:', id_usuario_actualiza);
+        return this.canastasService.update(id, id_empresa, updateCanastaDto, id_usuario_actualiza);
     }
     remove(id, id_empresa) {
         return this.canastasService.remove(id, id_empresa);
@@ -46,20 +54,22 @@ exports.CanastasController = CanastasController;
 __decorate([
     (0, common_1.Post)(),
     __param(0, (0, common_1.Body)()),
+    __param(1, (0, empresa_decorator_1.IdEmpresa)()),
+    __param(2, (0, common_1.Query)('id_usuario_inserta')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [create_canasta_dto_1.CreateCanastaDto]),
+    __metadata("design:paramtypes", [create_canasta_dto_1.CreateCanastaDto, Number, String]),
     __metadata("design:returntype", void 0)
 ], CanastasController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
-    __param(0, (0, empresa_decorator_1.IdEmpresaHeader)()),
+    __param(0, (0, empresa_decorator_1.IdEmpresa)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
 ], CanastasController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Get)('all'),
-    __param(0, (0, empresa_decorator_1.IdEmpresaHeader)()),
+    __param(0, (0, empresa_decorator_1.IdEmpresa)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
@@ -67,7 +77,7 @@ __decorate([
 __decorate([
     (0, common_1.Get)(':id'),
     __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
-    __param(1, (0, empresa_decorator_1.IdEmpresaHeader)()),
+    __param(1, (0, empresa_decorator_1.IdEmpresa)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, Number]),
     __metadata("design:returntype", void 0)
@@ -75,16 +85,17 @@ __decorate([
 __decorate([
     (0, common_1.Patch)(':id'),
     __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
-    __param(1, (0, empresa_decorator_1.IdEmpresaHeader)()),
+    __param(1, (0, empresa_decorator_1.IdEmpresa)()),
     __param(2, (0, common_1.Body)()),
+    __param(3, (0, common_1.Query)('id_usuario_actualiza')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Number, update_canasta_dto_1.UpdateCanastaDto]),
+    __metadata("design:paramtypes", [String, Number, update_canasta_dto_1.UpdateCanastaDto, String]),
     __metadata("design:returntype", void 0)
 ], CanastasController.prototype, "update", null);
 __decorate([
     (0, common_1.Delete)(':id'),
     __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
-    __param(1, (0, empresa_decorator_1.IdEmpresaHeader)()),
+    __param(1, (0, empresa_decorator_1.IdEmpresa)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, Number]),
     __metadata("design:returntype", void 0)

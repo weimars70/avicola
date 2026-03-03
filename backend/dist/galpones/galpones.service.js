@@ -49,22 +49,22 @@ let GalponesService = GalponesService_1 = class GalponesService {
             order: { nombre: 'ASC' },
         });
     }
-    async findOne(id) {
+    async findOne(id, id_empresa) {
         const galpon = await this.galponesRepository.findOne({
-            where: { id, activo: true },
+            where: { id, id_empresa, activo: true },
         });
         if (!galpon) {
             throw new common_1.NotFoundException(`Galpón con ID ${id} no encontrado`);
         }
         return galpon;
     }
-    async update(id, updateGalponDto) {
+    async update(id, updateGalponDto, id_empresa) {
         this.logger.log('=== SERVICIO: INICIO ACTUALIZACIÓN GALPÓN ===');
         this.logger.log('ID recibido:', id);
         this.logger.log('DTO de actualización recibido:', JSON.stringify(updateGalponDto));
         try {
             this.logger.log('Buscando galpón existente...');
-            const galpon = await this.findOne(id);
+            const galpon = await this.findOne(id, id_empresa);
             this.logger.log('Galpón encontrado:', JSON.stringify(galpon));
             this.logger.log('Aplicando cambios con Object.assign...');
             Object.assign(galpon, updateGalponDto);
@@ -83,15 +83,15 @@ let GalponesService = GalponesService_1 = class GalponesService {
             throw error;
         }
     }
-    async remove(id) {
-        const galpon = await this.findOne(id);
+    async remove(id, id_empresa) {
+        const galpon = await this.findOne(id, id_empresa);
         galpon.activo = false;
         galpon.updatedAt = new Date();
         await this.galponesRepository.save(galpon);
     }
-    async reactivate(id) {
+    async reactivate(id, id_empresa) {
         const galpon = await this.galponesRepository.findOne({
-            where: { id },
+            where: { id, id_empresa },
         });
         if (!galpon) {
             throw new common_1.NotFoundException(`Galpón con ID ${id} no encontrado`);
@@ -100,8 +100,9 @@ let GalponesService = GalponesService_1 = class GalponesService {
         galpon.updatedAt = new Date();
         await this.galponesRepository.save(galpon);
     }
-    async findAllIncludingInactive() {
+    async findAllIncludingInactive(id_empresa) {
         return await this.galponesRepository.find({
+            where: { id_empresa },
             order: { nombre: 'ASC' },
         });
     }

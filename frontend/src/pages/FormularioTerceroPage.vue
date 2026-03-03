@@ -47,7 +47,7 @@
                 option-label="nombre"
                 emit-value
                 map-options
-                label="Tipo Identificación *"
+                label="Tipo Identificación"
                 outlined
                 dense
                 :loading="loadingMaestros"
@@ -67,11 +67,10 @@
             <div class="col-12 col-md-6">
               <q-input
                 v-model="form.identificacion"
-                label="Número de Identificación *"
+                label="Número de Identificación"
                 outlined
                 :rules="[
-                  val => !!val || 'La identificación es obligatoria',
-                  val => val.length >= 5 || 'Mínimo 5 caracteres'
+                  val => !val || val.length >= 5 || 'Mínimo 5 caracteres si se provee'
                 ]"
               />
             </div>
@@ -153,7 +152,7 @@
                 use-input
                 input-debounce="300"
                 @filter="filterCiudades"
-                label="Ciudad *"
+                label="Ciudad"
                 outlined
                 dense
                 :loading="loadingMaestros"
@@ -220,7 +219,7 @@
                 option-label="nombre"
                 emit-value
                 map-options
-                label="Estrato *"
+                label="Estrato"
                 outlined
                 dense
                 :loading="loadingMaestros"
@@ -442,24 +441,7 @@ const filterCiudades = (val: string, update: (fn: () => void) => void) => {
 };
 
 const validateForm = () => {
-  // Validaciones básicas
-  if (!form.value.tipoIdent && !form.value.tipo_ident) {
-    $q.notify({
-      color: 'negative',
-      message: 'Debe seleccionar un tipo de identificación',
-      icon: 'error'
-    });
-    return false;
-  }
-
-  if (!form.value.identificacion || form.value.identificacion.length < 5) {
-    $q.notify({
-      color: 'negative',
-      message: 'La identificación es obligatoria y debe tener al menos 5 caracteres',
-      icon: 'error'
-    });
-    return false;
-  }
+  // Validaciones básicas removidas (Identificación ya no es obligatoria)
 
   if (!form.value.nombre || form.value.nombre.length < 3) {
     $q.notify({
@@ -497,15 +479,25 @@ const onSubmit = async () => {
 
   saving.value = true;
   try {
+    // Sanitizar empty strings a null para claves foráneas
+    const payload = { ...form.value } as Tercero;
+    if (!payload.ciudadCodigo) payload.ciudadCodigo = null;
+    if (!payload.estratoCodigo) payload.estratoCodigo = null;
+    if (!payload.regimen) payload.regimen = null;
+    if (!payload.tipoImpuesto) payload.tipoImpuesto = null;
+    if (!payload.tipoIdent) payload.tipoIdent = null;
+    if (!payload.tipo_ident) payload.tipo_ident = null;
+    if (!payload.identificacion) payload.identificacion = null;
+
     if (isEditing.value) {
-      await tercerosStore.updateTercero(form.value);
+      await tercerosStore.updateTercero(payload);
       $q.notify({
         color: 'positive',
         message: `Tercero "${form.value.nombre}" actualizado correctamente`,
         icon: 'check_circle'
       });
     } else {
-      await tercerosStore.createTercero(form.value);
+      await tercerosStore.createTercero(payload);
       $q.notify({
         color: 'positive',
         message: `Tercero "${form.value.nombre}" creado correctamente`,

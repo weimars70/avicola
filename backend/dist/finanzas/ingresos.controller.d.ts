@@ -6,6 +6,7 @@ export declare class IngresosController {
     constructor(ingresosService: IngresosService);
     create(createIngresoDto: CreateIngresoDto): Promise<import("./entities/ingreso.entity").Ingreso>;
     findAll(id_empresa: number): Promise<import("./entities/ingreso.entity").Ingreso[]>;
+    findAllGeneral(id_empresa: number): Promise<import("./entities/ingreso.entity").Ingreso[]>;
     findAllIncludingInactive(id_empresa: number): Promise<import("./entities/ingreso.entity").Ingreso[]>;
     findByDateRange(id_empresa: number): Promise<import("./entities/ingreso.entity").Ingreso[]>;
     findByTipo(tipo: string, id_empresa: number): Promise<import("./entities/ingreso.entity").Ingreso[]>;

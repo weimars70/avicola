@@ -24,16 +24,21 @@ let ComprasTercerosController = class ComprasTercerosController {
         this.comprasTercerosService = comprasTercerosService;
     }
     create(createCompraDto, req) {
-        var _a, _b, _c, _d, _e, _f, _g, _h;
-        const idEmpresa = (_e = (_d = (_b = (_a = req.user) === null || _a === void 0 ? void 0 : _a.idEmpresa) !== null && _b !== void 0 ? _b : (_c = req.user) === null || _c === void 0 ? void 0 : _c.id_empresa) !== null && _d !== void 0 ? _d : Number(req.headers['x-empresa-id'])) !== null && _e !== void 0 ? _e : 0;
-        const idUsuario = ((_f = req.query) === null || _f === void 0 ? void 0 : _f.id_usuario_inserta) || ((_g = req.user) === null || _g === void 0 ? void 0 : _g.userId) || ((_h = req.user) === null || _h === void 0 ? void 0 : _h.id_usuario) || '';
-        return this.comprasTercerosService.create(createCompraDto, idEmpresa, idUsuario);
+        var _a, _b, _c, _d, _e, _f;
+        const idEmpresa = (_b = (_a = req.user) === null || _a === void 0 ? void 0 : _a.idEmpresa) !== null && _b !== void 0 ? _b : (_c = req.user) === null || _c === void 0 ? void 0 : _c.id_empresa;
+        if (!idEmpresa)
+            throw new Error('Company ID missing in user context');
+        const idUsuario = ((_d = req.query) === null || _d === void 0 ? void 0 : _d.id_usuario_inserta) || ((_e = req.user) === null || _e === void 0 ? void 0 : _e.userId) || ((_f = req.user) === null || _f === void 0 ? void 0 : _f.id_usuario) || '';
+        return this.comprasTercerosService.create(createCompraDto, Number(idEmpresa), idUsuario);
     }
     findAll(idEmpresa) {
         return this.comprasTercerosService.findAll(idEmpresa);
     }
     getEstadisticas(idEmpresa) {
         return this.comprasTercerosService.getEstadisticas(idEmpresa);
+    }
+    getInventarioCanastas(idEmpresa) {
+        return this.comprasTercerosService.getInventarioCanastas(idEmpresa);
     }
     findOne(id, idEmpresa) {
         return this.comprasTercerosService.findOne(id, idEmpresa);
@@ -56,22 +61,29 @@ __decorate([
 ], ComprasTercerosController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
-    __param(0, (0, empresa_decorator_1.IdEmpresaHeader)()),
+    __param(0, (0, empresa_decorator_1.IdEmpresa)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
 ], ComprasTercerosController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Get)('estadisticas'),
-    __param(0, (0, empresa_decorator_1.IdEmpresaHeader)()),
+    __param(0, (0, empresa_decorator_1.IdEmpresa)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
 ], ComprasTercerosController.prototype, "getEstadisticas", null);
 __decorate([
+    (0, common_1.Get)('inventario-canastas'),
+    __param(0, (0, empresa_decorator_1.IdEmpresa)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", void 0)
+], ComprasTercerosController.prototype, "getInventarioCanastas", null);
+__decorate([
     (0, common_1.Get)(':id'),
     __param(0, (0, common_1.Param)('id')),
-    __param(1, (0, empresa_decorator_1.IdEmpresaHeader)()),
+    __param(1, (0, empresa_decorator_1.IdEmpresa)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, Number]),
     __metadata("design:returntype", void 0)
@@ -80,7 +92,7 @@ __decorate([
     (0, common_1.Patch)(':id'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
-    __param(2, (0, empresa_decorator_1.IdEmpresaHeader)()),
+    __param(2, (0, empresa_decorator_1.IdEmpresa)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, update_compra_dto_1.UpdateCompraDto, Number]),
     __metadata("design:returntype", void 0)
@@ -88,7 +100,7 @@ __decorate([
 __decorate([
     (0, common_1.Delete)(':id'),
     __param(0, (0, common_1.Param)('id')),
-    __param(1, (0, empresa_decorator_1.IdEmpresaHeader)()),
+    __param(1, (0, empresa_decorator_1.IdEmpresa)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, Number]),
     __metadata("design:returntype", void 0)

@@ -103,7 +103,7 @@ __decorate([
     (0, common_1.Post)(),
     (0, common_1.UsePipes)(new common_1.ValidationPipe({ transform: true })),
     __param(0, (0, common_1.Body)()),
-    __param(1, (0, empresa_decorator_1.IdEmpresaHeader)()),
+    __param(1, (0, empresa_decorator_1.IdEmpresa)()),
     __param(2, (0, common_1.Query)('id_usuario_inserta')),
     __param(3, (0, common_1.Query)('esInversionInicial')),
     __metadata("design:type", Function),
@@ -114,7 +114,7 @@ __decorate([
     (0, common_1.Post)('consumo-propio'),
     (0, common_1.UsePipes)(new common_1.ValidationPipe({ transform: true })),
     __param(0, (0, common_1.Body)()),
-    __param(1, (0, empresa_decorator_1.IdEmpresaHeader)()),
+    __param(1, (0, empresa_decorator_1.IdEmpresa)()),
     __param(2, (0, common_1.Query)('id_usuario_inserta')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [create_consumo_propio_dto_1.CreateConsumoPropioDto, Number, Object]),
@@ -122,7 +122,7 @@ __decorate([
 ], GastosController.prototype, "createConsumoPropio", null);
 __decorate([
     (0, common_1.Get)(),
-    __param(0, (0, empresa_decorator_1.IdEmpresaHeader)()),
+    __param(0, (0, empresa_decorator_1.IdEmpresa)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
@@ -150,7 +150,7 @@ __decorate([
 ], GastosController.prototype, "findByCategoria", null);
 __decorate([
     (0, common_1.Get)('total'),
-    __param(0, (0, empresa_decorator_1.IdEmpresaHeader)()),
+    __param(0, (0, empresa_decorator_1.IdEmpresa)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
@@ -159,14 +159,14 @@ __decorate([
     (0, common_1.Get)('total-by-date-range'),
     __param(0, (0, common_1.Query)('fechaInicio')),
     __param(1, (0, common_1.Query)('fechaFin')),
-    __param(2, (0, empresa_decorator_1.IdEmpresaHeader)()),
+    __param(2, (0, empresa_decorator_1.IdEmpresa)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, String, Number]),
     __metadata("design:returntype", void 0)
 ], GastosController.prototype, "getTotalGastosByDateRange", null);
 __decorate([
     (0, common_1.Get)('total-by-categoria'),
-    __param(0, (0, empresa_decorator_1.IdEmpresaHeader)()),
+    __param(0, (0, empresa_decorator_1.IdEmpresa)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)

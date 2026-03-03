@@ -288,6 +288,81 @@ let ComprasTercerosService = class ComprasTercerosService {
             .getRawOne();
         return Number((raw === null || raw === void 0 ? void 0 : raw.stock) || 0);
     }
+    async getInventarioCanastas(idEmpresa) {
+        const comprasRaw = await this.detallesRepository.createQueryBuilder('dc')
+            .innerJoin('dc.compra', 'co')
+            .innerJoin('dc.canasta', 'c')
+            .select([
+            'c.id AS "canastaId"',
+            'c.nombre AS "nombreCanasta"',
+            'SUM(dc.cantidad) AS "totalUnidades"',
+            'SUM(dc.cantidad * dc.precioUnitario) AS "valorTotal"',
+            'AVG(dc.precioUnitario) AS "precioPromedio"',
+            'MAX(co.fecha) AS "ultimaCompra"'
+        ])
+            .where('co.idEmpresa = :idEmpresa', { idEmpresa })
+            .andWhere('co.tipoMovimiento = 2')
+            .andWhere('co.activo = true')
+            .groupBy('c.id, c.nombre')
+            .orderBy('"valorTotal"', 'DESC')
+            .getRawMany();
+        const stockRaw = await this.invTercerosRepo.createQueryBuilder('i')
+            .select('i.tipo_huevo_codigo', 'canastaId')
+            .addSelect("COALESCE(SUM(CASE WHEN i.tipo_movimiento = 'entrada' THEN i.cantidad WHEN i.tipo_movimiento = 'salida' THEN -i.cantidad ELSE 0 END),0)", 'stock')
+            .where('i.id_empresa = :idEmpresa AND i.activo = true', { idEmpresa })
+            .groupBy('i.tipo_huevo_codigo')
+            .getRawMany();
+        const stockMap = new Map();
+        stockRaw.forEach(item => {
+            stockMap.set(item.canastaId, Number(item.stock));
+        });
+        const allCanastaIds = new Set([...comprasRaw.map(r => r.canastaId), ...stockMap.keys()]);
+        const porCanasta = comprasRaw.map(r => {
+            const canastaId = r.canastaId;
+            const stock = stockMap.get(canastaId) || 0;
+            return {
+                canastaId,
+                nombreCanasta: r.nombreCanasta,
+                totalUnidades: Number(r.totalUnidades),
+                valorTotal: Number(r.valorTotal),
+                precioPromedio: Number(Number(r.precioPromedio).toFixed(2)),
+                ultimaCompra: r.ultimaCompra,
+                canastasDisponibles: stock,
+                stock: stock
+            };
+        });
+        const evolucion = await this.comprasRepository.createQueryBuilder('co')
+            .select([
+            "TO_CHAR(co.fecha, 'YYYY-MM') AS mes",
+            'COUNT(*) AS "numCompras"',
+            'SUM(co.total) AS "valorTotal"'
+        ])
+            .where('co.idEmpresa = :idEmpresa', { idEmpresa })
+            .andWhere('co.tipoMovimiento = 2')
+            .andWhere('co.activo = true')
+            .groupBy("TO_CHAR(co.fecha, 'YYYY-MM')")
+            .orderBy('mes', 'DESC')
+            .limit(12)
+            .getRawMany();
+        const totalCanastas = porCanasta.reduce((acc, curr) => acc + curr.totalUnidades, 0);
+        const valorTotalInvertido = porCanasta.reduce((acc, curr) => acc + curr.valorTotal, 0);
+        const canastasDisponiblesTotal = porCanasta.reduce((acc, curr) => acc + curr.canastasDisponibles, 0);
+        const valorPromedioGeneral = totalCanastas > 0 ? valorTotalInvertido / totalCanastas : 0;
+        return {
+            resumen: {
+                totalCanastas: totalCanastas,
+                valorTotal: valorTotalInvertido,
+                canastasDisponibles: canastasDisponiblesTotal,
+                valorPromedio: Number(valorPromedioGeneral.toFixed(2))
+            },
+            porCanasta,
+            evolucionMensual: evolucion.map(e => ({
+                mes: e.mes,
+                compras: Number(e.numCompras),
+                valor: Number(e.valorTotal)
+            }))
+        };
+    }
 };
 exports.ComprasTercerosService = ComprasTercerosService;
 exports.ComprasTercerosService = ComprasTercerosService = __decorate([

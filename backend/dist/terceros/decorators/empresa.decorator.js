@@ -3,24 +3,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.IdEmpresaHeader = exports.IdEmpresa = void 0;
 const common_1 = require("@nestjs/common");
 exports.IdEmpresa = (0, common_1.createParamDecorator)((data, ctx) => {
-    var _a;
+    var _a, _b;
     const request = ctx.switchToHttp().getRequest();
-    const id_empresa = (_a = request.user) === null || _a === void 0 ? void 0 : _a.id_empresa;
+    const id_empresa = ((_a = request.user) === null || _a === void 0 ? void 0 : _a.id_empresa) || ((_b = request.user) === null || _b === void 0 ? void 0 : _b.idEmpresa);
     if (!id_empresa) {
-        throw new Error('No se pudo determinar la empresa del usuario');
+        throw new common_1.UnauthorizedException('No se pudo determinar la empresa del usuario. Token inválido o sin contexto de empresa.');
     }
-    return id_empresa;
+    return Number(id_empresa);
 });
-exports.IdEmpresaHeader = (0, common_1.createParamDecorator)((data, ctx) => {
-    var _a, _b, _c;
-    const request = ctx.switchToHttp().getRequest();
-    const idEmpresaRaw = request.headers['x-empresa-id'] ||
-        request.query.id_empresa ||
-        ((_a = request.body) === null || _a === void 0 ? void 0 : _a.id_empresa) ||
-        ((_b = request.user) === null || _b === void 0 ? void 0 : _b.idEmpresa) ||
-        ((_c = request.user) === null || _c === void 0 ? void 0 : _c.id_empresa) ||
-        '2';
-    const idEmpresaNum = parseInt(String(idEmpresaRaw));
-    return isNaN(idEmpresaNum) ? 2 : idEmpresaNum;
-});
+exports.IdEmpresaHeader = exports.IdEmpresa;
 //# sourceMappingURL=empresa.decorator.js.map

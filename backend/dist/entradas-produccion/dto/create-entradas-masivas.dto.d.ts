@@ -3,7 +3,7 @@ export declare class EntradaProduccionItem {
     unidades: number;
 }
 export declare class CreateEntradasMasivasDto {
-    galponId: string;
+    galponId?: string | null;
     fecha: string;
     entradas: EntradaProduccionItem[];
     id_empresa?: number;

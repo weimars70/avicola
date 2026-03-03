@@ -12,6 +12,8 @@ export declare class Canasta {
     id_usuario_inserta: string;
     id_usuario_actualiza: string;
     activo: boolean;
+    empresa_id: number;
+    usuario: string;
     createdAt: Date;
     updatedAt: Date;
     usuarioInserta: User;

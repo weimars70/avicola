@@ -115,7 +115,7 @@ interface ResumenFinanciero {
 
 export function useFinanzas() {
   const { showSuccess, showError } = useNotifications();
-  
+
   // Estados reactivos para manejar datos financieros
   const categorias = ref<CategoriaGasto[]>([]);
   const gastos = ref<Gasto[]>([]);
@@ -126,15 +126,15 @@ export function useFinanzas() {
   const error = ref<string | null>(null);
 
   // Computadas
-  const categoriasActivas = computed(() => 
+  const categoriasActivas = computed(() =>
     categorias.value.filter(c => c.activo)
   );
 
-  const gastosActivos = computed(() => 
+  const gastosActivos = computed(() =>
     gastos.value.filter(g => g.activo)
   );
 
-  const ingresosActivos = computed(() => 
+  const ingresosActivos = computed(() =>
     ingresos.value.filter(i => i.activo)
   );
 
@@ -264,19 +264,19 @@ export function useFinanzas() {
   const createGasto = async (gastoData: Partial<Gasto>) => {
     try {
       loading.value = true;
-      
+
       // Obtener id_empresa y id_usuario_inserta del localStorage
       const id_empresa = localStorage.getItem('id_empresa');
       const id_usuario_inserta = localStorage.getItem('id_usuario');
-      
+
       if (!id_empresa) {
         throw new Error('No se encontró id_empresa en localStorage');
       }
-      
+
       if (!id_usuario_inserta) {
         throw new Error('No se encontró id_usuario en localStorage');
       }
-      
+
       // Enviar los datos del gasto en el body y los parámetros id_empresa e id_usuario_inserta como query params
       const url = `/gastos?id_empresa=${id_empresa}&id_usuario_inserta=${id_usuario_inserta}`;
       const response = await api.post(url, gastoData);
@@ -337,19 +337,19 @@ export function useFinanzas() {
   }) => {
     try {
       loading.value = true;
-      
+
       // Obtener id_empresa y id_usuario_inserta del localStorage
       const id_empresa = localStorage.getItem('id_empresa');
       const id_usuario_inserta = localStorage.getItem('id_usuario');
-      
+
       if (!id_empresa) {
         throw new Error('No se encontró id_empresa en localStorage');
       }
-      
+
       if (!id_usuario_inserta) {
         throw new Error('No se encontró id_usuario en localStorage');
       }
-      
+
       // Enviar los datos que espera el backend según el DTO, sin incluir id_usuario_inserta en el body
       const dataToSend = {
         descripcion: consumoPropioData.descripcion,
@@ -358,9 +358,9 @@ export function useFinanzas() {
         huevosConsumidos: consumoPropioData.huevosConsumidos,
         id_empresa: parseInt(id_empresa, 10)
       };
-      
+
       console.log('Enviando datos de consumo propio:', dataToSend);
-      
+
       // Usar Axios con configuración correcta - enviando id_usuario_inserta e id_empresa como query params
       const url = `/gastos/consumo-propio?id_empresa=${id_empresa}&id_usuario_inserta=${id_usuario_inserta}`;
       await api.post(url, dataToSend);
@@ -566,7 +566,7 @@ export function useFinanzas() {
         maximumFractionDigits: 0,
       }).format(0);
     }
-    
+
     return new Intl.NumberFormat('es-CO', {
       style: 'currency',
       currency: 'COP',
@@ -577,24 +577,24 @@ export function useFinanzas() {
 
   const formatDate = (date: string): string => {
     if (!date) return '';
-    
+
     // Validar que la fecha tenga el formato correcto
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
       return date;
     }
-    
+
     // Evitar problemas de timezone parseando la fecha manualmente
     const parts = date.split('-');
     if (parts.length !== 3) return date;
-    
+
     const year = parseInt(parts[0]!, 10);
     const month = parseInt(parts[1]!, 10);
     const day = parseInt(parts[2]!, 10);
-    
+
     if (isNaN(year) || isNaN(month) || isNaN(day)) return date;
-    
+
     const localDate = new Date(year, month - 1, day);
-    
+
     return localDate.toLocaleDateString('es-CO', {
       timeZone: 'America/Bogota',
       year: 'numeric',
@@ -606,23 +606,23 @@ export function useFinanzas() {
   // Función para asegurar que las fechas se envíen correctamente al backend
   const ensureDateFormat = (date: string): string => {
     if (!date) return '';
-    
+
     // Si ya está en formato YYYY-MM-DD, devolverlo tal como está
     if (/^\d{4}-\d{2}-\d{2}$/.test(date)) {
       return date;
     }
-    
+
     // Si es una fecha en otro formato, intentar convertirla
     const dateObj = new Date(date);
     if (isNaN(dateObj.getTime())) {
       return date; // Si no es una fecha válida, devolver tal como está
     }
-    
+
     // Convertir a formato YYYY-MM-DD en timezone local
     const year = dateObj.getFullYear();
     const month = String(dateObj.getMonth() + 1).padStart(2, '0');
     const day = String(dateObj.getDate()).padStart(2, '0');
-    
+
     return `${year}-${month}-${day}`;
   };
 
@@ -636,7 +636,7 @@ export function useFinanzas() {
     resumenFinanciero,
     loading,
     error,
-    
+
     // Computadas
     categoriasActivas,
     gastosActivos,
@@ -646,38 +646,38 @@ export function useFinanzas() {
     utilidadNeta,
     margenUtilidad,
     ingresosPorTipo,
-    
+
     // Funciones de categorías
     fetchCategorias,
     createCategoria,
     updateCategoria,
     deleteCategoria,
     seedCategorias,
-    
+
     // Funciones de gastos
     fetchGastos,
     createGasto,
     updateGasto,
     deleteGasto,
     createConsumoPropio,
-    
+
     // Funciones de ingresos
     fetchIngresos,
     createIngreso,
     updateIngreso,
     deleteIngreso,
     syncIngresosFromSalidas,
-    
+
     // Funciones de rendimiento
     fetchRendimientos,
     getMetricasRendimiento,
     calcularRendimientoMensual,
-    
+
     // Funciones de resúmenes
     fetchResumenFinanciero,
     fetchKPIsFinancieros,
     fetchComparativoMensual,
-    
+
     // Utilidades
     formatCurrency,
     formatDate,

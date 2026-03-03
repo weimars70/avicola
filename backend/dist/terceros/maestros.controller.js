@@ -18,6 +18,7 @@ const maestros_service_1 = require("./maestros.service");
 const empresa_decorator_1 = require("./decorators/empresa.decorator");
 const empresa_guard_1 = require("./guards/empresa.guard");
 const swagger_1 = require("@nestjs/swagger");
+const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
 let MaestrosController = class MaestrosController {
     constructor(maestrosService) {
         this.maestrosService = maestrosService;
@@ -51,7 +52,7 @@ __decorate([
 __decorate([
     (0, common_1.Get)('estratos'),
     (0, swagger_1.ApiOperation)({ summary: 'Obtener todos los estratos' }),
-    __param(0, (0, empresa_decorator_1.IdEmpresaHeader)()),
+    __param(0, (0, empresa_decorator_1.IdEmpresa)()),
     __param(1, (0, common_1.Query)('activo')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number, Boolean]),
@@ -87,7 +88,8 @@ __decorate([
 exports.MaestrosController = MaestrosController = __decorate([
     (0, swagger_1.ApiTags)('maestros-terceros'),
     (0, common_1.Controller)('maestros-terceros'),
-    (0, common_1.UseGuards)(empresa_guard_1.EmpresaGuard),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, empresa_guard_1.EmpresaGuard),
     __metadata("design:paramtypes", [maestros_service_1.MaestrosService])
 ], MaestrosController);
 //# sourceMappingURL=maestros.controller.js.map

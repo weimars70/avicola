@@ -14,6 +14,7 @@ const user_entity_1 = require("../users/entities/user.entity");
 const galpon_entity_1 = require("../galpones/entities/galpon.entity");
 const tipo_huevo_entity_1 = require("../tipos-huevo/entities/tipo-huevo.entity");
 const canasta_entity_1 = require("../canastas/entities/canasta.entity");
+const detalle_galpon_entity_1 = require("../galpones/entities/detalle-galpon.entity");
 const entrada_produccion_entity_1 = require("../entradas-produccion/entities/entrada-produccion.entity");
 const salida_entity_1 = require("../salidas/entities/salida.entity");
 const inventario_entity_1 = require("../inventario/entities/inventario.entity");
@@ -54,7 +55,8 @@ exports.DatabaseModule = DatabaseModule = __decorate([
                         salida_entity_1.Salida, inventario_entity_1.Inventario, ajuste_inventario_entity_1.AjusteInventario, ajuste_lote_entity_1.AjusteLote,
                         categoria_gasto_entity_1.CategoriaGasto, gasto_entity_1.Gasto, ingreso_entity_1.Ingreso, rendimiento_entity_1.Rendimiento,
                         tercero_entity_1.Tercero, ciudad_entity_1.Ciudad, estrato_entity_1.Estrato, tipo_regimen_entity_1.TipoRegimen, tipo_ident_entity_1.TipoIdent, tipo_impuesto_entity_1.TipoImpuesto,
-                        compra_entity_1.Compra, detalle_compra_entity_1.DetalleCompra, venta_entity_1.Venta, detalle_venta_entity_1.DetalleVenta, inventario_terceros_entity_1.InventarioTerceros
+                        compra_entity_1.Compra, detalle_compra_entity_1.DetalleCompra, venta_entity_1.Venta, detalle_venta_entity_1.DetalleVenta, inventario_terceros_entity_1.InventarioTerceros,
+                        detalle_galpon_entity_1.DetalleGalpon
                     ],
                     synchronize: false,
                     logging: configService.get('NODE_ENV') === 'development',

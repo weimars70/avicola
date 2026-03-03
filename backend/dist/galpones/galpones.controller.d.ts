@@ -7,13 +7,13 @@ export declare class GalponesController {
     constructor(galponesService: GalponesService);
     create(createGalponDto: CreateGalponDto): Promise<import("./entities/galpon.entity").Galpon>;
     findAll(id_empresa: number): Promise<import("./entities/galpon.entity").Galpon[]>;
-    findAllIncludingInactive(): Promise<import("./entities/galpon.entity").Galpon[]>;
-    findOne(id: string): Promise<import("./entities/galpon.entity").Galpon>;
-    update(id: string, updateGalponDto: UpdateGalponDto): Promise<import("./entities/galpon.entity").Galpon>;
-    inactivate(id: string): Promise<{
+    findAllIncludingInactive(id_empresa: number): Promise<import("./entities/galpon.entity").Galpon[]>;
+    findOne(id: string, id_empresa: number): Promise<import("./entities/galpon.entity").Galpon>;
+    update(id: string, updateGalponDto: UpdateGalponDto, id_empresa: number): Promise<import("./entities/galpon.entity").Galpon>;
+    inactivate(id: string, id_empresa: number): Promise<{
         message: string;
     }>;
-    reactivate(id: string): Promise<{
+    reactivate(id: string, id_empresa: number): Promise<{
         message: string;
     }>;
 }

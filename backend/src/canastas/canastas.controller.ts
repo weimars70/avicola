@@ -21,7 +21,11 @@ export class CanastasController {
   constructor(private readonly canastasService: CanastasService) { }
 
   @Post()
-  create(@Body() createCanastaDto: CreateCanastaDto) {
+  create(
+    @Body() createCanastaDto: CreateCanastaDto,
+    @IdEmpresa() id_empresa: number,
+  ) {
+    createCanastaDto.id_empresa = id_empresa;
     return this.canastasService.create(createCanastaDto);
   }
 

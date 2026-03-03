@@ -37,7 +37,8 @@ let ResumenService = class ResumenService {
             .createQueryBuilder('entrada')
             .leftJoinAndSelect('entrada.galpon', 'galpon')
             .leftJoinAndSelect('entrada.tipoHuevo', 'tipoHuevo')
-            .where('entrada.id_empresa = :id_empresa', { id_empresa });
+            .where('entrada.id_empresa = :id_empresa', { id_empresa })
+            .andWhere('tipoHuevo.id_empresa = :id_empresa', { id_empresa });
         if (galponId) {
             entradasQuery.andWhere('entrada.galponId = :galponId', { galponId });
         }
@@ -47,14 +48,16 @@ let ResumenService = class ResumenService {
         const salidasQuery = this.salidasRepository
             .createQueryBuilder('salida')
             .leftJoinAndSelect('salida.tipoHuevo', 'tipoHuevo')
-            .where('salida.id_empresa = :id_empresa', { id_empresa });
+            .where('salida.id_empresa = :id_empresa', { id_empresa })
+            .andWhere('tipoHuevo.id_empresa = :id_empresa', { id_empresa });
         if (tipoHuevoId) {
             salidasQuery.andWhere('salida.tipoHuevoId = :tipoHuevoId', { tipoHuevoId });
         }
         const inventarioQuery = this.inventarioRepository
             .createQueryBuilder('inventario')
             .leftJoinAndSelect('inventario.tipoHuevo', 'tipoHuevo')
-            .where('inventario.id_empresa = :id_empresa', { id_empresa });
+            .where('inventario.id_empresa = :id_empresa', { id_empresa })
+            .andWhere('tipoHuevo.id_empresa = :id_empresa', { id_empresa });
         if (tipoHuevoId) {
             inventarioQuery.andWhere('inventario.tipoHuevoId = :tipoHuevoId', { tipoHuevoId });
         }
@@ -114,9 +117,6 @@ let ResumenService = class ResumenService {
         });
         const resultado = Object.values(resumen).map((item) => {
             var _a;
-            if (item.stockActual === 0) {
-                item.stockActual = item.totalEntradas - item.totalSalidas;
-            }
             item.valorTotal = item.stockActual * (((_a = item.tipoHuevo) === null || _a === void 0 ? void 0 : _a.valorUnidad) || 0);
             return item;
         });

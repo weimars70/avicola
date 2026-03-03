@@ -10,5 +10,5 @@ export declare class TiposHuevoService {
     findOne(id: string, id_empresa?: number): Promise<TipoHuevo>;
     update(id: string, updateTipoHuevoDto: UpdateTipoHuevoDto): Promise<TipoHuevo>;
     remove(id: string): Promise<void>;
-    findAllIncludingInactive(): Promise<TipoHuevo[]>;
+    findAllIncludingInactive(id_empresa: number): Promise<TipoHuevo[]>;
 }

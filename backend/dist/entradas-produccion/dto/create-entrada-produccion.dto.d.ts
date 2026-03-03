@@ -1,5 +1,5 @@
 export declare class CreateEntradaProduccionDto {
-    galponId: string;
+    galponId?: string | null;
     fecha: string;
     tipoHuevoId: string;
     unidades: number;

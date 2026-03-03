@@ -70,7 +70,7 @@ __decorate([
     (0, common_1.Post)(),
     (0, swagger_1.ApiOperation)({ summary: 'Crear un nuevo tercero' }),
     __param(0, (0, common_1.Body)()),
-    __param(1, (0, empresa_decorator_1.IdEmpresaHeader)()),
+    __param(1, (0, empresa_decorator_1.IdEmpresa)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [create_tercero_dto_1.CreateTerceroDto, Number]),
     __metadata("design:returntype", Promise)
@@ -78,7 +78,7 @@ __decorate([
 __decorate([
     (0, common_1.Get)(),
     (0, swagger_1.ApiOperation)({ summary: 'Obtener todos los terceros' }),
-    __param(0, (0, empresa_decorator_1.IdEmpresaHeader)()),
+    __param(0, (0, empresa_decorator_1.IdEmpresa)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
@@ -86,7 +86,7 @@ __decorate([
 __decorate([
     (0, common_1.Get)('activos'),
     (0, swagger_1.ApiOperation)({ summary: 'Obtener terceros activos' }),
-    __param(0, (0, empresa_decorator_1.IdEmpresaHeader)()),
+    __param(0, (0, empresa_decorator_1.IdEmpresa)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
@@ -94,7 +94,7 @@ __decorate([
 __decorate([
     (0, common_1.Get)('clientes'),
     (0, swagger_1.ApiOperation)({ summary: 'Obtener clientes activos' }),
-    __param(0, (0, empresa_decorator_1.IdEmpresaHeader)()),
+    __param(0, (0, empresa_decorator_1.IdEmpresa)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
@@ -102,7 +102,7 @@ __decorate([
 __decorate([
     (0, common_1.Get)('proveedores'),
     (0, swagger_1.ApiOperation)({ summary: 'Obtener proveedores activos' }),
-    __param(0, (0, empresa_decorator_1.IdEmpresaHeader)()),
+    __param(0, (0, empresa_decorator_1.IdEmpresa)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
@@ -111,7 +111,7 @@ __decorate([
     (0, common_1.Get)('buscar/identificacion'),
     (0, swagger_1.ApiOperation)({ summary: 'Buscar por identificación' }),
     __param(0, (0, common_1.Query)('q')),
-    __param(1, (0, empresa_decorator_1.IdEmpresaHeader)()),
+    __param(1, (0, empresa_decorator_1.IdEmpresa)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, Number]),
     __metadata("design:returntype", void 0)
@@ -120,7 +120,7 @@ __decorate([
     (0, common_1.Get)('buscar/nombre'),
     (0, swagger_1.ApiOperation)({ summary: 'Buscar por nombre' }),
     __param(0, (0, common_1.Query)('q')),
-    __param(1, (0, empresa_decorator_1.IdEmpresaHeader)()),
+    __param(1, (0, empresa_decorator_1.IdEmpresa)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, Number]),
     __metadata("design:returntype", void 0)
@@ -129,7 +129,7 @@ __decorate([
     (0, common_1.Get)(':codigo'),
     (0, swagger_1.ApiOperation)({ summary: 'Obtener un tercero por código' }),
     __param(0, (0, common_1.Param)('codigo', common_1.ParseIntPipe)),
-    __param(1, (0, empresa_decorator_1.IdEmpresaHeader)()),
+    __param(1, (0, empresa_decorator_1.IdEmpresa)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number, Number]),
     __metadata("design:returntype", void 0)
@@ -139,7 +139,7 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: 'Actualizar un tercero' }),
     __param(0, (0, common_1.Param)('codigo', common_1.ParseIntPipe)),
     __param(1, (0, common_1.Body)()),
-    __param(2, (0, empresa_decorator_1.IdEmpresaHeader)()),
+    __param(2, (0, empresa_decorator_1.IdEmpresa)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number, create_tercero_dto_1.UpdateTerceroDto, Number]),
     __metadata("design:returntype", void 0)
@@ -148,7 +148,7 @@ __decorate([
     (0, common_1.Delete)(':codigo'),
     (0, swagger_1.ApiOperation)({ summary: 'Eliminar un tercero' }),
     __param(0, (0, common_1.Param)('codigo', common_1.ParseIntPipe)),
-    __param(1, (0, empresa_decorator_1.IdEmpresaHeader)()),
+    __param(1, (0, empresa_decorator_1.IdEmpresa)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number, Number]),
     __metadata("design:returntype", void 0)

@@ -35,4 +35,27 @@ export declare class ComprasTercerosService {
     private createGastoDesdeCompra;
     private syncGastoDesdeCompra;
     private getStockActualTerceros;
+    getInventarioCanastas(idEmpresa: number): Promise<{
+        resumen: {
+            totalCanastas: number;
+            valorTotal: number;
+            canastasDisponibles: number;
+            valorPromedio: number;
+        };
+        porCanasta: {
+            canastaId: any;
+            nombreCanasta: any;
+            totalUnidades: number;
+            valorTotal: number;
+            precioPromedio: number;
+            ultimaCompra: any;
+            canastasDisponibles: number;
+            stock: number;
+        }[];
+        evolucionMensual: {
+            mes: any;
+            compras: number;
+            valor: number;
+        }[];
+    }>;
 }

@@ -16,8 +16,8 @@ export declare class EntradasProduccionService {
     createMasivas(createEntradasMasivasDto: CreateEntradasMasivasDto): Promise<EntradaProduccion[]>;
     findAll(id_empresa: number): Promise<EntradaProduccion[]>;
     findByDateRange(fechaInicio: string, fechaFin: string, id_empresa?: number): Promise<EntradaProduccion[]>;
-    findOne(id: string): Promise<EntradaProduccion>;
-    update(id: string, updateEntradaProduccionDto: UpdateEntradaProduccionDto): Promise<EntradaProduccion>;
-    remove(id: string): Promise<void>;
+    findOne(id: string, id_empresa?: number): Promise<EntradaProduccion>;
+    update(id: string, updateEntradaProduccionDto: UpdateEntradaProduccionDto, id_empresa: number): Promise<EntradaProduccion>;
+    remove(id: string, id_empresa: number): Promise<void>;
     getProduccionDiaria(fechaInicio: string, fechaFin: string, id_empresa?: number): Promise<any[]>;
 }

@@ -55,14 +55,14 @@ __decorate([
 ], InventarioStockController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
-    __param(0, (0, empresa_decorator_1.IdEmpresaHeader)()),
+    __param(0, (0, empresa_decorator_1.IdEmpresa)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
 ], InventarioStockController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Get)('vista/inventario'),
-    __param(0, (0, empresa_decorator_1.IdEmpresaHeader)()),
+    __param(0, (0, empresa_decorator_1.IdEmpresa)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
@@ -70,7 +70,7 @@ __decorate([
 __decorate([
     (0, common_1.Get)('tipo-huevo/:tipoHuevoId'),
     __param(0, (0, common_1.Param)('tipoHuevoId', common_1.ParseUUIDPipe)),
-    __param(1, (0, empresa_decorator_1.IdEmpresaHeader)()),
+    __param(1, (0, empresa_decorator_1.IdEmpresa)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, Number]),
     __metadata("design:returntype", void 0)

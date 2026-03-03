@@ -28,29 +28,41 @@ let EntradasProduccionService = class EntradasProduccionService {
         this.inventarioStockService = inventarioStockService;
     }
     async create(createEntradaProduccionDto) {
-        const galpon = await this.galponesRepository.findOne({ where: { id: createEntradaProduccionDto.galponId } });
-        if (!galpon) {
-            throw new common_1.NotFoundException(`Galpón con ID ${createEntradaProduccionDto.galponId} no encontrado`);
-        }
-        if (!galpon.activo) {
-            throw new common_1.BadRequestException(`No se pueden registrar entradas en el galpón "${galpon.nombre}" porque está inactivo`);
+        if (createEntradaProduccionDto.galponId) {
+            const galpon = await this.galponesRepository.findOne({ where: { id: createEntradaProduccionDto.galponId } });
+            if (!galpon) {
+                throw new common_1.NotFoundException(`Galpón con ID ${createEntradaProduccionDto.galponId} no encontrado`);
+            }
+            if (!galpon.activo) {
+                throw new common_1.BadRequestException(`No se pueden registrar entradas en el galpón "${galpon.nombre}" porque está inactivo`);
+            }
         }
         const tipoHuevo = await this.tiposHuevoRepository.findOne({ where: { id: createEntradaProduccionDto.tipoHuevoId } });
         if (!tipoHuevo) {
             throw new common_1.NotFoundException(`Tipo de huevo con ID ${createEntradaProduccionDto.tipoHuevoId} no encontrado`);
         }
-        const entradaProduccion = this.entradasProduccionRepository.create(createEntradaProduccionDto);
+        console.log('📝 Creando entrada individual:', {
+            galponId: createEntradaProduccionDto.galponId,
+            tipoHuevoId: createEntradaProduccionDto.tipoHuevoId,
+            unidades: createEntradaProduccionDto.unidades
+        });
+        const finalGalponId = (createEntradaProduccionDto.galponId === '' || !createEntradaProduccionDto.galponId)
+            ? null
+            : createEntradaProduccionDto.galponId;
+        const entradaProduccion = this.entradasProduccionRepository.create(Object.assign(Object.assign({}, createEntradaProduccionDto), { galponId: finalGalponId }));
         const savedEntrada = await this.entradasProduccionRepository.save(entradaProduccion);
         await this.inventarioStockService.actualizarInventario(createEntradaProduccionDto.tipoHuevoId, createEntradaProduccionDto.unidades, createEntradaProduccionDto.id_empresa);
         return savedEntrada;
     }
     async createMasivas(createEntradasMasivasDto) {
-        const galpon = await this.galponesRepository.findOne({ where: { id: createEntradasMasivasDto.galponId } });
-        if (!galpon) {
-            throw new common_1.NotFoundException(`Galpón con ID ${createEntradasMasivasDto.galponId} no encontrado`);
-        }
-        if (!galpon.activo) {
-            throw new common_1.BadRequestException(`No se pueden registrar entradas en el galpón "${galpon.nombre}" porque está inactivo`);
+        if (createEntradasMasivasDto.galponId) {
+            const galpon = await this.galponesRepository.findOne({ where: { id: createEntradasMasivasDto.galponId } });
+            if (!galpon) {
+                throw new common_1.NotFoundException(`Galpón con ID ${createEntradasMasivasDto.galponId} no encontrado`);
+            }
+            if (!galpon.activo) {
+                throw new common_1.BadRequestException(`No se pueden registrar entradas en el galpón "${galpon.nombre}" porque está inactivo`);
+            }
         }
         const tipoHuevoIds = createEntradasMasivasDto.entradas.map(entrada => entrada.tipoHuevoId);
         const tiposHuevo = await this.tiposHuevoRepository.findByIds(tipoHuevoIds);
@@ -61,8 +73,15 @@ let EntradasProduccionService = class EntradasProduccionService {
         if (entradasValidas.length === 0) {
             throw new common_1.BadRequestException('Debe especificar al menos una entrada con unidades mayor a 0');
         }
-        const entradasProduccion = entradasValidas.map(entrada => this.entradasProduccionRepository.create({
+        console.log('📝 Creando entradas masivas:', {
             galponId: createEntradasMasivasDto.galponId,
+            totalEntradas: entradasValidas.length
+        });
+        const finalGalponId = (createEntradasMasivasDto.galponId === '' || !createEntradasMasivasDto.galponId)
+            ? null
+            : createEntradasMasivasDto.galponId;
+        const entradasProduccion = entradasValidas.map(entrada => this.entradasProduccionRepository.create({
+            galponId: finalGalponId,
             fecha: createEntradasMasivasDto.fecha,
             tipoHuevoId: entrada.tipoHuevoId,
             unidades: entrada.unidades,
@@ -84,14 +103,18 @@ let EntradasProduccionService = class EntradasProduccionService {
     }
     async findByDateRange(fechaInicio, fechaFin, id_empresa) {
         return this.entradasProduccionRepository.find({
-            where: Object.assign({ fecha: (0, typeorm_2.Between)(new Date(fechaInicio), new Date(fechaFin)) }, (id_empresa ? { id_empresa } : {})),
+            where: Object.assign({ fecha: (0, typeorm_2.Between)(new Date(fechaInicio), new Date(fechaFin)) }, (id_empresa ? { id_empresa, tipoHuevo: { id_empresa } } : {})),
             relations: ['galpon', 'tipoHuevo'],
             order: { fecha: 'DESC' }
         });
     }
-    async findOne(id) {
+    async findOne(id, id_empresa) {
+        const where = { id };
+        if (id_empresa) {
+            where.id_empresa = id_empresa;
+        }
         const entradaProduccion = await this.entradasProduccionRepository.findOne({
-            where: { id },
+            where,
             relations: ['galpon', 'tipoHuevo']
         });
         if (!entradaProduccion) {
@@ -99,8 +122,10 @@ let EntradasProduccionService = class EntradasProduccionService {
         }
         return entradaProduccion;
     }
-    async update(id, updateEntradaProduccionDto) {
-        const entradaProduccion = await this.findOne(id);
+    async update(id, updateEntradaProduccionDto, id_empresa) {
+        const entradaProduccion = await this.findOne(id, id_empresa);
+        const oldUnidades = entradaProduccion.unidades;
+        const oldTipoHuevoId = entradaProduccion.tipoHuevoId;
         if (updateEntradaProduccionDto.galponId) {
             const galpon = await this.galponesRepository.findOne({ where: { id: updateEntradaProduccionDto.galponId } });
             if (!galpon) {
@@ -113,21 +138,41 @@ let EntradasProduccionService = class EntradasProduccionService {
                 throw new common_1.NotFoundException(`Tipo de huevo con ID ${updateEntradaProduccionDto.tipoHuevoId} no encontrado`);
             }
         }
+        if (updateEntradaProduccionDto.galponId === '') {
+            updateEntradaProduccionDto.galponId = undefined;
+            entradaProduccion.galponId = null;
+        }
         Object.assign(entradaProduccion, updateEntradaProduccionDto);
-        return this.entradasProduccionRepository.save(entradaProduccion);
+        const updatedEntrada = await this.entradasProduccionRepository.save(entradaProduccion);
+        if (updateEntradaProduccionDto.unidades !== undefined || updateEntradaProduccionDto.tipoHuevoId !== undefined) {
+            if (oldTipoHuevoId === updatedEntrada.tipoHuevoId) {
+                const diferencia = updatedEntrada.unidades - oldUnidades;
+                if (diferencia !== 0) {
+                    await this.inventarioStockService.actualizarInventario(updatedEntrada.tipoHuevoId, diferencia, id_empresa);
+                }
+            }
+            else {
+                await this.inventarioStockService.actualizarInventario(oldTipoHuevoId, -oldUnidades, id_empresa);
+                await this.inventarioStockService.actualizarInventario(updatedEntrada.tipoHuevoId, updatedEntrada.unidades, id_empresa);
+            }
+        }
+        return updatedEntrada;
     }
-    async remove(id) {
-        const entradaProduccion = await this.findOne(id);
+    async remove(id, id_empresa) {
+        const entradaProduccion = await this.findOne(id, id_empresa);
+        await this.inventarioStockService.actualizarInventario(entradaProduccion.tipoHuevoId, -entradaProduccion.unidades, id_empresa);
         await this.entradasProduccionRepository.remove(entradaProduccion);
     }
     async getProduccionDiaria(fechaInicio, fechaFin, id_empresa) {
         const queryBuilder = this.entradasProduccionRepository
             .createQueryBuilder('entrada')
+            .leftJoin('entrada.tipoHuevo', 'tipoHuevo')
             .select('DATE(entrada.fecha)', 'fecha')
             .addSelect('SUM(entrada.unidades)', 'total')
             .where('entrada.fecha BETWEEN :fechaInicio AND :fechaFin', { fechaInicio, fechaFin });
         if (id_empresa) {
             queryBuilder.andWhere('entrada.id_empresa = :id_empresa', { id_empresa });
+            queryBuilder.andWhere('tipoHuevo.id_empresa = :id_empresa', { id_empresa });
         }
         const result = await queryBuilder
             .groupBy('DATE(entrada.fecha)')

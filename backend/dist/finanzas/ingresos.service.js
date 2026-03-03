@@ -29,11 +29,14 @@ let IngresosService = class IngresosService {
         return await this.ingresosRepository.save(ingreso);
     }
     async findAll(id_empresa) {
-        return await this.ingresosRepository.find({
-            where: { activo: true, id_empresa },
-            relations: ['salida'],
-            order: { fecha: 'DESC' },
-        });
+        return await this.ingresosRepository
+            .createQueryBuilder('ingreso')
+            .where('ingreso.id_empresa = :id_empresa', { id_empresa })
+            .andWhere('ingreso.activo = true')
+            .andWhere("(ingreso.descripcion NOT LIKE '%[origen=terceros]%' OR ingreso.descripcion IS NULL)")
+            .leftJoinAndSelect('ingreso.salida', 'salida')
+            .orderBy('ingreso.fecha', 'DESC')
+            .getMany();
     }
     async findAllIncludingInactive(id_empresa) {
         return await this.ingresosRepository.find({
@@ -41,6 +44,16 @@ let IngresosService = class IngresosService {
             relations: ['salida'],
             order: { fecha: 'DESC' },
         });
+    }
+    async findAllExcludingTerceros(id_empresa) {
+        return await this.ingresosRepository
+            .createQueryBuilder('ingreso')
+            .where('ingreso.id_empresa = :id_empresa', { id_empresa })
+            .andWhere('ingreso.activo = true')
+            .andWhere("(ingreso.descripcion NOT LIKE '%[origen=terceros]%' OR ingreso.descripcion IS NULL)")
+            .leftJoinAndSelect('ingreso.salida', 'salida')
+            .orderBy('ingreso.fecha', 'DESC')
+            .getMany();
     }
     async findOne(id) {
         const ingreso = await this.ingresosRepository.findOne({
@@ -89,6 +102,7 @@ let IngresosService = class IngresosService {
             activo: true,
             id_empresa
         })
+            .andWhere("(ingreso.descripcion NOT LIKE '%[origen=terceros]%' OR ingreso.descripcion IS NULL)")
             .getRawOne();
         return parseFloat(result.total) || 0;
     }
@@ -100,6 +114,7 @@ let IngresosService = class IngresosService {
             activo: true,
             id_empresa
         })
+            .andWhere("(ingreso.descripcion NOT LIKE '%[origen=terceros]%' OR ingreso.descripcion IS NULL)")
             .andWhere('ingreso.fecha BETWEEN :fechaInicio AND :fechaFin', {
             fechaInicio,
             fechaFin,
@@ -117,6 +132,7 @@ let IngresosService = class IngresosService {
             activo: true,
             id_empresa
         })
+            .andWhere("(ingreso.descripcion NOT LIKE '%[origen=terceros]%' OR ingreso.descripcion IS NULL)")
             .groupBy('ingreso.tipo')
             .getRawMany();
         return result.map(item => ({

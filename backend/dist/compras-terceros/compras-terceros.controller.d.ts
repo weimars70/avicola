@@ -13,6 +13,29 @@ export declare class ComprasTercerosController {
         totalPendiente: number;
         promedioCompra: number;
     }>;
+    getInventarioCanastas(idEmpresa: number): Promise<{
+        resumen: {
+            totalCanastas: number;
+            valorTotal: number;
+            canastasDisponibles: number;
+            valorPromedio: number;
+        };
+        porCanasta: {
+            canastaId: any;
+            nombreCanasta: any;
+            totalUnidades: number;
+            valorTotal: number;
+            precioPromedio: number;
+            ultimaCompra: any;
+            canastasDisponibles: number;
+            stock: number;
+        }[];
+        evolucionMensual: {
+            mes: any;
+            compras: number;
+            valor: number;
+        }[];
+    }>;
     findOne(id: string, idEmpresa: number): Promise<import("./entities/compra.entity").Compra>;
     update(id: string, updateCompraDto: UpdateCompraDto, idEmpresa: number): Promise<import("./entities/compra.entity").Compra>;
     remove(id: string, idEmpresa: number): Promise<{

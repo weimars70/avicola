@@ -29,7 +29,7 @@ let ActividadesController = class ActividadesController {
 exports.ActividadesController = ActividadesController;
 __decorate([
     (0, common_1.Get)('recientes'),
-    __param(0, (0, empresa_decorator_1.IdEmpresaHeader)()),
+    __param(0, (0, empresa_decorator_1.IdEmpresa)()),
     __param(1, (0, common_1.Query)('limit')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number, String]),

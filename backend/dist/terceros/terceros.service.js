@@ -25,14 +25,16 @@ let TercerosService = class TercerosService {
         console.log('Service - crear tercero para empresa:', idEmpresa);
         console.log('Service - datos:', createTerceroDto);
         try {
-            const existe = await this.terceroRepository.findOne({
-                where: {
-                    identificacion: createTerceroDto.identificacion,
-                    idEmpresa: idEmpresa
+            if (createTerceroDto.identificacion) {
+                const existe = await this.terceroRepository.findOne({
+                    where: {
+                        identificacion: createTerceroDto.identificacion,
+                        idEmpresa: idEmpresa
+                    }
+                });
+                if (existe) {
+                    throw new common_1.BadRequestException('Ya existe un tercero con esta identificación en esta empresa');
                 }
-            });
-            if (existe) {
-                throw new common_1.BadRequestException('Ya existe un tercero con esta identificación en esta empresa');
             }
             const tercero = this.terceroRepository.create(Object.assign(Object.assign({}, createTerceroDto), { idEmpresa: idEmpresa }));
             console.log('Service - tercero a guardar:', tercero);
@@ -68,7 +70,7 @@ let TercerosService = class TercerosService {
     }
     async update(codigo, updateTerceroDto, idEmpresa) {
         const tercero = await this.findOne(codigo, idEmpresa);
-        if (updateTerceroDto.identificacion !== tercero.identificacion) {
+        if (updateTerceroDto.identificacion && updateTerceroDto.identificacion !== tercero.identificacion) {
             const existe = await this.terceroRepository.findOne({
                 where: {
                     identificacion: updateTerceroDto.identificacion,

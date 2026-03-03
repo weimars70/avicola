@@ -32,7 +32,7 @@ let ResumenController = class ResumenController {
 exports.ResumenController = ResumenController;
 __decorate([
     (0, common_1.Get)('resumen'),
-    __param(0, (0, empresa_decorator_1.IdEmpresaHeader)()),
+    __param(0, (0, empresa_decorator_1.IdEmpresa)()),
     __param(1, (0, common_1.Query)('galponId')),
     __param(2, (0, common_1.Query)('tipoHuevoId')),
     __metadata("design:type", Function),
@@ -41,7 +41,7 @@ __decorate([
 ], ResumenController.prototype, "getResumen", null);
 __decorate([
     (0, common_1.Get)('terceros-resumen'),
-    __param(0, (0, empresa_decorator_1.IdEmpresaHeader)()),
+    __param(0, (0, empresa_decorator_1.IdEmpresa)()),
     __param(1, (0, common_1.Query)('terceroId')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number, String]),

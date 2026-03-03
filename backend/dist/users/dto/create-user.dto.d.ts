@@ -5,5 +5,5 @@ export declare class CreateUserDto {
     password: string;
     rol?: string;
     activo?: boolean;
-    id_empresa: number;
+    id_empresa?: number;
 }

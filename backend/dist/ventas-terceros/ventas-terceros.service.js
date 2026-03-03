@@ -169,15 +169,6 @@ let VentasTercerosService = class VentasTercerosService {
             }
             return v;
         });
-        setImmediate(async () => {
-            try {
-                const ventaCompleta = await this.findOne(savedVenta.id, idEmpresa);
-                await this.createIngresoDesdeVenta(ventaCompleta, idEmpresa, idUsuario);
-            }
-            catch (error) {
-                console.error('Error al crear ingreso desde venta:', error);
-            }
-        });
         return await this.ventasRepository.findOne({
             where: { id: savedVenta.id, idEmpresa },
             relations: ['tercero', 'detalles', 'detalles.canasta']
@@ -295,12 +286,6 @@ let VentasTercerosService = class VentasTercerosService {
             await this.ventasRepository.save(venta);
         }
         const ventaActualizada = await this.findOne(id, idEmpresa);
-        try {
-            await this.syncIngresoDesdeVenta(ventaActualizada, idEmpresa, ventaActualizada.idUsuarioInserta || '');
-        }
-        catch (error) {
-            console.error('Error al sincronizar ingreso desde venta:', error);
-        }
         return ventaActualizada;
     }
     async remove(id, idEmpresa) {

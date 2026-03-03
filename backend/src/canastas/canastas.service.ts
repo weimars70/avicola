@@ -12,12 +12,12 @@ export class CanastasService {
     @InjectRepository(Canasta)
     private canastasRepository: Repository<Canasta>,
     private tiposHuevoService: TiposHuevoService,
-  ) {}
+  ) { }
 
   async create(createCanastaDto: CreateCanastaDto): Promise<Canasta> {
     // Validar que el tipo de huevo existe
     await this.tiposHuevoService.findOne(createCanastaDto.tipoHuevoId);
-    
+
     const canasta = this.canastasRepository.create(createCanastaDto);
     return this.canastasRepository.save(canasta);
   }

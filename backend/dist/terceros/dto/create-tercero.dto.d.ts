@@ -3,7 +3,7 @@ export declare class CreateTerceroDto {
     id?: number;
     tipoIdent?: number;
     tipo_ident?: number;
-    identificacion: string;
+    identificacion?: string;
     dv?: number;
     nombres?: string;
     primerApellido?: string;

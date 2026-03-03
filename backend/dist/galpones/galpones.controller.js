@@ -19,6 +19,7 @@ const galpones_service_1 = require("./galpones.service");
 const create_galpon_dto_1 = require("./dto/create-galpon.dto");
 const update_galpon_dto_1 = require("./dto/update-galpon.dto");
 const jwt_auth_guard_1 = require("../auth/jwt-auth.guard");
+const empresa_decorator_1 = require("../terceros/decorators/empresa.decorator");
 let GalponesController = GalponesController_1 = class GalponesController {
     constructor(galponesService) {
         this.galponesService = galponesService;
@@ -43,18 +44,18 @@ let GalponesController = GalponesController_1 = class GalponesController {
     findAll(id_empresa) {
         return this.galponesService.findAll(id_empresa);
     }
-    findAllIncludingInactive() {
-        return this.galponesService.findAllIncludingInactive();
+    findAllIncludingInactive(id_empresa) {
+        return this.galponesService.findAllIncludingInactive(id_empresa);
     }
-    findOne(id) {
-        return this.galponesService.findOne(id);
+    findOne(id, id_empresa) {
+        return this.galponesService.findOne(id, id_empresa);
     }
-    async update(id, updateGalponDto) {
+    async update(id, updateGalponDto, id_empresa) {
         this.logger.log('=== INICIO ACTUALIZACIÓN GALPÓN ===');
         this.logger.log('ID recibido en controlador:', id);
         this.logger.log('DTO recibido en controlador:', JSON.stringify(updateGalponDto));
         try {
-            const resultado = await this.galponesService.update(id, updateGalponDto);
+            const resultado = await this.galponesService.update(id, updateGalponDto, id_empresa);
             this.logger.log('Galpón actualizado exitosamente:', JSON.stringify(resultado));
             this.logger.log('=== FIN ACTUALIZACIÓN GALPÓN (ÉXITO) ===');
             return resultado;
@@ -66,11 +67,11 @@ let GalponesController = GalponesController_1 = class GalponesController {
             throw error;
         }
     }
-    async inactivate(id) {
+    async inactivate(id, id_empresa) {
         this.logger.log('=== INICIO INACTIVACIÓN GALPÓN ===');
         this.logger.log('ID recibido:', id);
         try {
-            await this.galponesService.remove(id);
+            await this.galponesService.remove(id, id_empresa);
             this.logger.log('Galpón inactivado exitosamente');
             this.logger.log('=== FIN INACTIVACIÓN GALPÓN (ÉXITO) ===');
             return { message: 'Galpón inactivado exitosamente' };
@@ -82,11 +83,11 @@ let GalponesController = GalponesController_1 = class GalponesController {
             throw error;
         }
     }
-    async reactivate(id) {
+    async reactivate(id, id_empresa) {
         this.logger.log('=== INICIO REACTIVACIÓN GALPÓN ===');
         this.logger.log('ID recibido:', id);
         try {
-            await this.galponesService.reactivate(id);
+            await this.galponesService.reactivate(id, id_empresa);
             this.logger.log('Galpón reactivado exitosamente');
             this.logger.log('=== FIN REACTIVACIÓN GALPÓN (ÉXITO) ===');
             return { message: 'Galpón reactivado exitosamente' };
@@ -109,44 +110,49 @@ __decorate([
 ], GalponesController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
-    __param(0, (0, common_1.Query)('id_empresa', new common_1.ParseIntPipe({ errorHttpStatusCode: 400 }))),
+    __param(0, (0, empresa_decorator_1.IdEmpresa)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
 ], GalponesController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Get)('all'),
+    __param(0, (0, empresa_decorator_1.IdEmpresa)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
 ], GalponesController.prototype, "findAllIncludingInactive", null);
 __decorate([
     (0, common_1.Get)(':id'),
     __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
+    __param(1, (0, empresa_decorator_1.IdEmpresa)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, Number]),
     __metadata("design:returntype", void 0)
 ], GalponesController.prototype, "findOne", null);
 __decorate([
     (0, common_1.Patch)(':id'),
     __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
     __param(1, (0, common_1.Body)()),
+    __param(2, (0, empresa_decorator_1.IdEmpresa)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, update_galpon_dto_1.UpdateGalponDto]),
+    __metadata("design:paramtypes", [String, update_galpon_dto_1.UpdateGalponDto, Number]),
     __metadata("design:returntype", Promise)
 ], GalponesController.prototype, "update", null);
 __decorate([
     (0, common_1.Patch)(':id/inactivar'),
     __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
+    __param(1, (0, empresa_decorator_1.IdEmpresa)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, Number]),
     __metadata("design:returntype", Promise)
 ], GalponesController.prototype, "inactivate", null);
 __decorate([
     (0, common_1.Patch)(':id/reactivar'),
     __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
+    __param(1, (0, empresa_decorator_1.IdEmpresa)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, Number]),
     __metadata("design:returntype", Promise)
 ], GalponesController.prototype, "reactivate", null);
 exports.GalponesController = GalponesController = GalponesController_1 = __decorate([

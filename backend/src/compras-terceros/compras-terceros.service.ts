@@ -119,7 +119,7 @@ export class ComprasTercerosService {
 
     async findAll(idEmpresa: number) {
         return await this.comprasRepository.find({
-            where: { idEmpresa, tipoMovimiento: 2, activo: true, tercero: { idEmpresa } },
+            where: { idEmpresa, tipoMovimiento: 2, activo: true },
             relations: ['tercero', 'detalles'],
             order: { fecha: 'DESC' },
         });

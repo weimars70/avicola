@@ -131,15 +131,15 @@ export const useHistorialFinancieroStore = defineStore('historialFinanciero', ()
   const loadHistorial = async (filtrosParam?: FiltrosHistorial) => {
     loading.value = true;
     error.value = null;
-    
+
     try {
       // Cargar información de inversión inicial
       const inversionStore = useInversionInicialStore();
       await inversionStore.loadInversionInicial();
-      
+
       // Cargar gastos e ingresos reales del backend
       const [gastosResponse, ingresosResponse] = await Promise.all([
-        filtrosParam?.fechaInicio && filtrosParam?.fechaFin 
+        filtrosParam?.fechaInicio && filtrosParam?.fechaFin
           ? api.get(`/gastos/by-date-range?fechaInicio=${filtrosParam.fechaInicio}&fechaFin=${filtrosParam.fechaFin}`)
           : api.get('/gastos'),
         filtrosParam?.fechaInicio && filtrosParam?.fechaFin
@@ -190,11 +190,11 @@ export const useHistorialFinancieroStore = defineStore('historialFinanciero', ()
 
       // No agregar transacción de inversión inicial por separado ya que viene incluida en los gastos del backend
       // La inversión inicial se crea como un gasto regular con categoría 'Inversión Inicial'
-      
+
       // Combinar y ordenar por fecha (más recientes primero)
       transacciones.value = [...transaccionesGastos, ...transaccionesIngresos]
         .sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
-      
+
       if (filtrosParam) {
         filtros.value = { ...filtrosParam };
       }
@@ -209,16 +209,16 @@ export const useHistorialFinancieroStore = defineStore('historialFinanciero', ()
   const updateTransaccion = async (id: string, data: Partial<TransaccionFinanciera>) => {
     loading.value = true;
     error.value = null;
-    
+
     try {
       // Determinar si es gasto o ingreso por el ID
       const isIngreso = id.startsWith('ing-');
       const realId = isIngreso ? id.replace('ing-', '') : id;
-      
+
       if (isIngreso) {
         // Encontrar la transacción actual para obtener salidaId
         const transaccionActual = transacciones.value.find(t => t.id === id);
-        
+
         // Actualizar ingreso
         await api.patch(`/ingresos/${realId}`, {
           descripcion: data.descripcion,
@@ -228,7 +228,7 @@ export const useHistorialFinancieroStore = defineStore('historialFinanciero', ()
           referencia: data.referencia,
           observaciones: data.observaciones
         });
-        
+
         // Actualizar la transacción en la lista local para reflejar cambios inmediatamente
         const index = transacciones.value.findIndex(t => t.id === id);
         if (index !== -1 && transacciones.value[index]) {
@@ -253,7 +253,7 @@ export const useHistorialFinancieroStore = defineStore('historialFinanciero', ()
           };
           transacciones.value[index] = transaccionActualizada as TransaccionFinanciera;
         }
-        
+
         // Si el ingreso proviene de una salida, actualizar también la salida
         if (transaccionActual?.salidaId && (data.monto !== undefined || data.nombreComprador !== undefined)) {
           try {
@@ -329,7 +329,7 @@ export const useHistorialFinancieroStore = defineStore('historialFinanciero', ()
         console.log('URL:', `/salidas/${realSalidaId}`);
 
         await api.patch(`/salidas/${realSalidaId}`, salidaPayload);
-        
+
         // Actualizar también el store de salidas para mantener sincronización
         try {
           const { useSalidasStore } = await import('./salidas');
@@ -361,14 +361,14 @@ export const useHistorialFinancieroStore = defineStore('historialFinanciero', ()
           };
           transacciones.value[index] = transaccionActualizada as TransaccionFinanciera;
         }
-        
+
         // Recargar datos para asegurar sincronización
         await loadHistorial(filtros.value);
       } else {
         // Actualizar gasto - necesitamos obtener el categoriaId de la transacción actual
         const transaccionActual = transacciones.value.find(t => t.id === id);
         const categoriaId = transaccionActual?.detalles?.categoriaId;
-        
+
         // Si no tenemos categoriaId, buscar por nombre de categoría
         let finalCategoriaId = categoriaId;
         if (!finalCategoriaId && data.categoria) {
@@ -380,7 +380,7 @@ export const useHistorialFinancieroStore = defineStore('historialFinanciero', ()
             console.warn('Error al obtener categorías:', error);
           }
         }
-        
+
         const gastoPayload = {
           descripcion: data.descripcion,
           monto: data.monto,
@@ -388,12 +388,12 @@ export const useHistorialFinancieroStore = defineStore('historialFinanciero', ()
           observaciones: data.observaciones,
           categoriaId: finalCategoriaId || 1 // Default a 1 si no se encuentra
         };
-        
+
         console.log('Enviando datos de gasto:', gastoPayload);
         console.log('URL:', `/gastos/${realId}`);
-        
+
         await api.patch(`/gastos/${realId}`, gastoPayload);
-        
+
         // Actualizar la transacción en la lista local para reflejar cambios inmediatamente
         const index = transacciones.value.findIndex(t => t.id === id);
         if (index !== -1 && transacciones.value[index]) {
@@ -418,7 +418,7 @@ export const useHistorialFinancieroStore = defineStore('historialFinanciero', ()
           transacciones.value[index] = transaccionActualizada as TransaccionFinanciera;
         }
       }
-      
+
       // Recargar datos
       await loadHistorial(filtros.value);
       return { success: true };
@@ -434,19 +434,19 @@ export const useHistorialFinancieroStore = defineStore('historialFinanciero', ()
   const deleteTransaccion = async (id: string) => {
     loading.value = true;
     error.value = null;
-    
+
     try {
       // Determinar si es gasto o ingreso por el ID
       const isIngreso = id.startsWith('ing-');
       const realId = isIngreso ? id.replace('ing-', '') : id;
-      
+
       if (isIngreso) {
         // Encontrar la transacción actual para obtener salidaId
         const transaccionActual = transacciones.value.find(t => t.id === id);
-        
+
         // Eliminar ingreso
         await api.delete(`/ingresos/${realId}`);
-        
+
         // Si el ingreso proviene de una salida, eliminar también la salida
         if (transaccionActual?.salidaId) {
           try {
@@ -460,7 +460,7 @@ export const useHistorialFinancieroStore = defineStore('historialFinanciero', ()
         // Eliminar gasto
         await api.delete(`/gastos/${realId}`);
       }
-      
+
       // Recargar datos
       await loadHistorial(filtros.value);
       return { success: true };
@@ -476,7 +476,7 @@ export const useHistorialFinancieroStore = defineStore('historialFinanciero', ()
   const createTransaccion = async (data: Omit<TransaccionFinanciera, 'id' | 'createdAt' | 'updatedAt'>) => {
     loading.value = true;
     error.value = null;
-    
+
     try {
       if (data.tipo === 'ingreso') {
         // Crear ingreso
@@ -492,7 +492,7 @@ export const useHistorialFinancieroStore = defineStore('historialFinanciero', ()
         // Crear gasto - necesitamos obtener el categoriaId
         const categoriasResponse = await api.get('/categorias-gastos');
         const categoria = categoriasResponse.data.find((cat: { id: number; nombre: string }) => cat.nombre === data.categoria);
-        
+
         await api.post('/gastos', {
           descripcion: data.descripcion,
           monto: data.monto,
@@ -502,7 +502,7 @@ export const useHistorialFinancieroStore = defineStore('historialFinanciero', ()
           observaciones: data.observaciones
         });
       }
-      
+
       // Recargar datos
       await loadHistorial(filtros.value);
       return { success: true };
@@ -537,14 +537,14 @@ export const useHistorialFinancieroStore = defineStore('historialFinanciero', ()
     loading,
     error,
     filtros,
-    
+
     // Getters
     transaccionesFiltradas,
     totalIngresos,
     totalGastos,
     balanceNeto,
     categorias,
-    
+
     // Acciones
     loadHistorial,
     createTransaccion,

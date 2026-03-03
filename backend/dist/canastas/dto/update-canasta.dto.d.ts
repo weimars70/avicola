@@ -4,6 +4,5 @@ export declare class UpdateCanastaDto {
     valorCanasta?: number;
     unidadesPorCanasta?: number;
     tipoHuevoId?: string;
-    id_empresa?: number;
     activo?: boolean;
 }

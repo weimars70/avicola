@@ -27,14 +27,14 @@ let InventarioStockService = class InventarioStockService {
     }
     async findAll(id_empresa) {
         return await this.inventarioRepository.find({
-            where: { id_empresa },
+            where: { id_empresa, tipoHuevo: { id_empresa } },
             relations: ['tipoHuevo'],
             order: { tipoHuevo: { nombre: 'ASC' } },
         });
     }
     async findByTipoHuevo(tipoHuevoId, id_empresa) {
         return await this.inventarioRepository.findOne({
-            where: { tipoHuevoId, id_empresa },
+            where: { tipoHuevoId, id_empresa, tipoHuevo: { id_empresa } },
             relations: ['tipoHuevo'],
         });
     }
@@ -92,7 +92,7 @@ let InventarioStockService = class InventarioStockService {
     async getVistaInventario(id_empresa) {
         const inventarios = await this.inventarioRepository.find({
             relations: ['tipoHuevo'],
-            where: { id_empresa },
+            where: { id_empresa, tipoHuevo: { id_empresa } },
             order: { unidades: 'DESC' }
         });
         return inventarios.map(item => ({

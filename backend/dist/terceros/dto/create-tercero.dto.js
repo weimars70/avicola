@@ -35,6 +35,7 @@ __decorate([
     __metadata("design:type", Number)
 ], CreateTerceroDto.prototype, "tipo_ident", void 0);
 __decorate([
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CreateTerceroDto.prototype, "identificacion", void 0);

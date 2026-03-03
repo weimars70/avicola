@@ -10,6 +10,7 @@ export declare class IngresosService {
     create(createIngresoDto: CreateIngresoDto): Promise<Ingreso>;
     findAll(id_empresa: number): Promise<Ingreso[]>;
     findAllIncludingInactive(id_empresa: number): Promise<Ingreso[]>;
+    findAllExcludingTerceros(id_empresa: number): Promise<Ingreso[]>;
     findOne(id: string): Promise<Ingreso>;
     findByDateRange(fechaInicio: string, fechaFin: string, id_empresa: number): Promise<Ingreso[]>;
     findByTipo(tipo: string, id_empresa: number): Promise<Ingreso[]>;

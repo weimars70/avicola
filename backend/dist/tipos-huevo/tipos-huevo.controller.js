@@ -29,8 +29,8 @@ let TiposHuevoController = class TiposHuevoController {
     findAll(id_empresa) {
         return this.tiposHuevoService.findAll(id_empresa);
     }
-    findAllIncludingInactive() {
-        return this.tiposHuevoService.findAllIncludingInactive();
+    findAllIncludingInactive(id_empresa) {
+        return this.tiposHuevoService.findAllIncludingInactive(id_empresa);
     }
     findOne(id) {
         return this.tiposHuevoService.findOne(id);
@@ -52,15 +52,16 @@ __decorate([
 ], TiposHuevoController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
-    __param(0, (0, empresa_decorator_1.IdEmpresaHeader)()),
+    __param(0, (0, empresa_decorator_1.IdEmpresa)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
 ], TiposHuevoController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Get)('all'),
+    __param(0, (0, empresa_decorator_1.IdEmpresa)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
 ], TiposHuevoController.prototype, "findAllIncludingInactive", null);
 __decorate([

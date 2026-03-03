@@ -3,7 +3,7 @@ import { TipoHuevo } from '../../tipos-huevo/entities/tipo-huevo.entity';
 import { User } from '../../users/entities/user.entity';
 export declare class EntradaProduccion {
     id: string;
-    galponId: string;
+    galponId: string | null;
     fecha: Date;
     tipoHuevoId: string;
     unidades: number;

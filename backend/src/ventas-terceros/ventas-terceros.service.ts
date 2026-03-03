@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Like } from 'typeorm';
 import { Venta } from './entities/venta.entity';
 import { DetalleVenta } from './entities/detalle-venta.entity';
 import { CreateVentaDto } from './dto/create-venta.dto';
@@ -208,16 +208,8 @@ export class VentasTercerosService {
             return v;
         });
 
-        // Crear el ingreso financiero de forma asíncrona (no bloqueante)
-        // Usar setImmediate para no bloquear la respuesta
-        setImmediate(async () => {
-            try {
-                const ventaCompleta = await this.findOne(savedVenta.id, idEmpresa);
-                await this.createIngresoDesdeVenta(ventaCompleta, idEmpresa, idUsuario);
-            } catch (error) {
-                console.error('Error al crear ingreso desde venta:', error);
-            }
-        });
+        // Ingreso de Finanzas Terceros se maneja en la propia página de Ventas-Terceros.
+        // NO escribir al módulo general de ingresos para evitar duplicado en Finanzas general.
 
         // Retornar la venta básica inmediatamente para evitar timeout
         return await this.ventasRepository.findOne({
@@ -232,12 +224,11 @@ export class VentasTercerosService {
                 idEmpresa,
                 tipoMovimiento: 2, // Solo ventas de terceros
                 activo: true,
-                tercero: { idEmpresa },
             },
             relations: ['tercero', 'detalles', 'detalles.canasta'],
             order: {
                 fecha: 'DESC',
-                createdAt: 'DESC' // Orden por fecha de creación también
+                createdAt: 'DESC'
             },
         });
     }
@@ -292,7 +283,7 @@ export class VentasTercerosService {
                 // Eliminar detalles anteriores
                 await detallesRepo.delete({ idVenta: id });
 
-                // Marcar movimientos anteriores como inactivos
+                // Marcar movimientos de inventario terceros anteriores como inactivos
                 await invRepo.createQueryBuilder()
                     .update()
                     .set({ activo: false })
@@ -302,6 +293,31 @@ export class VentasTercerosService {
                         desc: `%${venta.numeroFactura || venta.id}%`
                     })
                     .execute();
+
+                // Marcar SALIDAS anteriores como inactivas y REVERTIR inventario propio
+                const salidasRepo = manager.getRepository(Salida);
+                const inventarioRepo = manager.getRepository(Inventario);
+
+                const salidasAnteriores = await salidasRepo.find({
+                    where: {
+                        id_empresa: idEmpresa,
+                        activo: true,
+                        nombreComprador: Like(`%Venta Tercero: ${venta.numeroFactura || venta.id}%`)
+                    }
+                });
+
+                for (const s of salidasAnteriores) {
+                    s.activo = false;
+                    await salidasRepo.save(s);
+
+                    const invPropio = await inventarioRepo.findOne({
+                        where: { tipoHuevoId: s.tipoHuevoId, id_empresa: idEmpresa }
+                    });
+                    if (invPropio) {
+                        invPropio.unidades += s.unidades;
+                        await inventarioRepo.save(invPropio);
+                    }
+                }
 
                 // Validar stock DENTRO de la transacción
                 for (const d of nuevosDetalles) {
@@ -338,11 +354,13 @@ export class VentasTercerosService {
 
                 // Crear nuevos movimientos de inventario
                 for (const d of detalles) {
-                    if ((d.inventarioOrigen ?? 2) === 2) {
-                        const canastaCodigo = d.canastaId || '';
-                        const cantidadCanastas = Number(d.cantidad);
-                        const precioCanasta = Number(d.precioUnitario);
+                    const origen = d.inventarioOrigen ?? 2;
+                    const canastaCodigo = d.canastaId || '';
+                    const cantidadCanastas = Number(d.cantidad);
+                    const precioCanasta = Number(d.precioUnitario);
 
+                    if (origen === 2) {
+                        // INVENTARIO DE TERCEROS
                         const stockAnterior = await this.getStockActualTercerosWithRepo(invRepo, idEmpresa, venta.idTercero, canastaCodigo);
 
                         const movimiento = invRepo.create({
@@ -360,6 +378,33 @@ export class VentasTercerosService {
                             activo: true,
                         });
                         await invRepo.save(movimiento);
+                    } else if (origen === 1) {
+                        // INVENTARIO PROPIO
+                        const canasta = await this.canastasRepo.findOne({ where: { id: canastaCodigo }, relations: ['tipoHuevo'] });
+                        if (canasta && canasta.tipoHuevo) {
+                            const unidadesTotal = cantidadCanastas * canasta.unidadesPorCanasta;
+
+                            const salida = salidasRepo.create({
+                                tipoHuevoId: canasta.tipoHuevo.id,
+                                canastaId: canastaCodigo,
+                                nombreComprador: `Venta Tercero: ${venta.numeroFactura || venta.id}`,
+                                unidades: unidadesTotal,
+                                valor: cantidadCanastas * precioCanasta,
+                                fecha: venta.fecha,
+                                activo: true,
+                                id_empresa: idEmpresa,
+                                id_usuario_inserta: venta.idUsuarioInserta,
+                            });
+                            await salidasRepo.save(salida);
+
+                            const inv = await inventarioRepo.findOne({
+                                where: { tipoHuevoId: canasta.tipoHuevo.id, id_empresa: idEmpresa }
+                            });
+                            if (inv) {
+                                inv.unidades = Math.max(0, inv.unidades - unidadesTotal);
+                                await inventarioRepo.save(inv);
+                            }
+                        }
                     }
                 }
 
@@ -377,12 +422,8 @@ export class VentasTercerosService {
 
         const ventaActualizada = await this.findOne(id, idEmpresa);
 
-        try {
-            await this.syncIngresoDesdeVenta(ventaActualizada, idEmpresa, ventaActualizada.idUsuarioInserta || '');
-        } catch (error) {
-            console.error('Error al sincronizar ingreso desde venta:', error);
-            // No fallar la actualización si falla la sincronización del ingreso
-        }
+        // Ingreso de Finanzas Terceros se maneja en la propia página de Ventas-Terceros.
+        // NO sincronizar con ingresos generales para evitar duplicado.
 
         return ventaActualizada;
     }
@@ -402,18 +443,35 @@ export class VentasTercerosService {
                 await this.ingresosService.remove(ingresoRelacionado.id);
             }
         } catch { }
-        // Marcar movimientos de inventario terceros como inactivos
+        // Marcar SALIDAS relacionadas como inactivas y REVERTIR inventario propio
         try {
-            await this.invTercerosRepo.createQueryBuilder()
-                .update()
-                .set({ activo: false })
-                .where('id_empresa = :idEmpresa AND concepto = :concepto AND descripcion LIKE :desc', {
-                    idEmpresa,
-                    concepto: 'Venta terceros',
-                    desc: `%${venta.numeroFactura || ''}%`
-                })
-                .execute();
-        } catch { }
+            const inventarioRepo = this.ventasRepository.manager.getRepository(Inventario);
+            const salidasRepo = this.ventasRepository.manager.getRepository(Salida);
+
+            const salidasAnteriores = await salidasRepo.find({
+                where: {
+                    id_empresa: idEmpresa,
+                    activo: true,
+                    nombreComprador: Like(`%Venta Tercero: ${venta.numeroFactura || venta.id}%`)
+                }
+            });
+
+            for (const s of salidasAnteriores) {
+                s.activo = false;
+                await salidasRepo.save(s);
+
+                const invPropio = await inventarioRepo.findOne({
+                    where: { tipoHuevoId: s.tipoHuevoId, id_empresa: idEmpresa }
+                });
+                if (invPropio) {
+                    invPropio.unidades += s.unidades;
+                    await inventarioRepo.save(invPropio);
+                }
+            }
+        } catch (e) {
+            console.error('Error al revertir salidas/inventario propio en remove:', e);
+        }
+
         return { message: 'Venta eliminada correctamente' };
     }
 

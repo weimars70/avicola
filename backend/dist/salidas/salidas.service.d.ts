@@ -21,4 +21,5 @@ export declare class SalidasService {
     remove(id: string, id_empresa: number): Promise<void>;
     getSalidasDiarias(fechaInicio: string, fechaFin: string, id_empresa?: number): Promise<any[]>;
     getCanastasDiarias(fechaInicio: string, fechaFin: string, id_empresa?: number): Promise<any[]>;
+    getResumenCanastas(fechaInicio: string, fechaFin: string, id_empresa?: number): Promise<any[]>;
 }

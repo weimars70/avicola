@@ -30,14 +30,14 @@ __decorate([
     __metadata("design:type", String)
 ], CreateCanastaDto.prototype, "descripcion", void 0);
 __decorate([
-    (0, class_validator_1.IsNumber)({ maxDecimalPlaces: 2 }),
     (0, class_transformer_1.Type)(() => Number),
+    (0, class_validator_1.IsNumber)(),
     (0, class_validator_1.Min)(0),
     __metadata("design:type", Number)
 ], CreateCanastaDto.prototype, "valorCanasta", void 0);
 __decorate([
-    (0, class_validator_1.IsInt)(),
     (0, class_transformer_1.Type)(() => Number),
+    (0, class_validator_1.IsInt)(),
     (0, class_validator_1.Min)(1),
     __metadata("design:type", Number)
 ], CreateCanastaDto.prototype, "unidadesPorCanasta", void 0);
@@ -45,11 +45,6 @@ __decorate([
     (0, class_validator_1.IsUUID)(),
     __metadata("design:type", String)
 ], CreateCanastaDto.prototype, "tipoHuevoId", void 0);
-__decorate([
-    (0, class_validator_1.IsInt)(),
-    (0, class_transformer_1.Type)(() => Number),
-    __metadata("design:type", Number)
-], CreateCanastaDto.prototype, "id_empresa", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsBoolean)(),

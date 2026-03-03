@@ -16,6 +16,7 @@ class EntradaProduccionItem {
 }
 exports.EntradaProduccionItem = EntradaProduccionItem;
 __decorate([
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], EntradaProduccionItem.prototype, "tipoHuevoId", void 0);
@@ -28,6 +29,7 @@ class CreateEntradasMasivasDto {
 }
 exports.CreateEntradasMasivasDto = CreateEntradasMasivasDto;
 __decorate([
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CreateEntradasMasivasDto.prototype, "galponId", void 0);

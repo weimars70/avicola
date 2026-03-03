@@ -30,6 +30,9 @@ let SalidasController = class SalidasController {
     findAll(id_empresa) {
         return this.salidasService.findAll(id_empresa);
     }
+    getResumenCanastas(fechaInicio, fechaFin, id_empresa) {
+        return this.salidasService.getResumenCanastas(fechaInicio, fechaFin, id_empresa);
+    }
     findOne(id, id_empresa) {
         return this.salidasService.findOne(id, id_empresa);
     }
@@ -45,22 +48,31 @@ __decorate([
     (0, common_1.Post)(),
     (0, common_1.UsePipes)(new common_1.ValidationPipe({ transform: true })),
     __param(0, (0, common_1.Body)()),
-    __param(1, (0, empresa_decorator_1.IdEmpresaHeader)()),
+    __param(1, (0, empresa_decorator_1.IdEmpresa)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [create_salida_dto_1.CreateSalidaDto, Number]),
     __metadata("design:returntype", void 0)
 ], SalidasController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
-    __param(0, (0, empresa_decorator_1.IdEmpresaHeader)()),
+    __param(0, (0, empresa_decorator_1.IdEmpresa)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
 ], SalidasController.prototype, "findAll", null);
 __decorate([
+    (0, common_1.Get)('resumen-canastas'),
+    __param(0, (0, common_1.Query)('fechaInicio')),
+    __param(1, (0, common_1.Query)('fechaFin')),
+    __param(2, (0, empresa_decorator_1.IdEmpresa)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, Number]),
+    __metadata("design:returntype", void 0)
+], SalidasController.prototype, "getResumenCanastas", null);
+__decorate([
     (0, common_1.Get)(':id'),
     __param(0, (0, common_1.Param)('id')),
-    __param(1, (0, empresa_decorator_1.IdEmpresaHeader)()),
+    __param(1, (0, empresa_decorator_1.IdEmpresa)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, Number]),
     __metadata("design:returntype", void 0)
@@ -70,7 +82,7 @@ __decorate([
     (0, common_1.UsePipes)(new common_1.ValidationPipe({ transform: true })),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
-    __param(2, (0, empresa_decorator_1.IdEmpresaHeader)()),
+    __param(2, (0, empresa_decorator_1.IdEmpresa)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, update_salida_dto_1.UpdateSalidaDto, Number]),
     __metadata("design:returntype", void 0)
@@ -78,7 +90,7 @@ __decorate([
 __decorate([
     (0, common_1.Delete)(':id'),
     __param(0, (0, common_1.Param)('id')),
-    __param(1, (0, empresa_decorator_1.IdEmpresaHeader)()),
+    __param(1, (0, empresa_decorator_1.IdEmpresa)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, Number]),
     __metadata("design:returntype", void 0)

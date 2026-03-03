@@ -524,7 +524,7 @@ const filteredTerceros = computed(() => {
     const searchLower = filters.value.search.toLowerCase();
     result = result.filter(t => 
       t.nombre.toLowerCase().includes(searchLower) || 
-      t.identificacion.toLowerCase().includes(searchLower) ||
+      (t.identificacion ?? '').toLowerCase().includes(searchLower) ||
       (t.email && t.email.toLowerCase().includes(searchLower))
     );
   }

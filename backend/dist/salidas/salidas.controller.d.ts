@@ -6,6 +6,7 @@ export declare class SalidasController {
     constructor(salidasService: SalidasService);
     create(createSalidaDto: CreateSalidaDto, id_empresa: number): Promise<import("./entities/salida.entity").Salida>;
     findAll(id_empresa: number): Promise<import("./entities/salida.entity").Salida[]>;
+    getResumenCanastas(fechaInicio: string, fechaFin: string, id_empresa: number): Promise<any[]>;
     findOne(id: string, id_empresa: number): Promise<import("./entities/salida.entity").Salida>;
     update(id: string, updateSalidaDto: UpdateSalidaDto, id_empresa: number): Promise<import("./entities/salida.entity").Salida>;
     remove(id: string, id_empresa: number): Promise<void>;

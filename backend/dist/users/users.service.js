@@ -56,15 +56,30 @@ let UsersService = class UsersService {
         this.userRepository = userRepository;
     }
     async create(createUserDto) {
+        console.log(`👤 Intentando crear usuario: ${createUserDto.email}`);
         const existingUser = await this.userRepository.findOne({
             where: { email: createUserDto.email },
         });
         if (existingUser) {
+            console.warn(`⚠️ Email ya existe: ${createUserDto.email} `);
             throw new common_1.ConflictException('El email ya está registrado');
         }
         const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
-        const user = this.userRepository.create(Object.assign(Object.assign({}, createUserDto), { password: hashedPassword }));
-        return this.userRepository.save(user);
+        let id_empresa = createUserDto.id_empresa;
+        if (!id_empresa) {
+            console.log('🏢 Generando id_empresa automático para registro nuevo...');
+            const result = await this.userRepository
+                .createQueryBuilder('user')
+                .select('MAX(user.id_empresa)', 'max')
+                .getRawOne();
+            const maxId = (result === null || result === void 0 ? void 0 : result.max) || 0;
+            id_empresa = maxId + 1;
+            console.log(`🆕 Nuevo id_empresa asignado: ${id_empresa} `);
+        }
+        const user = this.userRepository.create(Object.assign(Object.assign({}, createUserDto), { password: hashedPassword, id_empresa }));
+        const savedUser = await this.userRepository.save(user);
+        console.log(`✅ Usuario creado exitosamente: ${savedUser.email} (empresa: ${savedUser.id_empresa})`);
+        return savedUser;
     }
     async findAll() {
         return this.userRepository.find({

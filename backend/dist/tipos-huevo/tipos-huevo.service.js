@@ -56,8 +56,9 @@ let TiposHuevoService = class TiposHuevoService {
         tipoHuevo.updatedAt = new Date();
         await this.tiposHuevoRepository.save(tipoHuevo);
     }
-    async findAllIncludingInactive() {
+    async findAllIncludingInactive(id_empresa) {
         return await this.tiposHuevoRepository.find({
+            where: { id_empresa },
             order: { nombre: 'ASC' },
         });
     }

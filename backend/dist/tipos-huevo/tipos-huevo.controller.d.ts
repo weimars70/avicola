@@ -6,7 +6,7 @@ export declare class TiposHuevoController {
     constructor(tiposHuevoService: TiposHuevoService);
     create(createTipoHuevoDto: CreateTipoHuevoDto): Promise<import("./entities/tipo-huevo.entity").TipoHuevo>;
     findAll(id_empresa: number): Promise<import("./entities/tipo-huevo.entity").TipoHuevo[]>;
-    findAllIncludingInactive(): Promise<import("./entities/tipo-huevo.entity").TipoHuevo[]>;
+    findAllIncludingInactive(id_empresa: number): Promise<import("./entities/tipo-huevo.entity").TipoHuevo[]>;
     findOne(id: string): Promise<import("./entities/tipo-huevo.entity").TipoHuevo>;
     update(id: string, updateTipoHuevoDto: UpdateTipoHuevoDto): Promise<import("./entities/tipo-huevo.entity").TipoHuevo>;
     remove(id: string): Promise<void>;

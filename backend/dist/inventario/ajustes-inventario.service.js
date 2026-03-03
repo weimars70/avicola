@@ -64,13 +64,13 @@ let AjustesInventarioService = class AjustesInventarioService {
     async findAll(id_empresa) {
         return await this.ajustesRepository.find({
             relations: ['tipoHuevo', 'usuario'],
-            where: { tipoHuevo: { id_empresa } },
+            where: { id_empresa },
             order: { createdAt: 'DESC' },
         });
     }
     async findByTipoHuevo(tipoHuevoId, id_empresa) {
         return await this.ajustesRepository.find({
-            where: { tipoHuevoId, tipoHuevo: { id_empresa } },
+            where: { tipoHuevoId, id_empresa },
             relations: ['tipoHuevo', 'usuario'],
             order: { createdAt: 'DESC' },
         });
@@ -144,7 +144,7 @@ let AjustesInventarioService = class AjustesInventarioService {
     async findAllLotes(id_empresa) {
         return await this.ajustesLoteRepository.find({
             relations: ['usuario', 'ajustes', 'ajustes.tipoHuevo'],
-            where: { ajustes: { tipoHuevo: { id_empresa } } },
+            where: { id_empresa },
             order: { createdAt: 'DESC' },
         });
     }

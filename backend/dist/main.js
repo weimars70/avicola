@@ -1,32 +1,93 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.GlobalExceptionFilter = void 0;
 const core_1 = require("@nestjs/core");
+process.env.TZ = 'America/Bogota';
 const app_module_1 = require("./app.module");
 const common_1 = require("@nestjs/common");
+const fs = __importStar(require("fs"));
+const path = __importStar(require("path"));
 let GlobalExceptionFilter = class GlobalExceptionFilter {
     catch(exception, host) {
-        console.error('🔥 Excepción global atrapada:', exception);
         const ctx = host.switchToHttp();
         const response = ctx.getResponse();
         const request = ctx.getRequest();
-        console.log('📍 Request que causó el error:', {
+        const status = exception instanceof common_1.HttpException ? exception.getStatus() : 500;
+        let message = exception.message;
+        if (exception.response) {
+            if (typeof exception.response === 'object') {
+                message = exception.response.message || exception.message;
+            }
+            else {
+                message = exception.response;
+            }
+        }
+        const errorLog = {
+            timestamp: new Date().toISOString(),
+            path: request.url,
             method: request.method,
-            url: request.url,
             body: request.body,
             query: request.query,
-            headers: request.headers
-        });
-        const status = exception instanceof common_1.HttpException ? exception.getStatus() : 500;
+            exception: {
+                name: exception.name,
+                message: message,
+                rawResponse: exception.response,
+                stack: exception.stack
+            }
+        };
+        const logMessage = `\n--- ERROR [${errorLog.timestamp}] ---\n${JSON.stringify(errorLog, null, 2)}\n`;
+        try {
+            const logFilePath = path.join(process.cwd(), 'debug_api.log');
+            fs.appendFileSync(logFilePath, logMessage);
+        }
+        catch (err) {
+            console.error('No se pudo escribir en debug_api.log:', err);
+        }
+        console.error('🔥 [FILTER] Excepción caught:', message);
         response.status(status).json({
-            error: exception.message,
-            timestamp: new Date().toISOString(),
+            statusCode: status,
+            error: exception.name || 'Error',
+            message: message,
+            timestamp: errorLog.timestamp,
             path: request.url
         });
     }
@@ -42,10 +103,26 @@ async function bootstrap() {
     });
     console.log('✅ 2. Aplicación NestJS creada exitosamente');
     app.use((req, res, next) => {
-        console.log(`📥 3. REQUEST RECIBIDO: ${req.method} ${req.url}`);
-        console.log('📋 Headers:', req.headers);
-        console.log('🔍 Query:', req.query);
-        console.log('📦 Body:', req.body);
+        const logInfo = {
+            timestamp: new Date().toISOString(),
+            method: req.method,
+            url: req.url,
+            query: req.query,
+            body: req.body,
+            headers: {
+                'content-type': req.headers['content-type'],
+                'authorization': req.headers['authorization'] ? 'Present' : 'Absent',
+                'x-empresa-id': req.headers['x-empresa-id']
+            }
+        };
+        const logMessage = `\n>>> REQUEST [${logInfo.timestamp}] ${logInfo.method} ${logInfo.url}\n${JSON.stringify(logInfo, null, 2)}\n`;
+        try {
+            const logFilePath = path.join(process.cwd(), 'debug_api.log');
+            fs.appendFileSync(logFilePath, logMessage);
+        }
+        catch (err) {
+        }
+        console.log(`📥 [REQ] ${req.method} ${req.url}`);
         next();
     });
     console.log('✅ 4. Middleware de logging configurado');
@@ -96,15 +173,21 @@ async function bootstrap() {
     console.log('🔧 8. Configurando ValidationPipe...');
     app.useGlobalPipes(new common_1.ValidationPipe({
         whitelist: true,
-        forbidNonWhitelisted: true,
+        forbidNonWhitelisted: false,
         transform: true,
     }));
     console.log('✅ 9. ValidationPipe configurado');
     const port = process.env.PORT || 3012;
-    console.log(`🔧 10. Iniciando servidor en puerto ${port}...`);
-    await app.listen(port);
-    console.log(`🎉 11. Servidor ejecutándose exitosamente en http://localhost:${port}`);
-    console.log('🔍 12. Esperando requests...');
+    console.log(`🔧 10. Iniciando servidor en puerto ${port} (0.0.0.0)...`);
+    try {
+        await app.listen(port, '0.0.0.0');
+        console.log(`🎉 11. Servidor ejecutándose exitosamente en http://0.0.0.0:${port}`);
+        console.log('🔍 12. Esperando requests...');
+    }
+    catch (error) {
+        console.error('💥 ERROR AL INICIAR SERVIDOR:', error);
+        process.exit(1);
+    }
 }
 console.log('🏁 0. Ejecutando bootstrap...');
 bootstrap().catch(err => {

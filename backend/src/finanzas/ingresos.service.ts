@@ -13,7 +13,7 @@ export class IngresosService {
     private ingresosRepository: Repository<Ingreso>,
     @Inject(forwardRef(() => SalidasService))
     private salidasService: SalidasService,
-  ) {}
+  ) { }
 
   async create(createIngresoDto: CreateIngresoDto): Promise<Ingreso> {
     // Asegurarse de que id_empresa tenga un valor por defecto si no viene en el DTO
@@ -21,17 +21,22 @@ export class IngresosService {
       ...createIngresoDto,
       id_empresa: createIngresoDto.id_empresa || 1
     };
-    
+
     const ingreso = this.ingresosRepository.create(ingresoData);
     return await this.ingresosRepository.save(ingreso);
   }
 
   async findAll(id_empresa: number): Promise<Ingreso[]> {
-    return await this.ingresosRepository.find({
-      where: { activo: true, id_empresa },
-      relations: ['salida'],
-      order: { fecha: 'DESC' },
-    });
+    return await this.ingresosRepository
+      .createQueryBuilder('ingreso')
+      .where('ingreso.id_empresa = :id_empresa', { id_empresa })
+      .andWhere('ingreso.activo = true')
+      .andWhere(
+        "(ingreso.descripcion NOT LIKE '%[origen=terceros]%' OR ingreso.descripcion IS NULL)"
+      )
+      .leftJoinAndSelect('ingreso.salida', 'salida')
+      .orderBy('ingreso.fecha', 'DESC')
+      .getMany();
   }
 
   async findAllIncludingInactive(id_empresa: number): Promise<Ingreso[]> {
@@ -40,6 +45,20 @@ export class IngresosService {
       relations: ['salida'],
       order: { fecha: 'DESC' },
     });
+  }
+
+  /** Devuelve ingresos excluyendo los generados por Ventas a Terceros */
+  async findAllExcludingTerceros(id_empresa: number): Promise<Ingreso[]> {
+    return await this.ingresosRepository
+      .createQueryBuilder('ingreso')
+      .where('ingreso.id_empresa = :id_empresa', { id_empresa })
+      .andWhere('ingreso.activo = true')
+      .andWhere(
+        "(ingreso.descripcion NOT LIKE '%[origen=terceros]%' OR ingreso.descripcion IS NULL)"
+      )
+      .leftJoinAndSelect('ingreso.salida', 'salida')
+      .orderBy('ingreso.fecha', 'DESC')
+      .getMany();
   }
 
   async findOne(id: string): Promise<Ingreso> {
@@ -77,14 +96,14 @@ export class IngresosService {
 
   async update(id: string, updateIngresoDto: UpdateIngresoDto): Promise<Ingreso> {
     const ingreso = await this.findOne(id);
-    
+
     // Asegurarse de que id_empresa e id_usuario_inserta se mantengan si no vienen en el DTO
     const updatedData = {
       ...updateIngresoDto,
       id_empresa: updateIngresoDto.id_empresa || ingreso.id_empresa || 1,
       id_usuario_inserta: updateIngresoDto.id_usuario_inserta || ingreso.id_usuario_inserta
     };
-    
+
     Object.assign(ingreso, updatedData);
     return await this.ingresosRepository.save(ingreso);
   }
@@ -99,10 +118,11 @@ export class IngresosService {
     const result = await this.ingresosRepository
       .createQueryBuilder('ingreso')
       .select('SUM(ingreso.monto)', 'total')
-      .where('ingreso.activo = :activo AND ingreso.id_empresa = :id_empresa', { 
+      .where('ingreso.activo = :activo AND ingreso.id_empresa = :id_empresa', {
         activo: true,
-        id_empresa 
+        id_empresa
       })
+      .andWhere("(ingreso.descripcion NOT LIKE '%[origen=terceros]%' OR ingreso.descripcion IS NULL)")
       .getRawOne();
 
     return parseFloat(result.total) || 0;
@@ -112,10 +132,11 @@ export class IngresosService {
     const result = await this.ingresosRepository
       .createQueryBuilder('ingreso')
       .select('SUM(ingreso.monto)', 'total')
-      .where('ingreso.activo = :activo AND ingreso.id_empresa = :id_empresa', { 
+      .where('ingreso.activo = :activo AND ingreso.id_empresa = :id_empresa', {
         activo: true,
-        id_empresa 
+        id_empresa
       })
+      .andWhere("(ingreso.descripcion NOT LIKE '%[origen=terceros]%' OR ingreso.descripcion IS NULL)")
       .andWhere('ingreso.fecha BETWEEN :fechaInicio AND :fechaFin', {
         fechaInicio,
         fechaFin,
@@ -131,10 +152,11 @@ export class IngresosService {
       .select('ingreso.tipo', 'tipo')
       .addSelect('SUM(ingreso.monto)', 'total')
       .addSelect('COUNT(ingreso.id)', 'cantidad')
-      .where('ingreso.activo = :activo AND ingreso.id_empresa = :id_empresa', { 
+      .where('ingreso.activo = :activo AND ingreso.id_empresa = :id_empresa', {
         activo: true,
-        id_empresa 
+        id_empresa
       })
+      .andWhere("(ingreso.descripcion NOT LIKE '%[origen=terceros]%' OR ingreso.descripcion IS NULL)")
       .groupBy('ingreso.tipo')
       .getRawMany();
 
@@ -159,12 +181,14 @@ export class IngresosService {
       if (!ingresoExistente) {
         // Calcular el monto basado en la salida usando el valor de la canasta
         const monto = salida.unidades * (salida.canasta?.valorCanasta || 0);
-        
+
+        const isVentaTercero = (salida.nombreComprador || '').toLowerCase().includes('venta tercero');
+
         const nuevoIngreso = await this.create({
           monto,
-          fecha: salida.createdAt.toISOString().split('T')[0], // Convertir Date a string formato YYYY-MM-DD
-          descripcion: `Venta de ${salida.unidades} unidades de ${salida.tipoHuevo?.nombre || 'huevos'}`,
-          observaciones: `Generado automáticamente desde salida ${salida.id}`,
+          fecha: salida.createdAt.toISOString().split('T')[0],
+          descripcion: `Venta de ${salida.unidades} unidades de ${salida.tipoHuevo?.nombre || 'huevos'}${isVentaTercero ? ' [origen=terceros]' : ''}`,
+          observaciones: `Generado automáticamente desde salida ${salida.id}${isVentaTercero ? ' (Venta Tercero)' : ''}`,
           tipo: 'venta',
           salidaId: salida.id,
         });
@@ -182,12 +206,13 @@ export class IngresosService {
       .select('DATE(ingreso.fecha)', 'fecha')
       .addSelect('SUM(ingreso.monto)', 'total')
       .where('ingreso.fecha BETWEEN :fechaInicio AND :fechaFin', { fechaInicio, fechaFin })
-      .andWhere('ingreso.activo = :activo', { activo: true });
-    
+      .andWhere('ingreso.activo = :activo', { activo: true })
+      .andWhere("(ingreso.descripcion NOT LIKE '%[origen=terceros]%' OR ingreso.descripcion IS NULL)");
+
     if (id_empresa) {
       queryBuilder.andWhere('ingreso.id_empresa = :id_empresa', { id_empresa });
     }
-    
+
     const result = await queryBuilder
       .groupBy('DATE(ingreso.fecha)')
       .orderBy('fecha', 'ASC')

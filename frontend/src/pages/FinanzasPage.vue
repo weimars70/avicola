@@ -1242,7 +1242,9 @@ const actualizarDatos = async () => {
     fetchResumenFinancieroWithOrigen(fechaInicio || undefined, fechaFin || undefined, rendOrigen.value),
     fetchGastos(fechaInicio || undefined, fechaFin || undefined),
     fetchIngresos(),
-    cargarDatosCalendario()
+    cargarDatosCalendario(),
+    comprasStore.fetchCompras(),
+    ventasStore.fetchVentas()
   ]);
   
   await nextTick();

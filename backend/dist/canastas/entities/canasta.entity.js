@@ -62,6 +62,14 @@ __decorate([
     __metadata("design:type", Boolean)
 ], Canasta.prototype, "activo", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ type: 'int', default: 1 }),
+    __metadata("design:type", Number)
+], Canasta.prototype, "empresa_id", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'text', default: 'weimars70@gmail.com' }),
+    __metadata("design:type", String)
+], Canasta.prototype, "usuario", void 0);
+__decorate([
     (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Date)
 ], Canasta.prototype, "createdAt", void 0);
