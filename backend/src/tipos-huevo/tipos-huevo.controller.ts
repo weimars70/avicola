@@ -8,8 +8,6 @@ import {
   Delete,
   UseGuards,
   ParseUUIDPipe,
-  Query,
-  ParseIntPipe,
 } from '@nestjs/common';
 import { TiposHuevoService } from './tipos-huevo.service';
 import { CreateTipoHuevoDto } from './dto/create-tipo-huevo.dto';
@@ -23,7 +21,11 @@ export class TiposHuevoController {
   constructor(private readonly tiposHuevoService: TiposHuevoService) { }
 
   @Post()
-  create(@Body() createTipoHuevoDto: CreateTipoHuevoDto) {
+  create(
+    @Body() createTipoHuevoDto: CreateTipoHuevoDto,
+    @IdEmpresa() id_empresa: number,
+  ) {
+    createTipoHuevoDto.id_empresa = id_empresa;
     return this.tiposHuevoService.create(createTipoHuevoDto);
   }
 
@@ -38,20 +40,27 @@ export class TiposHuevoController {
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseUUIDPipe) id: string) {
-    return this.tiposHuevoService.findOne(id);
+  findOne(
+    @Param('id', ParseUUIDPipe) id: string,
+    @IdEmpresa() id_empresa: number,
+  ) {
+    return this.tiposHuevoService.findOne(id, id_empresa);
   }
 
   @Patch(':id')
   update(
     @Param('id', ParseUUIDPipe) id: string,
+    @IdEmpresa() id_empresa: number,
     @Body() updateTipoHuevoDto: UpdateTipoHuevoDto,
   ) {
-    return this.tiposHuevoService.update(id, updateTipoHuevoDto);
+    return this.tiposHuevoService.update(id, id_empresa, updateTipoHuevoDto);
   }
 
   @Delete(':id')
-  remove(@Param('id', ParseUUIDPipe) id: string) {
-    return this.tiposHuevoService.remove(id);
+  remove(
+    @Param('id', ParseUUIDPipe) id: string,
+    @IdEmpresa() id_empresa: number,
+  ) {
+    return this.tiposHuevoService.remove(id, id_empresa);
   }
 }

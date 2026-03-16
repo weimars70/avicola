@@ -43,8 +43,8 @@ export class TiposHuevoService {
     return tipoHuevo;
   }
 
-  async update(id: string, updateTipoHuevoDto: UpdateTipoHuevoDto): Promise<TipoHuevo> {
-    const tipoHuevo = await this.findOne(id);
+  async update(id: string, id_empresa: number, updateTipoHuevoDto: UpdateTipoHuevoDto): Promise<TipoHuevo> {
+    const tipoHuevo = await this.findOne(id, id_empresa);
 
     Object.assign(tipoHuevo, updateTipoHuevoDto);
     tipoHuevo.updatedAt = new Date();
@@ -52,8 +52,8 @@ export class TiposHuevoService {
     return await this.tiposHuevoRepository.save(tipoHuevo);
   }
 
-  async remove(id: string): Promise<void> {
-    const tipoHuevo = await this.findOne(id);
+  async remove(id: string, id_empresa: number): Promise<void> {
+    const tipoHuevo = await this.findOne(id, id_empresa);
 
     tipoHuevo.activo = false;
     tipoHuevo.updatedAt = new Date();

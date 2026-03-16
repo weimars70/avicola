@@ -67,12 +67,14 @@ export class AjustesInventarioService {
     if (createAjusteDto.tipoAjuste === 'suma') {
       await this.inventarioStockService.aumentarStock(
         createAjusteDto.tipoHuevoId,
-        createAjusteDto.cantidadAjuste
+        createAjusteDto.cantidadAjuste,
+        id_empresa
       );
     } else {
       await this.inventarioStockService.reducirStock(
         createAjusteDto.tipoHuevoId,
-        createAjusteDto.cantidadAjuste
+        createAjusteDto.cantidadAjuste,
+        id_empresa
       );
     }
 
@@ -236,12 +238,14 @@ export class AjustesInventarioService {
         if (ajuste.tipoAjuste === 'suma') {
           await this.inventarioStockService.reducirStock(
             ajuste.tipoHuevoId,
-            ajuste.cantidadAjuste
+            ajuste.cantidadAjuste,
+            ajuste.id_empresa
           );
         } else {
           await this.inventarioStockService.aumentarStock(
             ajuste.tipoHuevoId,
-            ajuste.cantidadAjuste
+            ajuste.cantidadAjuste,
+            ajuste.id_empresa
           );
         }
       }
@@ -261,17 +265,19 @@ export class AjustesInventarioService {
     if (ajuste.tipoAjuste === 'suma') {
       await this.inventarioStockService.reducirStock(
         ajuste.tipoHuevoId,
-        ajuste.cantidadAjuste
+        ajuste.cantidadAjuste,
+        ajuste.id_empresa
       );
     } else {
       await this.inventarioStockService.aumentarStock(
         ajuste.tipoHuevoId,
-        ajuste.cantidadAjuste
+        ajuste.cantidadAjuste,
+        ajuste.id_empresa
       );
     }
 
     // Obtener la cantidad actual del inventario
-    const inventarioActual = await this.inventarioStockService.findByTipoHuevo(updateAjusteDto.tipoHuevoId, 1);
+    const inventarioActual = await this.inventarioStockService.findByTipoHuevo(updateAjusteDto.tipoHuevoId, ajuste.id_empresa);
     const cantidadAnterior = inventarioActual ? inventarioActual.unidades : 0;
 
     let cantidadNueva: number;
@@ -297,12 +303,14 @@ export class AjustesInventarioService {
     if (updateAjusteDto.tipoAjuste === 'suma') {
       await this.inventarioStockService.aumentarStock(
         updateAjusteDto.tipoHuevoId,
-        updateAjusteDto.cantidadAjuste
+        updateAjusteDto.cantidadAjuste,
+        ajuste.id_empresa
       );
     } else {
       await this.inventarioStockService.reducirStock(
         updateAjusteDto.tipoHuevoId,
-        updateAjusteDto.cantidadAjuste
+        updateAjusteDto.cantidadAjuste,
+        ajuste.id_empresa
       );
     }
 
@@ -316,12 +324,14 @@ export class AjustesInventarioService {
     if (ajuste.tipoAjuste === 'suma') {
       await this.inventarioStockService.reducirStock(
         ajuste.tipoHuevoId,
-        ajuste.cantidadAjuste
+        ajuste.cantidadAjuste,
+        ajuste.id_empresa
       );
     } else {
       await this.inventarioStockService.aumentarStock(
         ajuste.tipoHuevoId,
-        ajuste.cantidadAjuste
+        ajuste.cantidadAjuste,
+        ajuste.id_empresa
       );
     }
 

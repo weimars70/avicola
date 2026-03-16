@@ -47,13 +47,14 @@ export const getApiConfig = (): ApiConfig => {
     console.log('🚀 Modo móvil detectado - usando servidor:', configs.mobile.baseURL);
     return configs.mobile;
   }
-  
-  // Si estamos en desarrollo (localhost)
-  if (import.meta.env.DEV) {
-    console.log('🛠️ Modo desarrollo - usando servidor:', configs.development.baseURL);
+
+  // Si estamos en localhost, usar configuración de desarrollo
+  const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+  if (isLocalhost) {
+    console.log('🛠️ Modo desarrollo (localhost) - usando servidor:', configs.development.baseURL);
     return configs.development;
   }
-  
+
   // Por defecto, usar configuración de producción
   console.log('🌐 Modo producción - usando servidor:', configs.production.baseURL);
   return configs.production;

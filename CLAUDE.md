@@ -59,41 +59,49 @@ npx cap open android
 
 See `MOBILE_BUILD.md` for detailed mobile compilation instructions.
 
+**No tests are configured** — both `backend` and `frontend` package.json have placeholder test scripts that exit immediately.
+
 ## Architecture
 
 ### Multi-Tenancy Model
 - **Critical**: All entities use `id_empresa` for tenant isolation
-- Every request includes `x-empresa-id` header (added by axios interceptor)
-- User authentication returns `id_empresa` which is stored in localStorage
-- The backend filters queries by `id_empresa` to ensure data isolation
+- The backend extracts `id_empresa` from the **JWT token payload** (primary) or query param `id_empresa` (fallback) via `EmpresaMiddleware`
+- The frontend axios interceptor adds the `x-empresa-id` header from localStorage, but the backend authoritative source is the JWT payload
+- All queries must filter by `id_empresa`
 
 ### Backend Structure
 
-**Module Organization**: Each business domain has its own module (galpones, tipos-huevo, canastas, inventario, etc.)
+**Module Organization**: Each business domain has its own NestJS module. All modules are registered in `backend/src/app.module.ts`.
 
 **Key Modules**:
-- `auth`: JWT authentication with Passport Local strategy
+- `auth`: JWT authentication with Passport Local strategy; `JwtAuthGuard` protects endpoints; `EmpresaMiddleware` extracts `id_empresa` from JWT
 - `users`: User management with company (empresa) association
-- `database`: TypeORM configuration with PostgreSQL (synchronize: false)
-- `galpones`: Chicken coop management
+- `database`: TypeORM configuration (`synchronize: false`); **all entities must be registered here** or TypeORM won't find them
+- `galpones`: Chicken coop management (includes `DetalleGalpon` sub-entity)
 - `tipos-huevo`: Egg type definitions
 - `canastas`: Basket management
 - `inventario`: Main inventory system with three controllers:
   - `inventario-stock.controller`: Stock management
-  - `ajustes-inventario.controller`: Inventory adjustments (with lote support)
-  - `resumen.controller`: Summary reports (integrated with terceros)
+  - `ajustes-inventario.controller`: Inventory adjustments (with lote grouping via `AjusteLote`)
+  - `resumen.controller`: Consolidated inventory view combining all three inventory sources
 - `entradas-produccion`: Production entries (eggs produced)
 - `salidas`: Inventory exits/sales
-- `finanzas`: Financial module (gastos/ingresos/rendimiento)
-- `terceros`: Third-party vendor/client management with master data (ciudad, estrato, tipo-regimen, etc.)
-- `compras-terceros`: Purchase tracking from third parties
-- `ventas-terceros`: Sales tracking to third parties
-- `inventario-terceros`: Separate inventory for third-party products
+- `finanzas`: Financial module (gastos/ingresos/rendimiento/categorias-gasto)
+- `terceros`: Vendor/client management; `maestros.controller.ts` serves catalogues (ciudad, estrato, tipo-regimen, tipo-ident, tipo-impuesto)
+- `compras-terceros`: Purchase tracking (header `Compra` + line items `DetalleCompra`)
+- `ventas-terceros`: Sales tracking (header `Venta` + line items `DetalleVenta`)
 - `notifications`: Notification system
 
-**Entity Registration**: All entities MUST be registered in `backend/src/database/database.module.ts` in the entities array, otherwise TypeORM won't recognize them and endpoints will return 404.
+> **Note**: `InventarioTerceros` entity exists and is registered in `database.module.ts`, but there is **no dedicated module** for it in `app.module.ts`. Its CRUD is handled within `compras-terceros` and `ventas-terceros`.
 
-**Port Management**: Backend runs on port 3012. The `prestart:dev` script automatically kills any process on this port using `src/scripts/kill-port.js`.
+**Global NestJS config** (set in `main.ts`):
+- Timezone: `America/Bogota`
+- `ValidationPipe` with `whitelist: true`, `forbidNonWhitelisted: true`, `transform: true` — DTOs must use class-validator decorators; extra fields are stripped and unknown fields throw
+- Global exception filter logs full request details on errors
+
+**No database migrations folder** — `synchronize: false`, so schema changes must be applied manually via SQL.
+
+**`@nestjs/swagger` is installed** but not configured in `main.ts` (no Swagger UI exposed).
 
 ### Frontend Structure
 
@@ -101,17 +109,15 @@ See `MOBILE_BUILD.md` for detailed mobile compilation instructions.
 
 **Key Directories**:
 - `src/pages`: Page components (one per route)
-- `src/stores`: Pinia stores (auth, inventario, terceros, compras-terceros, ventas-terceros, etc.)
+- `src/stores`: Pinia stores per domain (auth, inventario, galpones, terceros, compras-terceros, ventas-terceros, salidas, ajustesInventario, tutorial, historialFinanciero, etc.)
 - `src/config`: API configuration with environment detection
 - `src/boot`: Boot files (axios, pinia, i18n)
-- `src/layouts`: MainLayout and AuthLayout
-- `src/components`: Reusable components
-- `src/utils`: Utility functions including localStorage helpers
+- `src/layouts`: `MainLayout.vue` (authenticated) and `AuthLayout.vue` (login/register)
 
-**API Configuration**: `src/config/api.ts` auto-detects environment:
-- Capacitor (mobile): Uses production URL (2.58.80.90:3012)
-- Development: localhost:3012
-- Production web: 2.58.80.90:3012
+**API Configuration** (`src/config/api.ts`) auto-detects environment:
+- Capacitor (mobile): production URL (`2.58.80.90:3012`)
+- Development: `localhost:3012`
+- Production web: `2.58.80.90:3012`
 
 **Axios Interceptors** (`src/boot/axios.ts`):
 - Adds `Authorization: Bearer <token>` header
@@ -120,14 +126,16 @@ See `MOBILE_BUILD.md` for detailed mobile compilation instructions.
 - Adds `id_usuario_actualiza` for PUT/PATCH requests
 - Handles 401 errors by redirecting to login
 
+**Chart.js** is used for financial/inventory visualizations.
+
 ### Authentication Flow
 
-1. User logs in via `/auth/login` with email/password
+1. User logs in via `POST /auth/login` with email/password
 2. Backend validates credentials and returns JWT + user data (including `id_empresa`)
 3. Frontend stores token, id_usuario, and id_empresa in localStorage
 4. Frontend sets `Authorization` header and forces page reload to clear state
-5. On app init, authStore.initializeAuth() calls `/auth/profile` to restore user session
-6. JWT payload includes: `{ email, sub (user id), rol, id_empresa }`
+5. On app init, `authStore.initializeAuth()` calls `GET /auth/profile` to restore session
+6. JWT payload: `{ email, sub (user id), rol, id_empresa }`
 
 ### Database Entity Pattern
 
@@ -149,36 +157,36 @@ fecha_actualiza: Date;
 id_empresa: number;
 ```
 
+> Exception: `InventarioTerceros` uses camelCase column naming (`idEmpresa`, `createdAt`/`updatedAt`) instead of snake_case — inconsistent with the rest of the codebase.
+
 ### Inventory System
 
 **Three-layer inventory tracking**:
-1. **Production Inventory**: Eggs produced in-house (managed via entradas-produccion/salidas)
-2. **Third-party Inventory**: Products bought from vendors (inventario-terceros)
-3. **Adjustments**: Manual corrections (ajuste-inventario with ajuste-lote grouping)
+1. **Production Inventory**: Eggs produced in-house (managed via `entradas-produccion` / `salidas`)
+2. **Third-party Inventory**: Products bought from vendors (`inventario-terceros` table)
+3. **Adjustments**: Manual corrections (`ajuste-inventario` with `ajuste-lote` grouping)
 
-**Resumen Controller**: Provides consolidated inventory view combining all three sources, filterable by `id_empresa`.
+**Resumen Controller**: Combines all three sources into a single consolidated view, filterable by `id_empresa`.
 
 ### Terceros (Third-Party) Module
 
-Comprehensive vendor/client management with:
-- Master data controllers: `maestros.controller.ts` serves catalogues (ciudad, estrato, tipo-regimen, tipo-ident, tipo-impuesto)
-- CRUD operations for terceros with full audit trail
-- Integration with compras-terceros and ventas-terceros
-- Decorators for empresa isolation (`@EmpresaId()` in guards)
+- Master data served by `maestros.controller.ts`: ciudad, estrato, tipo-regimen, tipo-ident, tipo-impuesto
+- Full CRUD for terceros with audit trail
+- `id_empresa` isolation enforced via `EmpresaMiddleware`
 
 ## Important Patterns
 
 ### Adding New Entities
 1. Create entity in appropriate module's `entities/` folder
-2. Register in `backend/src/database/database.module.ts` entities array
-3. Create DTOs in module's `dto/` folder
+2. **Register in `backend/src/database/database.module.ts` entities array** (required — omitting causes 404)
+3. Create DTOs in module's `dto/` folder (class-validator decorators required due to global ValidationPipe)
 4. Implement service and controller
-5. Add to module's imports/providers/controllers
+5. Add to module's `imports` (TypeOrmModule.forFeature), `providers`, and `controllers`
 6. Restart backend to apply schema changes
 
 ### Adding New Routes
-1. Backend: Add endpoint in controller with appropriate guards
-2. Frontend: Add route in `src/router/routes.ts`
+1. Backend: Add endpoint in controller with `@UseGuards(JwtAuthGuard)`
+2. Frontend: Add route in `src/router/routes.ts` under the `MainLayout` parent
 3. Create page component in `src/pages/`
 4. Create Pinia store if state management needed
 5. Add navigation link in `src/layouts/MainLayout.vue`
@@ -186,26 +194,26 @@ Comprehensive vendor/client management with:
 ### Multi-Company Queries
 Always filter by `id_empresa`:
 ```typescript
-// Backend
+// Backend — extract from JWT via middleware
 await repository.find({ where: { id_empresa } });
 
-// Frontend (automatic via interceptor)
-// Just ensure localStorage has correct id_empresa
+// Frontend — automatic via axios interceptor
 ```
 
 ## CORS Configuration
 
-Backend allows origins from:
-- localhost:3011 (frontend dev)
-- 2.58.80.90:3011, 2.58.80.90:3012 (production)
-- capacitor://localhost, capacitor:// (mobile apps)
-- null origin (for mobile native requests)
+Allowed origins (configured in `main.ts`):
+- `http://localhost:3011`, `http://localhost`
+- `http://2.58.80.90:3011`, `http://2.58.80.90:3012`, `http://2.58.80.90`
+- `capacitor://localhost`, `capacitor://`
+- `null` / no-origin (mobile native requests)
+- `https://bolt.new`
 
-Required headers: Content-Type, Authorization, Accept, Cache-Control, x-empresa-id
+Required headers: `Content-Type`, `Authorization`, `Accept`, `Cache-Control`, `x-empresa-id`
 
 ## Environment Variables
 
-### Backend (.env)
+### Backend (`backend/.env`)
 ```
 DB_HOST=localhost
 DB_PORT=5432
@@ -217,7 +225,7 @@ NODE_ENV=development
 JWT_SECRET=<your-secret>
 ```
 
-### Frontend (.env)
+### Frontend (`frontend/.env`)
 ```
 VITE_DEV_PORT=3011
 VITE_API_URL_DEV=http://localhost:3012
@@ -229,15 +237,17 @@ VITE_APP_VERSION=1.0.0
 
 ## Deployment Notes
 
-- Backend uses TypeScript with `synchronize: false` (manual migrations required)
+- Backend uses TypeScript with `synchronize: false` (manual schema changes required)
 - Frontend builds to `dist/spa` directory
 - See `DEPLOYMENT_INSTRUCTIONS.md` for detailed deployment steps
 - Mobile builds require Capacitor sync after frontend build
 
 ## Common Gotchas
 
-1. **404 on new endpoints**: Verify entity is registered in database.module.ts
-2. **Data not filtering by company**: Ensure id_empresa is passed and used in queries
-3. **Mobile CORS issues**: Check backend CORS allows capacitor:// origin
-4. **Session persistence issues**: Verify localStorage contains token, id_usuario, id_empresa
-5. **Port conflicts**: prestart:dev kills port 3012, but verify manually if needed
+1. **404 on new endpoints**: Entity not registered in `database.module.ts` entities array
+2. **Data not filtering by company**: Missing `id_empresa` in repository query `where` clause
+3. **DTO validation errors**: `ValidationPipe` has `forbidNonWhitelisted: true` — all fields must be declared in the DTO with class-validator decorators
+4. **Mobile CORS issues**: Check backend CORS allows `capacitor://` origin
+5. **Session persistence issues**: Verify localStorage contains `token`, `id_usuario`, `id_empresa`
+6. **Port conflicts**: `prestart:dev` kills port 3012 automatically, but verify manually if needed
+7. **Date/time issues**: Server timezone is fixed to `America/Bogota` in `main.ts`

@@ -34,8 +34,7 @@ api.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
 
-    // IMPORTANTE: Obtener id_empresa directamente del localStorage, no del objeto user
-    const idEmpresa = localStorage.getItem('id_empresa') || '2';
+    const idEmpresa = localStorage.getItem('id_empresa') || '';
     const isAuthRoute = config.url?.includes('/auth/');
 
     if (!isAuthRoute) {

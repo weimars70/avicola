@@ -2,6 +2,7 @@ import { IsString, IsOptional, IsBoolean, IsNumber, MaxLength, Min } from 'class
 import { Type } from 'class-transformer';
 
 export class CreateTipoHuevoDto {
+  @IsOptional()
   @IsNumber()
   @Type(() => Number)
   id_empresa: number;

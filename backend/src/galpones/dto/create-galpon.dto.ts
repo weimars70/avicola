@@ -18,7 +18,7 @@ export class CreateGalponDto {
   @IsBoolean()
   activo?: boolean = true;
   
-  @IsNotEmpty()
+  @IsOptional()
   @IsInt()
   id_empresa: number;
   

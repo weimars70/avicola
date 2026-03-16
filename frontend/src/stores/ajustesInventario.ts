@@ -153,9 +153,6 @@ export const useAjustesInventarioStore = defineStore('ajustesInventario', () => 
     loading.value = true;
     error.value = null;
     try {
-      // Obtener id_empresa del localStorage
-      const id_empresa = localStorage.getItem('id_empresa');
-      
       // Extraer solo las propiedades que acepta el backend
       const datosParaEnviar = {
         descripcionGeneral: loteData.descripcionGeneral,
@@ -167,7 +164,7 @@ export const useAjustesInventarioStore = defineStore('ajustesInventario', () => 
       
       console.log('Datos enviados al backend:', datosParaEnviar);
       
-      const response = await api.post(`/ajustes-inventario/lotes?id_empresa=${id_empresa}`, datosParaEnviar);
+      const response = await api.post('/ajustes-inventario/lotes', datosParaEnviar);
       const nuevoLote = response.data;
       lotes.value.unshift(nuevoLote);
       

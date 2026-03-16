@@ -623,12 +623,7 @@ const saveTipoHuevo = async () => {
         message: 'Tipo de huevo actualizado correctamente'
       });
     } else {
-      // Añadir id_empresa al crear un nuevo tipo de huevo
-      const tipoHuevoData = {
-        ...form.value,
-        id_empresa: 2 // Usando el id_empresa que aparece en la URL del error
-      };
-      await tiposHuevoStore.createTipoHuevo(tipoHuevoData);
+      await tiposHuevoStore.createTipoHuevo(form.value);
       $q.notify({
         type: 'positive',
         message: 'Tipo de huevo creado correctamente'

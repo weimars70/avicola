@@ -638,12 +638,7 @@ const saveCanasta = async () => {
         message: 'Canasta actualizada correctamente'
       });
     } else {
-      // Añadir id_empresa al crear una nueva canasta
-      const canastaData = {
-        ...form.value,
-        id_empresa: 2 // Usando el id_empresa que aparece en la URL del error
-      };
-      await canastasStore.createCanasta(canastaData);
+      await canastasStore.createCanasta(form.value);
       $q.notify({
         type: 'positive',
         message: 'Canasta creada correctamente'

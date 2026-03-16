@@ -112,7 +112,7 @@ export class EntradasProduccionService {
         fecha: createEntradasMasivasDto.fecha,
         tipoHuevoId: entrada.tipoHuevoId,
         unidades: entrada.unidades,
-        id_empresa: createEntradasMasivasDto.id_empresa || 1,
+        id_empresa: createEntradasMasivasDto.id_empresa,
         id_usuario_inserta: createEntradasMasivasDto.id_usuario_inserta
       })
     );

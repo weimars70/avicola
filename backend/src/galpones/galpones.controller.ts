@@ -24,19 +24,15 @@ export class GalponesController {
   constructor(private readonly galponesService: GalponesService) { }
 
   @Post()
-  async create(@Body() createGalponDto: CreateGalponDto) {
-    this.logger.log('=== INICIO CREACIÓN GALPÓN ===');
-    this.logger.log('Datos recibidos:', JSON.stringify(createGalponDto));
-
+  async create(
+    @Body() createGalponDto: CreateGalponDto,
+    @IdEmpresa() id_empresa: number,
+  ) {
+    createGalponDto.id_empresa = id_empresa;
     try {
-      const resultado = await this.galponesService.create(createGalponDto);
-      this.logger.log('Galpón creado exitosamente:', JSON.stringify(resultado));
-      this.logger.log('=== FIN CREACIÓN GALPÓN (ÉXITO) ===');
-      return resultado;
+      return await this.galponesService.create(createGalponDto);
     } catch (error) {
       this.logger.error('Error al crear galpón:', error.message);
-      this.logger.error('Stack trace:', error.stack);
-      this.logger.log('=== FIN CREACIÓN GALPÓN (ERROR) ===');
       throw error;
     }
   }

@@ -151,10 +151,10 @@ export class SalidasService {
       }
 
       // Restaurar inventario original (devolver los huevos que se habían restado)
-      await this.inventarioStockService.aumentarStock(tipoHuevoOriginal, unidadesTotalesOriginales);
+      await this.inventarioStockService.aumentarStock(tipoHuevoOriginal, unidadesTotalesOriginales, id_empresa);
 
       // Reducir inventario con nuevos valores (restar los huevos actualizados)
-      await this.inventarioStockService.reducirStock(nuevoTipoHuevo, unidadesTotalesNuevas);
+      await this.inventarioStockService.reducirStock(nuevoTipoHuevo, unidadesTotalesNuevas, id_empresa);
     }
 
     // Calcular valor automáticamente si cambiaron unidades o canasta, y no se envía un valor explícito
@@ -215,7 +215,7 @@ export class SalidasService {
     }
 
     // Devolver el inventario antes de eliminar (restaurar los huevos que se habían restado)
-    await this.inventarioStockService.aumentarStock(salida.tipoHuevoId, unidadesTotales);
+    await this.inventarioStockService.aumentarStock(salida.tipoHuevoId, unidadesTotales, salida.id_empresa);
 
     // Eliminar la salida
     await this.salidasRepository.remove(salida);
